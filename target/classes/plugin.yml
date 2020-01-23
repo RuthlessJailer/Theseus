@@ -1,0 +1,8 @@
+name: Dionysus
+version: 1.0
+main: com.ruthlessjailer.util.dionysus.Main
+api-version: 1.13
+author: RuthlessJailer
+commands:
+  test:
+    description: delete
