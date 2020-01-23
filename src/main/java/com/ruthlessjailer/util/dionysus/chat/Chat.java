@@ -1,5 +1,6 @@
 package com.ruthlessjailer.util.dionysus.chat;
 
+import com.ruthlessjailer.util.dionysus.Main;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -29,6 +30,15 @@ public class Chat {
         for(String message : messages) {
             System.out.println(ConsoleColor.translateAlternateColorCodes('&', message)+ConsoleColor.RESET);
         }
+    }
+
+    public static void logConsole(String... messages){
+        for(String message : messages) {
+            Main.log.info(ConsoleColor.translateAlternateColorCodes('&', message)+ConsoleColor.RESET);
+        }
+    }
+    public static void logConsole(String message){
+        Main.log.info(ConsoleColor.translateAlternateColorCodes('&', message)+ConsoleColor.RESET);
     }
 
 }
