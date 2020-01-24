@@ -20,5 +20,5 @@ public final class Main extends JavaPlugin {
         // Plugin shutdown logic
     }
 
-    public Plugin getPlugin(){ return this; }
+    public Plugin getAPI(){ return this; }
 }
