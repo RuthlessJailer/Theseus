@@ -1,4 +1,4 @@
-package com.ruthlessjailer.util.dionysus.items;
+package com.ruthlessjailer.util.theseus.items;
 
 import com.sun.org.apache.xpath.internal.objects.XNull;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;

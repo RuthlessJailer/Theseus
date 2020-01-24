@@ -1,4 +1,4 @@
-package com.ruthlessjailer.util.dionysus;
+package com.ruthlessjailer.util.theseus;
 
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;

@@ -1,6 +1,6 @@
-package com.ruthlessjailer.util.dionysus.chat;
+package com.ruthlessjailer.util.theseus.chat;
 
-import com.ruthlessjailer.util.dionysus.Main;
+import com.ruthlessjailer.util.theseus.Main;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 

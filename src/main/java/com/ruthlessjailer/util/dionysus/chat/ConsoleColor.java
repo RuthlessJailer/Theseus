@@ -1,4 +1,4 @@
-package com.ruthlessjailer.util.dionysus.chat;
+package com.ruthlessjailer.util.theseus.chat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
