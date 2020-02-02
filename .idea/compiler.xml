@@ -6,11 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Dionysus" />
+        <module name="Theseus" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="Dionysus" target="1.8" />
+      <module name="Theseus" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
