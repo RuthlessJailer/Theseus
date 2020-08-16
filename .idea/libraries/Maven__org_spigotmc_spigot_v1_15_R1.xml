@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Maven: org.spigotmc:spigot:v1_15_R1">
+    <CLASSES />
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/spigotmc/spigot/v1_15_R1/spigot-v1_15_R1-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/spigotmc/spigot/v1_15_R1/spigot-v1_15_R1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
