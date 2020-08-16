@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="libraryTable">
+    <library name="lombok">
+      <CLASSES>
+        <root url="jar://D:/Programming/IntelliJ/lombok.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES />
+    </library>
+    <library name="mineacademy">
+      <CLASSES />
+      <JAVADOC />
+      <SOURCES>
+        <root url="file://$MAVEN_REPOSITORY$/org/mineacademy" />
+      </SOURCES>
+    </library>
+  </component>
+</project>
