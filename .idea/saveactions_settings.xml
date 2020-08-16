@@ -7,12 +7,10 @@
         <option value="organizeImports" />
         <option value="reformat" />
         <option value="rearrange" />
-        <option value="compile" />
-        <option value="reload" />
         <option value="localCanBeFinal" />
         <option value="localCanBeFinalExceptImplicit" />
         <option value="unqualifiedFieldAccess" />
-        <option value="unqualifiedStaticMemberAccess" />
+        <option value="unqualifiedMethodAccess" />
         <option value="missingOverrideAnnotation" />
         <option value="useBlocks" />
         <option value="generateSerialVersionUID" />

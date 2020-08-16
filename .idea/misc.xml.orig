@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="EntryPointsManager">
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="org.bukkit.event.EventHandler" />
+    </list>
+  </component>
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/pom.xml" />
+      </list>
+    </option>
+  </component>
+<<<<<<< HEAD
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8.0_241" project-jdk-type="JavaSDK" />
+=======
+  <component name="ProjectRootManager" version="2" project-jdk-name="1.8.0_181" project-jdk-type="JavaSDK" />
+>>>>>>> 5a9f6a929f12cf83e76cccab082d4a7da27455bd
+</project>
