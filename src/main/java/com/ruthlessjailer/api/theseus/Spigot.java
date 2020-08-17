@@ -8,20 +8,20 @@ import org.bukkit.command.SimpleCommandMap;
 
 import java.util.Map;
 
-import static com.ruthlessjailer.api.theseus.ReflectUtil.*;
+import static com.ruthlessjailer.api.theseus.ReflectUtil.getCraftBukkitClass;
+import static com.ruthlessjailer.api.theseus.ReflectUtil.getFieldValue;
 
 public final class Spigot {
 
-	public static final void registerCommand(final Command command){
+	public static final void registerCommand(final Command command) {
 		final CommandMap commandMap = getCommandMap();
 
-		commandMap.register(command.getLabel(),command);
+		commandMap.register(command.getLabel(), command);
 
-		Checks.checkTrue(command.isRegistered(), String.format("Unable to register command %s.", command.getName()));
+		Checks.verify(command.isRegistered(), String.format("Unable to register command %s.", command.getName()));
 	}
 
-	@SuppressWarnings("unchecked")
-	public static final void unregisterCommand(final String label){
+	public static final void unregisterCommand(final String label) {
 		final PluginCommand command = Bukkit.getPluginCommand(label);
 
 		final Map<String, Command> commandMap =
@@ -29,20 +29,21 @@ public final class Spigot {
 
 		commandMap.remove(label);
 
-		if(command != null){
-			if(command.isRegistered()) {
+		if (command != null) {
+			if (command.isRegistered()) {
 				command.unregister(
 						(CommandMap) getFieldValue(Command.class, "commandMap", command));
 			}
 
-			for(final String alias : command.getAliases()){
+			for (final String alias : command.getAliases()) {
 				commandMap.remove(alias);
 			}
 		}
 	}
 
-	public static SimpleCommandMap getCommandMap(){
-		return (SimpleCommandMap) getFieldValue(getCraftBukkitClass("CraftServer"), "getCommandMap", Bukkit.getServer());
+	public static SimpleCommandMap getCommandMap() {
+		return (SimpleCommandMap) getFieldValue(getCraftBukkitClass("CraftServer"), "getCommandMap",
+												Bukkit.getServer());
 	}
 
 }

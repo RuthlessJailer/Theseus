@@ -4,17 +4,18 @@ import java.lang.reflect.InvocationTargetException;
 
 public final class Checks {
 
-	public static void nullCheck(final Object object, final String falseMessage) {
+	public static <T> T nullCheck(final T object, final String falseMessage) {
 		if (object == null) {
 			throw new NullPointerException(falseMessage);
 		}
+		return object;
 	}
 
-	static void checkTrue(final boolean condition, final String falseMessage) {
-		Checks.checkTrue(condition, falseMessage, RuntimeException.class);
+	public static void verify(final boolean condition, final String falseMessage) {
+		Checks.verify(condition, falseMessage, RuntimeException.class);
 	}
 
-	public static void checkTrue(final boolean condition, final String falseMessage, final Class<? extends RuntimeException> exception) {
+	public static void verify(final boolean condition, final String falseMessage, final Class<? extends RuntimeException> exception) {
 		if (!condition) {
 			try {
 				throw exception.getConstructor(String.class).newInstance(falseMessage);

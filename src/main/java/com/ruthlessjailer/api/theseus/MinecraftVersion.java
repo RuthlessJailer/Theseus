@@ -26,66 +26,14 @@ public enum MinecraftVersion {
 	v1_4(4, "1.4", VersionType.OBSOLETE),
 	v1_3_OR_OLDER(3, "1.3 or older", VersionType.OBSOLETE);
 
-	@AllArgsConstructor
-	@Getter
-	public enum VersionType{
-		MODERN("Modern"),
-		LEGACY("Legacy"),
-		OBSOLETE("Obsolete");
-
-		private final String name;
-	}
-
-
 	public static final MinecraftVersion CURRENT_VERSION;
 	public static final String           SERVER_VERSION;
-
-	private final int id;
-	private final String name;
-	private final VersionType type;
-
-	public boolean isAtLeast(final MinecraftVersion version){ return this.id >= version.id; }
-
-	public boolean isAtMost(final MinecraftVersion version){ return this.id <= version.id; }
-
-	public boolean isBefore(final MinecraftVersion version){ return this.id < version.id; }
-
-	public boolean isAfter(final MinecraftVersion version){ return this.id > version.id; }
-
-	public boolean equals(final MinecraftVersion version){ return version.id == this.id; }
-
-	public MinecraftVersion getPrevious(){ return MinecraftVersion.fromId(this.id + 1); }
-
-	public MinecraftVersion getNext(){ return MinecraftVersion.fromId(this.id + 1); }
-
-	public static boolean atLeast(final MinecraftVersion version){
-		return MinecraftVersion.CURRENT_VERSION.isAtLeast(version);
-	}
-
-	public static boolean atMost(final MinecraftVersion version){
-		return MinecraftVersion.CURRENT_VERSION.isAtMost(version);
-	}
-
-	public static MinecraftVersion fromId(final int id){
-		for(final MinecraftVersion version : MinecraftVersion.values()){
-			if(version.id == id){
-				return version;
-			}
-		}
-		throw new IllegalArgumentException("Unknown version identifier "+id);
-	}
-
-	static void flashTell(final String what) { System.out.println("*|-----------------> " + what + " <-----------------|*");}
 
 	static {
 		final String pkg = Bukkit.getServer() == null ? "" :
 						   Bukkit.getServer().getClass().getPackage().getName();
-		final String version = pkg.substring(pkg.lastIndexOf('.') + 1);
+		final String  version       = pkg.substring(pkg.lastIndexOf('.') + 1);
 		final boolean hasIdentifier = !version.equals("craftbukkit");
-
-		MinecraftVersion.flashTell("package: " + pkg);
-		MinecraftVersion.flashTell("version: " + version);
-		MinecraftVersion.flashTell("hasIdentifier: " + hasIdentifier);
 
 		SERVER_VERSION = version;
 
@@ -100,7 +48,6 @@ public enum MinecraftVersion {
 			}
 
 			final String numeric = version.substring(1, i - 2).replace("_", ".");//v1_15_R1 -> 1_15 -> 1.15
-			MinecraftVersion.flashTell("numeric: " + numeric);
 
 			int dots = 0;
 
@@ -110,8 +57,9 @@ public enum MinecraftVersion {
 				}
 			}
 
-			if(dots != 1){
-				throw new IllegalStateException("Unsupported server version. Error parsing: "+version+" -> "+numeric);
+			if (dots != 1) {
+				throw new IllegalStateException(
+						"Unsupported server version. Error parsing: " + version + " -> " + numeric);
 			}
 
 			CURRENT_VERSION = MinecraftVersion.fromId(Integer.parseInt(numeric.split("\\.")[1]));//15
@@ -119,6 +67,65 @@ public enum MinecraftVersion {
 		} else {
 			CURRENT_VERSION = MinecraftVersion.v1_3_OR_OLDER;
 		}
-		MinecraftVersion.flashTell("CURRENT_VERSION: " + MinecraftVersion.CURRENT_VERSION);
+		Chat.info(String.format("Detected server version %s.", MinecraftVersion.CURRENT_VERSION.getXname()));
+	}
+
+	private final int         id;
+	private final String      name;
+	private final VersionType type;
+
+	public static boolean atLeast(final MinecraftVersion version)     {
+																		  return MinecraftVersion.CURRENT_VERSION.isAtLeast(
+																				  version);
+																	  }
+
+	public static boolean atMost(final MinecraftVersion version)      {
+																		  return MinecraftVersion.CURRENT_VERSION.isAtMost(
+																				  version);
+																	  }
+
+	public static boolean greaterThan(final MinecraftVersion version) {
+																		  return MinecraftVersion.CURRENT_VERSION.isAfter(
+																				  version);
+																	  }
+
+	public static boolean lessThan(final MinecraftVersion version)    {
+																		  return MinecraftVersion.CURRENT_VERSION.isBefore(
+																				  version);
+																	  }
+
+	public static MinecraftVersion fromId(final int id) {
+		for (final MinecraftVersion version : MinecraftVersion.values()) {
+			if (version.id == id) {
+				return version;
+			}
+		}
+		throw new IllegalArgumentException("Unknown version identifier " + id);
+	}
+
+	public boolean isAtLeast(final MinecraftVersion version)          { return this.id >= version.id; }
+
+	public boolean isAtMost(final MinecraftVersion version)           { return this.id <= version.id; }
+
+	public boolean isBefore(final MinecraftVersion version)           { return this.id < version.id; }
+
+	public boolean isAfter(final MinecraftVersion version)            { return this.id > version.id; }
+
+	public boolean equals(final MinecraftVersion version)             { return this.id == version.id; }
+
+	public String getXname()                                          { return this.name + ".x"; }
+
+	public MinecraftVersion getPrevious()                             { return MinecraftVersion.fromId(this.id - 1); }
+
+	public MinecraftVersion getNext()                                 { return MinecraftVersion.fromId(this.id + 1); }
+
+	@AllArgsConstructor
+	@Getter
+	public enum VersionType {
+		MODERN("Modern"),
+		LEGACY("Legacy"),
+		OBSOLETE("Obsolete");
+
+		private final String name;
 	}
 }

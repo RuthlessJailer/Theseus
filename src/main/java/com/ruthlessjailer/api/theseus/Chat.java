@@ -1,6 +1,8 @@
 package com.ruthlessjailer.api.theseus;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -10,6 +12,10 @@ import org.bukkit.entity.Player;
 import java.util.Collection;
 
 public final class Chat {
+
+	@Getter
+	@Setter
+	private static boolean debugMode = false;
 
 	public static void send(final CommandSender who, final String... what) {
 		for (final String s : what) {
@@ -23,26 +29,26 @@ public final class Chat {
 		}
 	}
 
-	public static void send(final String what, final CommandSender... who){
-		for(final CommandSender sender : who){
+	public static void send(final String what, final CommandSender... who) {
+		for (final CommandSender sender : who) {
 			Chat.send(sender, what);
 		}
 	}
 
-	public static void send(final Collection<String> what, final CommandSender... who){
-		for(final CommandSender sender : who){
+	public static void send(final Collection<String> what, final CommandSender... who) {
+		for (final CommandSender sender : who) {
 			Chat.send(sender, what);
 		}
 	}
 
-	public static void send(final String what, final Collection<CommandSender> who){
-		for(final CommandSender sender : who){
+	public static void send(final String what, final Collection<CommandSender> who) {
+		for (final CommandSender sender : who) {
 			Chat.send(sender, what);
 		}
 	}
 
-	public static void send(final Collection<String> what, final Collection<CommandSender> who){
-		for(final CommandSender sender : who){
+	public static void send(final Collection<String> what, final Collection<CommandSender> who) {
+		for (final CommandSender sender : who) {
 			Chat.send(sender, what);
 		}
 	}
@@ -73,25 +79,46 @@ public final class Chat {
 		return Chat.colorize(StringUtils.join(strings, "\n"));
 	}
 
-	public static String stripColors(final String string){
-		return string != null ? string.replaceAll("([&"+ChatColor.COLOR_CHAR+"])([0-9a-fk-or])","") : "";
+	public static String stripColors(final String... strings) {
+		final StringBuilder result = new StringBuilder();
+		for (final String string : strings) {
+			result.append(Common.getString(string).replaceAll("([&" + ChatColor.COLOR_CHAR + "])([0-9a-fk-or])", ""))
+				  .append("\n");
+		}
+		return result.toString();
 	}
 
-	public static void info(final String... messages){
-		for(final String message : messages){
-			Theseus.getLog().info(message);
+	/**
+	 * Prints a debug message.
+	 * Will only trigger if {@link Chat#isDebugMode()}.
+	 * <p>
+	 * Format: {@code "[00:00:00 INFO]: [DEBUG] [PREFIX] message"}
+	 * If prefix is null or empty: {@code "[00:00:00 INFO]: [DEBUG] [|] message"}
+	 */
+	public static void debug(final String prefix, final String... messages) {
+		final String parsed = Common.getString(prefix);
+		if (debugMode) {
+			for (final String message : messages) {
+				PluginBase.getLog().info(String.format("[DEBUG] [%s] %s", parsed.isEmpty() ? "|" : parsed, message));
+			}
 		}
 	}
 
-	public static void warning(final String... messages){
-		for(final String message : messages){
-			Theseus.getLog().warning(message);
+	public static void info(final String... messages) {
+		for (final String message : messages) {
+			PluginBase.getLog().info(message);
 		}
 	}
 
-	public static void severe(final String... messages){
-		for(final String message : messages){
-			Theseus.getLog().severe(message);
+	public static void warning(final String... messages) {
+		for (final String message : messages) {
+			PluginBase.getLog().warning(message);
+		}
+	}
+
+	public static void severe(final String... messages) {
+		for (final String message : messages) {
+			PluginBase.getLog().severe(message);
 		}
 	}
 
@@ -103,16 +130,16 @@ public final class Chat {
 		return Chat.consoleColorize(StringUtils.join(strings, "\n"));
 	}
 
-	public static String bungeeColorize(final String string){
+	public static String bungeeColorize(final String string) {
 		return net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&', string);
 	}
 
-	public static String bungeeColorize(final String... string){
+	public static String bungeeColorize(final String... string) {
 		return Chat.bungeeColorize(StringUtils.join(string, "\n"));
 	}
 
 	@AllArgsConstructor
-	public enum ConsoleColor {
+	public enum ConsoleColor {//TODO: add JANSI compatibility
 
 		CODES("r?0426153f"),
 		RESET("\u001B[0m"),//r
@@ -132,7 +159,9 @@ public final class Chat {
 			final StringBuilder sb = new StringBuilder(textToTranslate);
 			for (int i = 0; i < sb.length(); i++) {
 				if (sb.charAt(i) == altColorChar && ConsoleColor.CODES.toString().indexOf(sb.charAt(i + 1)) != -1) {
-					sb.replace(i, i + 2, ConsoleColor.values()[ConsoleColor.CODES.toString().indexOf(sb.charAt(i + 1))].toString());
+					sb.replace(i, i + 2, ConsoleColor.values()[ConsoleColor.CODES.toString()
+																				 .indexOf(
+																						 sb.charAt(i + 1))].toString());
 				}
 			}
 			return sb.toString();

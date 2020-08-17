@@ -23,7 +23,7 @@ public abstract class CommandBase extends Command {
 	private       CommandSender sender;
 	@Setter
 	@Getter
-	private       int           minArgs = 0;
+	private       int           minArgs    = 0;
 	@Getter
 	private       boolean       registered = false;
 
@@ -34,10 +34,10 @@ public abstract class CommandBase extends Command {
 	private CommandBase(@NonNull final String label, final List<String> aliases) {
 		super(label);
 
-		Checks.checkTrue(!(this instanceof CommandExecutor) || !(this instanceof TabCompleter),
-						 String.format("Do not implement org.bukkit.CommandExecutor org.bukkit.TabCompleter in " +
-									   "command class %s.", this.getClass().getPackage()),
-						 CommandException.class);
+		Checks.verify(!(this instanceof CommandExecutor) || !(this instanceof TabCompleter),
+					  String.format("Do not implement org.bukkit.CommandExecutor org.bukkit.TabCompleter in " +
+									"command class %s.", this.getClass().getPackage()),
+					  CommandException.class);
 
 		this.label = label;
 		this.setPermissionMessage(this.getPermissionMessage());
@@ -53,14 +53,14 @@ public abstract class CommandBase extends Command {
 	}
 
 	public final void register() {
-		Checks.checkTrue(!this.registered, "Command is already registered", CommandException.class);
+		Checks.verify(!this.registered, "Command is already registered", CommandException.class);
 
 		final PluginCommand currentCommand = Bukkit.getPluginCommand(this.label);
 
 		if (currentCommand != null) {
 			final String plugin = currentCommand.getPlugin().getName();
 
-			if (!plugin.equals(PluginBase.getName0())) {
+			if (!plugin.equals(PluginBase.getCurrentName())) {
 				Chat.warning(String.format("Plugin %s is already using command %s! Stealing...", plugin, this.label));
 			}
 			Spigot.unregisterCommand(this.label);
@@ -73,7 +73,7 @@ public abstract class CommandBase extends Command {
 	}
 
 	public final void unregister() {
-		Checks.checkTrue(this.registered, "Already unregistered.", CommandException.class);
+		Checks.verify(this.registered, "Already unregistered.", CommandException.class);
 
 		Spigot.unregisterCommand(this.label);
 
@@ -81,8 +81,9 @@ public abstract class CommandBase extends Command {
 	}
 
 	private final String getDefaultPermissionSyntax() {
-		return CommandBase.DEFAULT_PERMISSION_SYNTAX.replace("${plugin.name}", PluginBase.getName0()).replace("${command.label}",
-																											  this.label);
+		return CommandBase.DEFAULT_PERMISSION_SYNTAX.replace("${plugin.name}", PluginBase.getCurrentName())
+													.replace("${command.label}",
+															 this.label);
 	}
 
 	public final String getDefaultPermissionMessage() {

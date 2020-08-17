@@ -25,7 +25,7 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the class is not found
 	 */
-	public static Class<?> getClass(final String pkg) {
+	public static Class<?> getClass(@NonNull final String pkg) {
 		try {
 			return Class.forName(pkg);
 		} catch (final ClassNotFoundException e) {
@@ -42,7 +42,7 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the class is not found
 	 */
-	public static Class<?> getCraftBukkitClass(final String pkg) {
+	public static Class<?> getCraftBukkitClass(@NonNull final String pkg) {
 		return getClass(CRAFTBUKKIT + pkg);
 	}
 
@@ -56,8 +56,19 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the class is not found
 	 */
-	public static Class<?> getNMSClass(final String pkg) {
+	public static Class<?> getNMSClass(@NonNull final String pkg) {
 		return getClass(NMS + "." + MinecraftVersion.SERVER_VERSION + "." + pkg);
+	}
+
+	/**
+	 * Shortcut for {@link Class#getPackage()} and {@link Package#getName()}
+	 *
+	 * @param clazz the class to get the package from
+	 *
+	 * @return the {@link String} representation of the path to the class
+	 */
+	public static String getPackage(@NonNull final Class<?> clazz) {
+		return clazz.getPackage().getName();
 	}
 
 	/**
