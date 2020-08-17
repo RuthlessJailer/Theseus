@@ -13,8 +13,8 @@ import java.lang.reflect.Method;
 
 public final class ReflectUtil {
 
-	private static final String NMS         = "net.minecraft.server";
-	private static final String CRAFTBUKKIT = "org.bukkit.craftbukkit";
+	public static final String NMS         = "net.minecraft.server";
+	public static final String CRAFTBUKKIT = "org.bukkit.craftbukkit";
 
 	/**
 	 * Wrapper for {@link Class#forName(String)}
@@ -25,7 +25,7 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the class is not found
 	 */
-	private static Class<?> getClass(final String pkg) {
+	public static Class<?> getClass(final String pkg) {
 		try {
 			return Class.forName(pkg);
 		} catch (final ClassNotFoundException e) {
@@ -42,7 +42,7 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the class is not found
 	 */
-	static Class<?> getCraftBukkitClass(final String pkg) {
+	public static Class<?> getCraftBukkitClass(final String pkg) {
 		return getClass(CRAFTBUKKIT + pkg);
 	}
 
@@ -68,7 +68,7 @@ public final class ReflectUtil {
 	 *
 	 * @return the found enum value or {@code null}
 	 */
-	private static <E extends Enum<E>> E getEnumSuppressed(@NonNull final Class<E> enumType, @NonNull final String name) {
+	public static <E extends Enum<E>> E getEnumSuppressed(@NonNull final Class<E> enumType, @NonNull final String name) {
 		try {
 			return Enum.valueOf(enumType, name.toUpperCase().replaceAll(" ", "_"));
 		} catch (final IllegalArgumentException e) {
@@ -181,7 +181,7 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the field is not found
 	 */
-	private static Field getField(@NonNull final String pkg, @NonNull final String name) {
+	public static Field getField(@NonNull final String pkg, @NonNull final String name) {
 		return getField(getClass(pkg), name);
 	}
 
@@ -195,7 +195,7 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the field is not found
 	 */
-	private static Field getField(@NonNull final Class<?> clazz, @NonNull final String name) {
+	public static Field getField(@NonNull final Class<?> clazz, @NonNull final String name) {
 		Field field;
 		try {
 			field = clazz.getDeclaredField(name);
@@ -250,7 +250,7 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the field cannot be modified
 	 */
-	private static <T> void setField(@NonNull final Field field, final Object instance, @NonNull final T value) {
+	public static <T> void setField(@NonNull final Field field, final Object instance, @NonNull final T value) {
 		try {
 			field.setAccessible(true);
 			field.set(instance, value);
@@ -284,8 +284,8 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the field is not found or cannot be accessed
 	 */
-	static Object getFieldValue(@NonNull final Class<?> clazz, @NonNull final String name,
-								final Object instance) {
+	public static Object getFieldValue(@NonNull final Class<?> clazz, @NonNull final String name,
+									   final Object instance) {
 		return getFieldValue(getField(clazz, name), instance);
 	}
 
@@ -299,7 +299,7 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the field cannot be accessed
 	 */
-	private static Object getFieldValue(@NonNull final Field field, final Object instance) {
+	public static Object getFieldValue(@NonNull final Field field, final Object instance) {
 		try {
 			field.setAccessible(true);
 			return field.get(instance);
@@ -333,7 +333,7 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the method is not found
 	 */
-	private static Method getMethod(@NonNull final Class<?> clazz, @NonNull final String name) {
+	public static Method getMethod(@NonNull final Class<?> clazz, @NonNull final String name) {
 		Method method;
 		try {
 			method = clazz.getDeclaredMethod(name);
@@ -380,8 +380,8 @@ public final class ReflectUtil {
 	 * @throws ReflectionException if the method is not found, cannot be invoked, or an exception occurs during the
 	 *                             invocation of the method
 	 */
-	private static Object invokeMethod(@NonNull final Class<?> clazz, @NonNull final String name,
-									   final Object instance, final Object... parameters) {
+	public static Object invokeMethod(@NonNull final Class<?> clazz, @NonNull final String name,
+									  final Object instance, final Object... parameters) {
 		return invokeMethod(getMethod(clazz, name), instance, parameters);
 	}
 
@@ -394,11 +394,11 @@ public final class ReflectUtil {
 	 *
 	 * @return the return of the invoked method
 	 *
-	 * @throws ReflectionException if the method cannot be invoked or an exception occurs during the
-	 *                             invocation of the method
+	 * @throws ReflectionException if the method cannot be invoked or an exception occurs during the invocation of
+	 *                             the method
 	 */
-	private static Object invokeMethod(@NonNull final Method method, final Object instance,
-									   final Object... parameters) {
+	public static Object invokeMethod(@NonNull final Method method, final Object instance,
+									  final Object... parameters) {
 		try {
 			method.setAccessible(true);
 			return method.invoke(instance, parameters);
@@ -432,7 +432,7 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if no constructor is present
 	 */
-	private static Constructor<?> getConstructor(@NonNull final Class<?> clazz, final Class<?> parameters) {
+	public static Constructor<?> getConstructor(@NonNull final Class<?> clazz, final Class<?> parameters) {
 		try {
 			final Constructor<?> constructor = clazz.getConstructor(parameters);
 			constructor.setAccessible(true);
@@ -443,27 +443,16 @@ public final class ReflectUtil {
 		}
 	}
 
-//	public static <T> T newInstanceOf(@NonNull final String pkg){
-//		try {
-//			final Constructor<T> constructor = getClass(pkg).getConstructor();
-//			return constructor.newInstance();
-//		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-//			throw new ReflectionException(String.format("Could not instantiate a new instance of class %s.",
-//														pkg));
-//		}
-//	}
-
-//	public static <T> T newInstanceOf(@NonNull final String pkg, final Object... parameters){
-//		try {
-//			final Constructor<T> constructor = getConstructor(pkg);
-//			return constructor.newInstance(parameters);
-//		} catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-//			throw new ReflectionException(String.format("Could not instantiate a new instance of class %s.",
-//														constructor.getClass().getPackage().getName()));
-//		}
-//	}
-//TODO: add javadocs
-
+	/**
+	 * Wrapper for {@link Constructor#newInstance(Object...)}
+	 *
+	 * @param clazz the class to get the constructor from
+	 *
+	 * @return the instance of the class
+	 *
+	 * @throws ReflectionException if no constructor is present, the constructor cannot be invoked, or an exception
+	 *                             occurs during the invocation of the constructor
+	 */
 	public static <T> T newInstanceOf(@NonNull final Class<T> clazz) {
 		try {
 			final Constructor<T> constructor = clazz.getDeclaredConstructor();
@@ -475,6 +464,17 @@ public final class ReflectUtil {
 		}
 	}
 
+	/**
+	 * Wrapper for {@link Constructor#newInstance(Object...)}
+	 *
+	 * @param clazz      the class to get the constructor from
+	 * @param parameters the parameters with which to invoke the constructor
+	 *
+	 * @return the instance of the class
+	 *
+	 * @throws ReflectionException if no constructor is present, the constructor cannot be invoked, or an exception
+	 *                             occurs during the invocation of the constructor
+	 */
 	public static <T> T newInstanceOf(@NonNull final Class<T> clazz, final Object... parameters) {
 		try {
 
@@ -502,6 +502,17 @@ public final class ReflectUtil {
 		}
 	}
 
+	/**
+	 * Wrapper for {@link Constructor#newInstance(Object...)}
+	 *
+	 * @param constructor the {@link Constructor} to invoke
+	 * @param parameters  the parameters with which to invoke the constructor with
+	 *
+	 * @return the instance of the class
+	 *
+	 * @throws ReflectionException if no constructor is present, the constructor cannot be invoked, or an exception
+	 *                             occurs during the invocation of the constructor
+	 */
 	public static <T> T newInstanceOf(@NonNull final Constructor<T> constructor, final Object... parameters) {
 		try {
 			constructor.setAccessible(true);
@@ -518,7 +529,7 @@ public final class ReflectUtil {
 	public static final class ReflectionException extends RuntimeException {
 		private static final long serialVersionUID = 6172883405365570521L;
 
-		ReflectionException(final String message) {
+		public ReflectionException(final String message) {
 			super(message);
 		}
 
