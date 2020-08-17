@@ -1,18 +1,20 @@
 package com.ruthlessjailer.api.theseus;
 
 import lombok.NonNull;
+import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.block.Biome;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public final class ReflectUtil {
 
-	public static final String NMS = "net.minecraft.server";
-	public static final String CRAFTBUKKIT = "org.bukkit.craftbukkit";
+	private static final String NMS         = "net.minecraft.server";
+	private static final String CRAFTBUKKIT = "org.bukkit.craftbukkit";
 
 	/**
 	 * Wrapper for {@link Class#forName(String)}
@@ -20,12 +22,13 @@ public final class ReflectUtil {
 	 * @param pkg the full path to the class
 	 *
 	 * @return the found class
+	 *
 	 * @throws ReflectionException if the class is not found
-	 * */
-	public static Class<?> getClass(final String pkg){
+	 */
+	private static Class<?> getClass(final String pkg) {
 		try {
 			return Class.forName(pkg);
-		}catch (final ClassNotFoundException e) {
+		} catch (final ClassNotFoundException e) {
 			throw new ReflectionException(String.format("Class %s not found.", pkg));
 		}
 	}
@@ -36,9 +39,10 @@ public final class ReflectUtil {
 	 * @param pkg the path to the class
 	 *
 	 * @return the found class
+	 *
 	 * @throws ReflectionException if the class is not found
-	 * */
-	public static Class<?> getCraftBukkitClass(final String pkg){
+	 */
+	static Class<?> getCraftBukkitClass(final String pkg) {
 		return getClass(CRAFTBUKKIT + pkg);
 	}
 
@@ -49,9 +53,10 @@ public final class ReflectUtil {
 	 * @param pkg the path to the class
 	 *
 	 * @return the found class
+	 *
 	 * @throws ReflectionException if the class is not found
-	 * */
-	public static Class<?> getNMSClass(final String pkg){
+	 */
+	public static Class<?> getNMSClass(final String pkg) {
 		return getClass(NMS + "." + MinecraftVersion.SERVER_VERSION + "." + pkg);
 	}
 
@@ -59,14 +64,14 @@ public final class ReflectUtil {
 	 * Wrapper for {@link Enum#valueOf(Class, String)}
 	 *
 	 * @param enumType the enum to search
-	 * @param name the name of the constant. Spaces will be replaced with underscores and it will be upper cased
+	 * @param name     the name of the constant. Spaces will be replaced with underscores and it will be upper cased
 	 *
 	 * @return the found enum value or {@code null}
-	 * */
-	public static <E extends Enum<E>> E getEnumSuppressed(@NonNull final Class<E> enumType, @NonNull final String name){
-		try{
-			return Enum.valueOf(enumType, name.toUpperCase().replaceAll(" ","_"));
-		}catch (final IllegalArgumentException e){
+	 */
+	private static <E extends Enum<E>> E getEnumSuppressed(@NonNull final Class<E> enumType, @NonNull final String name) {
+		try {
+			return Enum.valueOf(enumType, name.toUpperCase().replaceAll(" ", "_"));
+		} catch (final IllegalArgumentException e) {
 			return null;
 		}
 	}
@@ -76,23 +81,24 @@ public final class ReflectUtil {
 	 * In attempt to correct the name, it will be tried plural, singular, and without underscores.
 	 *
 	 * @param enumType the enum to search
-	 * @param name the name of the constant. Spaces will be replaced with underscores and it will be upper cased
+	 * @param name     the name of the constant. Spaces will be replaced with underscores and it will be upper cased
 	 *
 	 * @return the found enum value or {@code null}
+	 *
 	 * @throws IllegalArgumentException if the value is not found
-	 * */
-	public static <E extends Enum<E>> E getEnum(@NonNull final Class<E> enumType, @NonNull final String name){
+	 */
+	public static <E extends Enum<E>> E getEnum(@NonNull final Class<E> enumType, @NonNull final String name) {
 		String parsed = name.toUpperCase().replaceAll(" ", "_");
 
-		if(MinecraftVersion.atLeast(MinecraftVersion.v1_13)){
+		if (MinecraftVersion.atLeast(MinecraftVersion.v1_13)) {
 			if (enumType == Material.class) {
-				if(parsed.equals("RAW_FISH")){
+				if (parsed.equals("RAW_FISH")) {
 					parsed = "SALMON";
-				}else if(parsed.equals("MONSTER_EGG")){
+				} else if (parsed.equals("MONSTER_EGG")) {
 					parsed = "ZOMBIE_SPAWN_EGG";
 				}
-			}else if(enumType == Biome.class){
-				if(parsed.equals("ICE_MOUNTAINS")){
+			} else if (enumType == Biome.class) {
+				if (parsed.equals("ICE_MOUNTAINS")) {
 					parsed = "SNOWY_TAIGA";
 				}
 			}
@@ -100,19 +106,20 @@ public final class ReflectUtil {
 
 		E result = getEnumSuppressed(enumType, parsed);
 
-		if(result == null){//try without underscores
+		if (result == null) {//try without underscores
 			result = getEnumSuppressed(enumType, parsed.replaceAll("_", ""));
 		}
 
-		if(result == null){//try singular
-			result = getEnumSuppressed(enumType, parsed + (parsed.endsWith("S") ? parsed.substring(0, parsed.length() - 1) : ""));
+		if (result == null) {//try singular
+			result = getEnumSuppressed(enumType,
+									   parsed + (parsed.endsWith("S") ? parsed.substring(0, parsed.length() - 1) : ""));
 		}
 
-		if(result == null){//try plural
+		if (result == null) {//try plural
 			result = getEnumSuppressed(enumType, parsed + (parsed.endsWith("S") ? "ES" : "S"));
 		}
 
-		if(result == null){//throw error
+		if (result == null) {//throw error
 			throw new IllegalArgumentException(String.format("Constant %s not found in enum %s! Available values: %s.",
 															 parsed,
 															 enumType,
@@ -125,34 +132,35 @@ public final class ReflectUtil {
 	/**
 	 * Wrapper for {@link Enum#valueOf(Class, String)}, but will try multiple names.
 	 *
-	 * @param enumType the enum to search
-	 * @param name the name of the constant. Spaces will be replaced with underscores and it will be upper cased
+	 * @param enumType    the enum to search
+	 * @param name        the name of the constant. Spaces will be replaced with underscores and it will be upper cased
 	 * @param legacyNames the others names to try
 	 *
 	 * @return the found enum value or {@code null}
+	 *
 	 * @throws IllegalArgumentException if the value is not found
-	 * */
+	 */
 	@NonNull
 	public static <E extends Enum<E>> E getEnum(@NonNull final Class<E> enumType, @NonNull final String name,
-												@NonNull final String... legacyNames){
+												@NonNull final String... legacyNames) {
 		final String[] allNames = new String[legacyNames.length];
 		allNames[0] = name;
 
 		E result = getEnumSuppressed(enumType, name);
 
-		if(result != null){
+		if (result != null) {
 			return result;
 		}
 
 		int i = 0;
 
-		for(final String legacyName : legacyNames){
+		for (final String legacyName : legacyNames) {
 			i++;
 			allNames[i] = legacyName;
 
-			result = getEnumSuppressed(enumType,legacyName);
+			result = getEnumSuppressed(enumType, legacyName);
 
-			if(result != null){
+			if (result != null) {
 				return result;
 			}
 		}
@@ -166,13 +174,14 @@ public final class ReflectUtil {
 	/**
 	 * Wrapper for {@link Class#getDeclaredField(String)}
 	 *
-	 * @param pkg the full path to the class
+	 * @param pkg  the full path to the class
 	 * @param name the name of the field
 	 *
 	 * @return the found {@link Field}
+	 *
 	 * @throws ReflectionException if the field is not found
-	 * */
-	public static Field getField(@NonNull final String pkg, @NonNull final String name){
+	 */
+	private static Field getField(@NonNull final String pkg, @NonNull final String name) {
 		return getField(getClass(pkg), name);
 	}
 
@@ -180,20 +189,21 @@ public final class ReflectUtil {
 	 * Wrapper for {@link Class#getDeclaredField(String)}
 	 *
 	 * @param clazz the class to search
-	 * @param name the name of the field
+	 * @param name  the name of the field
 	 *
 	 * @return the found {@link Field}
+	 *
 	 * @throws ReflectionException if the field is not found
-	 * */
-	public static Field getField(@NonNull final Class<?> clazz, @NonNull final String name){
+	 */
+	private static Field getField(@NonNull final Class<?> clazz, @NonNull final String name) {
 		Field field;
-		try{
+		try {
 			field = clazz.getDeclaredField(name);
 		} catch (final NoSuchFieldException e) {
 			try {
 				field = clazz.getField(name);
 			} catch (final NoSuchFieldException x) {
-				throw new ReflectionException(String.format("Field %s in class %s not found.",name,
+				throw new ReflectionException(String.format("Field %s in class %s not found.", name,
 															clazz.getPackage().getName()));
 			}
 		}
@@ -204,44 +214,44 @@ public final class ReflectUtil {
 	/**
 	 * Wrapper for {@link Field#set(Object, Object)}
 	 *
-	 * @param pkg the full path to the class
-	 * @param name the name of the field
+	 * @param pkg      the full path to the class
+	 * @param name     the name of the field
 	 * @param instance the instance in which to set the field or {@code null} for static fields
-	 * @param value the value to set
+	 * @param value    the value to set
 	 *
 	 * @throws ReflectionException if the field is not found or cannot be modified
-	 * */
+	 */
 	public static <T> void setField(@NonNull final String pkg, @NonNull final String name, final Object instance,
-									@NonNull final T value){
-		setField(getField(pkg,name),instance,value);
+									@NonNull final T value) {
+		setField(getField(pkg, name), instance, value);
 	}
 
 	/**
 	 * Wrapper for {@link Field#set(Object, Object)}
 	 *
-	 * @param clazz the class to search
-	 * @param name the name of the field
+	 * @param clazz    the class to search
+	 * @param name     the name of the field
 	 * @param instance the instance in which to set the field or {@code null} for static fields
-	 * @param value the value to set
+	 * @param value    the value to set
 	 *
 	 * @throws ReflectionException if the field is not found or cannot be modified
-	 * */
+	 */
 	public static <T> void setField(@NonNull final Class<?> clazz, @NonNull final String name, final Object instance,
-									@NonNull final T value){
-		setField(getField(clazz,name),instance,value);
+									@NonNull final T value) {
+		setField(getField(clazz, name), instance, value);
 	}
 
 	/**
 	 * Wrapper for {@link Field#set(Object, Object)}
 	 *
-	 * @param field the field to set
+	 * @param field    the field to set
 	 * @param instance the instance in which to set the field or {@code null} for static fields
-	 * @param value the value to set
+	 * @param value    the value to set
 	 *
 	 * @throws ReflectionException if the field cannot be modified
-	 * */
-	public static <T> void setField(@NonNull final Field field, final Object instance, @NonNull final T value){
-		try{
+	 */
+	private static <T> void setField(@NonNull final Field field, final Object instance, @NonNull final T value) {
+		try {
 			field.setAccessible(true);
 			field.set(instance, value);
 		} catch (final IllegalAccessException e) {
@@ -253,42 +263,44 @@ public final class ReflectUtil {
 	/**
 	 * Wrapper for {@link Field#get(Object)}
 	 *
-	 * @param pkg the full path to the class
-	 * @param name the name of the field
+	 * @param pkg      the full path to the class
+	 * @param name     the name of the field
 	 * @param instance the instance to get the field from or {@code null} for static fields
 	 *
 	 * @throws ReflectionException if the field is not found or cannot be accessed
-	 * */
-	public static Object getFieldValue(@NonNull final String pkg, @NonNull final String name, final Object instance){
-		return getFieldValue(ReflectUtil.getClass(pkg),name,instance);
+	 */
+	public static Object getFieldValue(@NonNull final String pkg, @NonNull final String name, final Object instance) {
+		return getFieldValue(ReflectUtil.getClass(pkg), name, instance);
 	}
 
 	/**
 	 * Wrapper for {@link Field#get(Object)}
 	 *
-	 * @param clazz the class to search
-	 * @param name the name of the field
+	 * @param clazz    the class to search
+	 * @param name     the name of the field
 	 * @param instance the instance to get the field from or {@code null} for static fields
 	 *
 	 * @return the value of the field
+	 *
 	 * @throws ReflectionException if the field is not found or cannot be accessed
-	 * */
-	public static Object getFieldValue(@NonNull final Class<?> clazz, @NonNull final String name,
-									   final Object instance){
-		return getFieldValue(getField(clazz,name), instance);
+	 */
+	static Object getFieldValue(@NonNull final Class<?> clazz, @NonNull final String name,
+								final Object instance) {
+		return getFieldValue(getField(clazz, name), instance);
 	}
 
 	/**
 	 * Wrapper for {@link Field#get(Object)}
 	 *
-	 * @param field the field to get the value from
+	 * @param field    the field to get the value from
 	 * @param instance the instance to get the field from or {@code null} for static fields
 	 *
 	 * @return the value of the field
+	 *
 	 * @throws ReflectionException if the field cannot be accessed
-	 * */
-	public static Object getFieldValue(@NonNull final Field field, final Object instance){
-		try{
+	 */
+	private static Object getFieldValue(@NonNull final Field field, final Object instance) {
+		try {
 			field.setAccessible(true);
 			return field.get(instance);
 		} catch (final IllegalAccessException e) {
@@ -300,34 +312,36 @@ public final class ReflectUtil {
 	/**
 	 * Wrapper for {@link Class#getDeclaredMethod(String, Class[])}
 	 *
-	 * @param pkg the full path to the class
+	 * @param pkg  the full path to the class
 	 * @param name the name of the field
 	 *
 	 * @return the found {@link Method}
+	 *
 	 * @throws ReflectionException if the method is not found
-	 * */
-	public static Method getMethod(@NonNull final String pkg, @NonNull final String name){
-		return getMethod(getClass(pkg),name);
+	 */
+	public static Method getMethod(@NonNull final String pkg, @NonNull final String name) {
+		return getMethod(getClass(pkg), name);
 	}
 
 	/**
 	 * Wrapper for {@link Class#getDeclaredMethod(String, Class[])}
 	 *
 	 * @param clazz the class to search
-	 * @param name the name of the field
+	 * @param name  the name of the field
 	 *
 	 * @return the found {@link Method}
+	 *
 	 * @throws ReflectionException if the method is not found
-	 * */
-	public static Method getMethod(@NonNull final Class<?> clazz, @NonNull final String name){
+	 */
+	private static Method getMethod(@NonNull final Class<?> clazz, @NonNull final String name) {
 		Method method;
-		try{
+		try {
 			method = clazz.getDeclaredMethod(name);
 		} catch (final NoSuchMethodException e) {
 			try {
 				method = clazz.getMethod(name);
 			} catch (final NoSuchMethodException x) {
-				throw new ReflectionException(String.format("Method %s in class %s not found.",name,
+				throw new ReflectionException(String.format("Method %s in class %s not found.", name,
 															clazz.getPackage().getName()));
 			}
 		}
@@ -338,81 +352,185 @@ public final class ReflectUtil {
 	/**
 	 * Wrapper for {@link Method#invoke(Object, Object...)}
 	 *
-	 * @param pkg the full path to the class
-	 * @param name the name of the method
-	 * @param instance the instance in which to invoke the method or {@code null} for static methods
+	 * @param pkg        the full path to the class
+	 * @param name       the name of the method
+	 * @param instance   the instance in which to invoke the method or {@code null} for static methods
 	 * @param parameters the parameters to invoke the method with
 	 *
-	 *
 	 * @return the return of the invoked method
+	 *
 	 * @throws ReflectionException if the method is not found, cannot be invoked, or an exception occurs during the
-	 * invocation of the method
-	 * */
+	 *                             invocation of the method
+	 */
 	public static Object invokeMethod(@NonNull final String pkg, @NonNull final String name, final Object instance,
-									  final Object... parameters){
+									  final Object... parameters) {
 		return invokeMethod(getClass(pkg), name, instance, parameters);
 	}
 
 	/**
 	 * Wrapper for {@link Method#invoke(Object, Object...)}
 	 *
-	 * @param clazz the class to search
-	 * @param name the name of the method
-	 * @param instance the instance in which to invoke the method or {@code null} for static methods
+	 * @param clazz      the class to search
+	 * @param name       the name of the method
+	 * @param instance   the instance in which to invoke the method or {@code null} for static methods
 	 * @param parameters the parameters to invoke the method with
 	 *
-	 *
 	 * @return the return of the invoked method
+	 *
 	 * @throws ReflectionException if the method is not found, cannot be invoked, or an exception occurs during the
-	 * invocation of the method
-	 * */
-	public static Object invokeMethod(@NonNull final Class<?> clazz, @NonNull final String name,
-									  final Object instance, final Object... parameters){
+	 *                             invocation of the method
+	 */
+	private static Object invokeMethod(@NonNull final Class<?> clazz, @NonNull final String name,
+									   final Object instance, final Object... parameters) {
 		return invokeMethod(getMethod(clazz, name), instance, parameters);
 	}
 
 	/**
 	 * Wrapper for {@link Method#invoke(Object, Object...)}
 	 *
-	 * @param method the {@link Method} to invoke
-	 * @param instance the instance in which to invoke the method or {@code null} for static methods
+	 * @param method     the {@link Method} to invoke
+	 * @param instance   the instance in which to invoke the method or {@code null} for static methods
 	 * @param parameters the parameters to invoke the method with
 	 *
-	 *
 	 * @return the return of the invoked method
+	 *
 	 * @throws ReflectionException if the method cannot be invoked or an exception occurs during the
-	 * invocation of the method
-	 * */
-	public static Object invokeMethod(@NonNull final Method method, final Object instance,
-									  final Object... parameters){
-		try{
+	 *                             invocation of the method
+	 */
+	private static Object invokeMethod(@NonNull final Method method, final Object instance,
+									   final Object... parameters) {
+		try {
 			method.setAccessible(true);
 			return method.invoke(instance, parameters);
-		}  catch (final IllegalAccessException | InvocationTargetException e) {
+		} catch (final IllegalAccessException | InvocationTargetException e) {
 			throw new ReflectionException(String.format("Error invoking method %s in class %s.", method.getName(),
 														method.getClass().getPackage().getName()), e);
 		}
 	}
 
 	/**
+	 * Wrapper for {@link Class#getConstructor(Class[])}
+	 *
+	 * @param pkg        the full path to the class
+	 * @param parameters the parameters which the constructor accepts
+	 *
+	 * @return the {@link Constructor} of the class
+	 *
+	 * @throws ReflectionException if no constructor is present
+	 */
+	public static Constructor<?> getConstructor(@NonNull final String pkg, final Class<?> parameters) {
+		return getConstructor(getClass(pkg), parameters);
+	}
+
+	/**
+	 * Wrapper for {@link Class#getConstructor(Class[])}
+	 *
+	 * @param clazz      the class to get the constructor from
+	 * @param parameters the parameters which the constructor accepts
+	 *
+	 * @return the {@link Constructor} of the class
+	 *
+	 * @throws ReflectionException if no constructor is present
+	 */
+	private static Constructor<?> getConstructor(@NonNull final Class<?> clazz, final Class<?> parameters) {
+		try {
+			final Constructor<?> constructor = clazz.getConstructor(parameters);
+			constructor.setAccessible(true);
+			return constructor;
+		} catch (final NoSuchMethodException exception) {
+			throw new ReflectionException(String.format("No constructor found in class %s.",
+														clazz.getPackage().getName()));
+		}
+	}
+
+//	public static <T> T newInstanceOf(@NonNull final String pkg){
+//		try {
+//			final Constructor<T> constructor = getClass(pkg).getConstructor();
+//			return constructor.newInstance();
+//		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+//			throw new ReflectionException(String.format("Could not instantiate a new instance of class %s.",
+//														pkg));
+//		}
+//	}
+
+//	public static <T> T newInstanceOf(@NonNull final String pkg, final Object... parameters){
+//		try {
+//			final Constructor<T> constructor = getConstructor(pkg);
+//			return constructor.newInstance(parameters);
+//		} catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+//			throw new ReflectionException(String.format("Could not instantiate a new instance of class %s.",
+//														constructor.getClass().getPackage().getName()));
+//		}
+//	}
+//TODO: add javadocs
+
+	public static <T> T newInstanceOf(@NonNull final Class<T> clazz) {
+		try {
+			final Constructor<T> constructor = clazz.getDeclaredConstructor();
+			constructor.setAccessible(true);
+			return constructor.newInstance();
+		} catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+			throw new ReflectionException(String.format("Could not instantiate a new instance of class %s.",
+														clazz.getPackage().getName()));
+		}
+	}
+
+	public static <T> T newInstanceOf(@NonNull final Class<T> clazz, final Object... parameters) {
+		try {
+
+			final Class<?>[] args = new Class[parameters.length - 1];
+
+			int i = 0;
+
+			for (final Object parameter : parameters) {
+				Checks.nullCheck(parameter,
+								 String.format("Parameters cannot be null when instantiating class %s.",
+											   clazz.getPackage().getName()));
+
+				args[i] = parameter.getClass().isPrimitive()
+						  ? ClassUtils.wrapperToPrimitive(parameter.getClass())
+						  : parameter.getClass();
+				i++;
+			}
+
+			final Constructor<T> constructor = clazz.getConstructor(args);
+			constructor.setAccessible(true);
+			return constructor.newInstance(parameters);
+		} catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+			throw new ReflectionException(String.format("Could not instantiate a new instance of class %s.",
+														clazz.getPackage().getName()));
+		}
+	}
+
+	public static <T> T newInstanceOf(@NonNull final Constructor<T> constructor, final Object... parameters) {
+		try {
+			constructor.setAccessible(true);
+			return constructor.newInstance(parameters);
+		} catch (final InstantiationException | IllegalAccessException | InvocationTargetException e) {
+			throw new ReflectionException(String.format("Could not instantiate a new instance of class %s.",
+														constructor.getClass().getPackage().getName()));
+		}
+	}
+
+	/**
 	 * Generic exception for dealing with reflection.
 	 */
-	public static final class ReflectionException extends RuntimeException{
+	public static final class ReflectionException extends RuntimeException {
 		private static final long serialVersionUID = 6172883405365570521L;
 
-		public ReflectionException(final String message) {
+		ReflectionException(final String message) {
 			super(message);
 		}
 
-		public ReflectionException(final String message, final Throwable cause){
+		public ReflectionException(final String message, final Throwable cause) {
 			super(message, cause);
 		}
 
-		public ReflectionException(final Throwable cause){
+		public ReflectionException(final Throwable cause) {
 			super(cause);
 		}
 
-		public ReflectionException(final String message, final Exception exception) {
+		ReflectionException(final String message, final Exception exception) {
 			super(message, exception);
 		}
 
