@@ -1,7 +1,6 @@
 package com.ruthlessjailer.api.theseus.command;
 
 import com.ruthlessjailer.api.theseus.*;
-import com.sun.istack.internal.NotNull;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -14,18 +13,18 @@ import java.util.List;
 
 public abstract class CommandBase extends Command {
 
-	private static final String DEFAULT_PERMISSION_MESSAGE =
+	protected static final String DEFAULT_PERMISSION_MESSAGE =
 			"&cYou do not the permission &3${permission}&c needed to run this command!";
-	private static final String DEFAULT_PERMISSION_SYNTAX  = "${plugin.name}.command.${command.label}";
+	protected static final String DEFAULT_PERMISSION_SYNTAX  = "${plugin.name}.command.${command.label}";
 
-	private final String        label;
-	private       String[]      args;
-	private       CommandSender sender;
+	protected final String        label;
+	protected       String[]      args;
+	protected       CommandSender sender;
+	@Getter
+	protected       boolean       registered = false;
 	@Setter
 	@Getter
-	private       int           minArgs    = 0;
-	@Getter
-	private       boolean       registered = false;
+	private         int           minArgs    = 0;
 
 	public CommandBase(@NonNull final String label) {
 		this(CommandBase.parseLabel(label), CommandBase.parseAliases(label));
@@ -92,11 +91,13 @@ public abstract class CommandBase extends Command {
 	}
 
 	@Override
-	public final boolean execute(@NotNull final CommandSender sender, @NotNull final String commandLabel,
-								 @NotNull final String[] args) {
+	public final boolean execute(final CommandSender sender, final String label,
+								 final String[] args) {
 
 		this.args   = args;
 		this.sender = sender;
+
+		this.runCommand();
 
 		return true;
 	}

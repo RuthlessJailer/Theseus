@@ -103,6 +103,8 @@ public enum XColor {
 	 * Converts to a material.
 	 *
 	 * @param name the white variant of the material, e.g. WHITE_WOOL
+	 *
+	 * @return the found {@link Material}
 	 */
 	public static Material toMaterial(final XColor color, final String name) {
 		final String xname     = color.name();
