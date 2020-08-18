@@ -1,38 +1,34 @@
 package com.ruthlessjailer.api.theseus;
 
+import lombok.NonNull;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandMap;
-import org.bukkit.command.PluginCommand;
-import org.bukkit.command.SimpleCommandMap;
+import org.bukkit.command.*;
 
 import java.util.Map;
 
-import static com.ruthlessjailer.api.theseus.ReflectUtil.getCraftBukkitClass;
-import static com.ruthlessjailer.api.theseus.ReflectUtil.getFieldValue;
+import static com.ruthlessjailer.api.theseus.ReflectUtil.*;
 
 public final class Spigot {
 
-	public static final void registerCommand(final Command command) {
+	public static final void registerCommand(@NonNull final Command command) {
 		final CommandMap commandMap = getCommandMap();
 
 		commandMap.register(command.getLabel(), command);
 
-		Checks.verify(command.isRegistered(), String.format("Unable to register command %s.", command.getName()));
+		Checks.verify(command.isRegistered(), String.format("Unable to register command %s.", command.getName()),
+					  CommandException.class);
 	}
 
-	public static final void unregisterCommand(final String label) {
+	public static final void unregisterCommand(@NonNull final String label) {
 		final PluginCommand command = Bukkit.getPluginCommand(label);
 
-		final Map<String, Command> commandMap =
-				(Map<String, Command>) getFieldValue(SimpleCommandMap.class, "knownCommands", getCommandMap());
+		final Map<String, Command> commandMap = getFieldValue(SimpleCommandMap.class, "knownCommands", getCommandMap());
 
 		commandMap.remove(label);
 
 		if (command != null) {
 			if (command.isRegistered()) {
-				command.unregister(
-						(CommandMap) getFieldValue(Command.class, "commandMap", command));
+				command.unregister(getFieldValue(Command.class, "commandMap", command));
 			}
 
 			for (final String alias : command.getAliases()) {
@@ -42,8 +38,9 @@ public final class Spigot {
 	}
 
 	public static SimpleCommandMap getCommandMap() {
-		return (SimpleCommandMap) getFieldValue(getCraftBukkitClass("CraftServer"), "getCommandMap",
-												Bukkit.getServer());
+		return invokeMethod(getOBCClass("CraftServer"),
+							"getCommandMap",
+							Bukkit.getServer());
 	}
 
 }

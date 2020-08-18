@@ -1,4 +1,4 @@
-package com.ruthlessjailer.api.theseus.menu;
+package com.ruthlessjailer.api.theseus.example;
 
 import com.ruthlessjailer.api.theseus.MinecraftVersion;
 import org.bukkit.event.EventHandler;

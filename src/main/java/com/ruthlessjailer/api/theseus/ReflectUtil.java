@@ -13,8 +13,8 @@ import java.lang.reflect.Method;
 
 public final class ReflectUtil {
 
-	public static final String NMS         = "net.minecraft.server";
-	public static final String CRAFTBUKKIT = "org.bukkit.craftbukkit";
+	public static final String NMS = "net.minecraft.server";
+	public static final String OBC = "org.bukkit.craftbukkit";
 
 	/**
 	 * Wrapper for {@link Class#forName(String)}
@@ -34,7 +34,7 @@ public final class ReflectUtil {
 	}
 
 	/**
-	 * Wrapper for {@link Class#forName(String)} but adds {@value CRAFTBUKKIT} to the beginning
+	 * Wrapper for {@link Class#forName(String)} but adds {@value OBC} to the beginning
 	 *
 	 * @param pkg the path to the class
 	 *
@@ -42,8 +42,8 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the class is not found
 	 */
-	public static Class<?> getCraftBukkitClass(@NonNull final String pkg) {
-		return getClass(CRAFTBUKKIT + pkg);
+	public static Class<?> getOBCClass(@NonNull final String pkg) {
+		return getClass(OBC + "." + MinecraftVersion.SERVER_VERSION + "." + pkg);
 	}
 
 	/**
@@ -280,7 +280,7 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the field is not found or cannot be accessed
 	 */
-	public static Object getFieldValue(@NonNull final String pkg, @NonNull final String name, final Object instance) {
+	public static <T> T getFieldValue(@NonNull final String pkg, @NonNull final String name, final Object instance) {
 		return getFieldValue(ReflectUtil.getClass(pkg), name, instance);
 	}
 
@@ -295,8 +295,8 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the field is not found or cannot be accessed
 	 */
-	public static Object getFieldValue(@NonNull final Class<?> clazz, @NonNull final String name,
-									   final Object instance) {
+	public static <T> T getFieldValue(@NonNull final Class<?> clazz, @NonNull final String name,
+									  final Object instance) {
 		return getFieldValue(getField(clazz, name), instance);
 	}
 
@@ -310,11 +310,11 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the field cannot be accessed
 	 */
-	public static Object getFieldValue(@NonNull final Field field, final Object instance) {
+	public static <T> T getFieldValue(@NonNull final Field field, final Object instance) {
 		try {
 			field.setAccessible(true);
-			return field.get(instance);
-		} catch (final IllegalAccessException e) {
+			return (T) field.get(instance);
+		} catch (final IllegalAccessException | ClassCastException e) {
 			throw new ReflectionException(String.format("Error getting field %s in class %s.", field.getName(),
 														field.getClass().getPackage().getName()), e);
 		}
@@ -373,8 +373,8 @@ public final class ReflectUtil {
 	 * @throws ReflectionException if the method is not found, cannot be invoked, or an exception occurs during the
 	 *                             invocation of the method
 	 */
-	public static Object invokeMethod(@NonNull final String pkg, @NonNull final String name, final Object instance,
-									  final Object... parameters) {
+	public static <T> T invokeMethod(@NonNull final String pkg, @NonNull final String name, final Object instance,
+									 final Object... parameters) {
 		return invokeMethod(getClass(pkg), name, instance, parameters);
 	}
 
@@ -391,8 +391,8 @@ public final class ReflectUtil {
 	 * @throws ReflectionException if the method is not found, cannot be invoked, or an exception occurs during the
 	 *                             invocation of the method
 	 */
-	public static Object invokeMethod(@NonNull final Class<?> clazz, @NonNull final String name,
-									  final Object instance, final Object... parameters) {
+	public static <T> T invokeMethod(@NonNull final Class<?> clazz, @NonNull final String name,
+									 final Object instance, final Object... parameters) {
 		return invokeMethod(getMethod(clazz, name), instance, parameters);
 	}
 
@@ -408,12 +408,12 @@ public final class ReflectUtil {
 	 * @throws ReflectionException if the method cannot be invoked or an exception occurs during the invocation of
 	 *                             the method
 	 */
-	public static Object invokeMethod(@NonNull final Method method, final Object instance,
-									  final Object... parameters) {
+	public static <T> T invokeMethod(@NonNull final Method method, final Object instance,
+									 final Object... parameters) {
 		try {
 			method.setAccessible(true);
-			return method.invoke(instance, parameters);
-		} catch (final IllegalAccessException | InvocationTargetException e) {
+			return (T) method.invoke(instance, parameters);
+		} catch (final IllegalAccessException | InvocationTargetException | ClassCastException e) {
 			throw new ReflectionException(String.format("Error invoking method %s in class %s.", method.getName(),
 														method.getClass().getPackage().getName()), e);
 		}

@@ -1,5 +1,6 @@
 package com.ruthlessjailer.api.theseus;
 
+import com.ruthlessjailer.api.theseus.command.CommandBase;
 import lombok.Getter;
 import lombok.NonNull;
 import org.bukkit.command.Command;
@@ -21,15 +22,25 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	/**
 	 * Get the current instance of the plugin.
 	 *
-	 * @return the found instance of the plugin
-	 *
-	 * @throws NullPointerException if no instance is present
+	 * @return the found instance of the plugin or {@code null}
 	 */
 	public static final PluginBase getInstance() {
-		return instance == null
-			   ? Checks.nullCheck(getPlugin(PluginBase.class), "Could not get an instance.")
-			   : instance;
+		try {
+			return instance == null
+				   ? getPlugin(PluginBase.class)
+				   : instance;
+		} catch (final Throwable ignored) {
+			return null;
+		}
 	}
+
+	/**
+	 * Log check.
+	 *
+	 * @return whether there is a logger yet or not
+	 */
+	public static boolean hasLog() { return log != null; }
+
 
 	/**
 	 * Instance check.
@@ -157,6 +168,13 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	protected void registerCommands(@NonNull final Command... commands) {
 		for (@NonNull final Command command : commands) {
 			Spigot.registerCommand(command);
+			debug("Registered command " + ReflectUtil.getPackage(command.getClass()) + ".");
+		}
+	}
+
+	protected void registerCommands(@NonNull final CommandBase... commands) {
+		for (@NonNull final CommandBase command : commands) {
+			command.register();
 			debug("Registered command " + ReflectUtil.getPackage(command.getClass()) + ".");
 		}
 	}

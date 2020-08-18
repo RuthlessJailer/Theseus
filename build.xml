@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<project name="Theseus" default="Build">
+
+    <condition property="serverPath" value="D:\Gaming\Minecraft\Server\single plugin">
+        <os family="windows"/>
+    </condition>
+
+    <target name="Build">
+        <jar jarfile="${serverPath}\plugins\${ant.project.name}.jar" basedir="./target/classes/" includes="**/*">
+        </jar>
+    </target>
+
+</project>

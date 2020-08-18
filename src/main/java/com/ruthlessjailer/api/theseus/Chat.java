@@ -99,26 +99,44 @@ public final class Chat {
 		final String parsed = Common.getString(prefix);
 		if (debugMode) {
 			for (final String message : messages) {
-				PluginBase.getLog().info(String.format("[DEBUG] [%s] %s", parsed.isEmpty() ? "|" : parsed, message));
+				final String text = String.format("[DEBUG] [%s] %s", parsed.isEmpty() ? "|" : parsed, message);
+
+				if (PluginBase.hasLog()) {
+					PluginBase.getLog().info(text);
+				} else {
+					System.out.println(new StringBuilder(text).insert(7, ":"));
+				}
 			}
 		}
 	}
 
 	public static void info(final String... messages) {
 		for (final String message : messages) {
-			PluginBase.getLog().info(message);
+			if (PluginBase.hasLog()) {
+				PluginBase.getLog().info(message);
+			} else {
+				System.out.println("[INFO]: " + message);
+			}
 		}
 	}
 
 	public static void warning(final String... messages) {
 		for (final String message : messages) {
-			PluginBase.getLog().warning(message);
+			if (PluginBase.hasLog()) {
+				PluginBase.getLog().warning(message);
+			} else {
+				System.out.println("[WARN]: " + message);
+			}
 		}
 	}
 
 	public static void severe(final String... messages) {
 		for (final String message : messages) {
-			PluginBase.getLog().severe(message);
+			if (PluginBase.hasLog()) {
+				PluginBase.getLog().warning(message);
+			} else {
+				System.err.println("[ERROR]: " + message);
+			}
 		}
 	}
 

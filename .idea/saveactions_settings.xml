@@ -7,6 +7,8 @@
         <option value="organizeImports" />
         <option value="reformat" />
         <option value="rearrange" />
+        <option value="compile" />
+        <option value="reload" />
         <option value="localCanBeFinal" />
         <option value="localCanBeFinalExceptImplicit" />
         <option value="unqualifiedFieldAccess" />

@@ -31,7 +31,7 @@ public abstract class CommandBase extends Command {
 	}
 
 	private CommandBase(@NonNull final String label, final List<String> aliases) {
-		super(label);
+		super(label, "description", "usageMessage", aliases);
 
 		Checks.verify(!(this instanceof CommandExecutor) || !(this instanceof TabCompleter),
 					  String.format("Do not implement org.bukkit.CommandExecutor org.bukkit.TabCompleter in " +
