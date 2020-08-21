@@ -1,20 +1,39 @@
 package com.ruthlessjailer.api.theseus;
 
+import lombok.NonNull;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public final class Common {
 
-	public static <T extends Runnable> BukkitTask runTask(final T task) {
+	/**
+	 * Schedule a task to run.
+	 *
+	 * @param task the task to run
+	 *
+	 * @return the {@link BukkitTask} representing the task
+	 */
+	public static <T extends Runnable> BukkitTask runTask(@NonNull final T task) {
 		return runTaskLater(0, task);
 	}
 
-	public static BukkitTask runTaskLater(final int delayTicks, final Runnable task) {
+	/**
+	 * Schedule a task to run.
+	 * If the plugin instance is null the task will run immediately, independent of the Bukkit scheduler.
+	 *
+	 * @param delayTicks how long to wait (in ticks)
+	 * @param task       the task to run
+	 *
+	 * @return the {@link BukkitTask} representing the task
+	 */
+	public static BukkitTask runTaskLater(final int delayTicks, @NonNull final Runnable task) {
 		final BukkitScheduler scheduler = Bukkit.getScheduler();
 		final JavaPlugin      instance  = PluginBase.getInstance();
 		final BukkitRunnable  runnable;
@@ -34,14 +53,93 @@ public final class Common {
 		}
 	}
 
+	/**
+	 * Returns the string or a blank string if it is null.
+	 *
+	 * @param string the string to check
+	 *
+	 * @return the string or {@code ""}
+	 */
 	public static String getString(final String string) { return string == null ? "" : string; }
 
-	public static <T> T[] copyToEnd(final T[] objects, final int start) {
-		return Arrays.copyOfRange(objects, start, objects.length - 1);
+	/**
+	 * Copies an array from the given start index to the end.
+	 *
+	 * @param array the array to copy
+	 * @param start the index to copy from
+	 *
+	 * @return the new array
+	 */
+	public static <T> T[] copyToEnd(@NonNull final T[] array, final int start) {
+		return Arrays.copyOfRange(array, start, array.length);
 	}
 
-	public static <T> T[] copyFromStart(final T[] objects, final int end) {
-		return Arrays.copyOfRange(objects, 0, end);
+	/**
+	 * Copies an array from the start until the given ending index.
+	 *
+	 * @param array the array to copy
+	 * @param end   the index to copy to
+	 *
+	 * @return the new array
+	 */
+	public static <T> T[] copyFromStart(@NonNull final T[] array, final int end) {
+		return Arrays.copyOfRange(array, 0, end);
+	}
+
+	/**
+	 * Convenience method to convert varags to array.
+	 *
+	 * @param objects the objects to put into an array
+	 *
+	 * @return the objects as an array
+	 */
+	@SafeVarargs
+	public static <T> T[] asArray(@NonNull final T... objects) {
+		return objects;
+	}
+
+	/**
+	 * Converts an array into a different type.
+	 *
+	 * @param array     the array to convert
+	 * @param result    an empty array of the desired type
+	 * @param converter the {@link TypeConverter} used to convert
+	 *
+	 * @return the converted array
+	 */
+	public static <O, N> N[] convert(@NonNull final O[] array,
+									 @NonNull final N[] result,
+									 @NonNull final TypeConverter<O, N> converter) {
+
+		Checks.verify(array.length == result.length,
+					  "Arrays are not the same length!");
+
+		final int i = 0;
+		for (final O old : array) {
+			result[i] = converter.convert(old);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Converts an iterable into a different type list.
+	 *
+	 * @param iterable  the {@link Iterable} to convert
+	 * @param converter the {@link TypeConverter} used to convert
+	 *
+	 * @return the converted list
+	 */
+	public static <O, N> List<N> convert(@NonNull final Iterable<O> iterable,
+										 @NonNull final TypeConverter<O, N> converter) {
+
+		final List<N> result = new ArrayList<>();
+
+		for (final O old : iterable) {
+			result.add(converter.convert(old));
+		}
+
+		return result;
 	}
 
 }

@@ -182,6 +182,10 @@ public final class ReflectUtil {
 														 StringUtils.join(enumType.getEnumConstants(), ", ")));
 	}
 
+	public static <E extends Enum<E>> E[] getEnumValues(@NonNull final Class<E> enumType) {
+		return enumType.getEnumConstants();
+	}
+
 	/**
 	 * Wrapper for {@link Class#getDeclaredField(String)}
 	 *
@@ -494,11 +498,10 @@ public final class ReflectUtil {
 			int i = 0;
 
 			for (final Object parameter : parameters) {
-				Checks.nullCheck(parameter,
-								 String.format("Parameters cannot be null when instantiating class %s.",
-											   clazz.getPackage().getName()));
-
-				args[i] = parameter.getClass().isPrimitive()
+				args[i] = Checks.nullCheck(parameter,
+										   String.format("Parameters cannot be null when instantiating class %s.",
+														 clazz.getPackage().getName()))
+								.getClass().isPrimitive()
 						  ? ClassUtils.wrapperToPrimitive(parameter.getClass())
 						  : parameter.getClass();
 				i++;

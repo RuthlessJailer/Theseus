@@ -1,22 +1,17 @@
 package com.ruthlessjailer.api.theseus.item;
 
-import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
-import com.ruthlessjailer.api.theseus.Theseus;
 import javafx.util.Pair;
-import lombok.Builder;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 public final class ItemBuilder {
 
@@ -38,10 +33,10 @@ public final class ItemBuilder {
 	public static final class UnmadeItem {
 
 		private final Material                                 material;
+		private final Map<Enchantment, Pair<Integer, Boolean>> enchantments = new HashMap<>();
 		private       int                                      amount;
 		private       String                                   name;
 		private       List<String>                             lore;
-		private final Map<Enchantment, Pair<Integer, Boolean>> enchantments = new HashMap<>();
 		private       Set<ItemFlag>                            flags;
 		private       boolean                                  unbreakable;
 		private       UUID                                     skullOwner;
@@ -139,12 +134,9 @@ public final class ItemBuilder {
 			this.enchantments.remove(enchantment);
 			return this;
 		}*/
-
 		public ItemStack make() {
 
-			Checks.nullCheck(this.material,"Material must be set.");
-
-			final ItemStack item = new ItemStack(this.material);
+			final ItemStack item = new ItemStack(Checks.nullCheck(this.material, "Material must be set."));
 			final ItemMeta  meta = item.getItemMeta();
 
 			meta.setDisplayName(this.name == null
