@@ -17,14 +17,18 @@ public abstract class CommandBase extends Command {
 			"&cYou do not the permission &3${permission}&c needed to run this command!";
 	protected static final String DEFAULT_PERMISSION_SYNTAX  = "${plugin.name}.command.${command.label}";
 
-	protected final String        label;
-	protected       String[]      args;
-	protected       CommandSender sender;
+	private final List<SubCommandWrapper> subCommands = new ArrayList<>();
+
+	protected String        label;
+	protected String[]      args;
+	protected CommandSender sender;
+
 	@Getter
-	protected       boolean       registered = false;
+	protected boolean registered = false;
+
 	@Setter
 	@Getter
-	private         int           minArgs    = 0;
+	private int minArgs = 0;
 
 	public CommandBase(@NonNull final String label) {
 		this(CommandBase.parseLabel(label), CommandBase.parseAliases(label));
@@ -68,6 +72,11 @@ public abstract class CommandBase extends Command {
 		}
 
 		Spigot.registerCommand(this);
+
+		if (this instanceof SuperiorCommand) {
+			SubCommandManager.register((SuperiorCommand) this);
+		}
+
 		this.registered = true;
 	}
 
@@ -94,6 +103,7 @@ public abstract class CommandBase extends Command {
 	public final boolean execute(final CommandSender sender, final String label,
 								 final String[] args) {
 
+		this.label  = label;
 		this.args   = args;
 		this.sender = sender;
 

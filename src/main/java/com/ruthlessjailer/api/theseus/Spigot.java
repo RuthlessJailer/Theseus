@@ -2,7 +2,10 @@ package com.ruthlessjailer.api.theseus;
 
 import lombok.NonNull;
 import org.bukkit.Bukkit;
-import org.bukkit.command.*;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandMap;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.SimpleCommandMap;
 
 import java.util.Map;
 
@@ -15,8 +18,8 @@ public final class Spigot {
 
 		commandMap.register(command.getLabel(), command);
 
-		Checks.verify(command.isRegistered(), String.format("Unable to register command %s.", command.getName()),
-					  CommandException.class);
+		//Checks.verify(command.isRegistered(), String.format("Unable to register command %s.", command.getName()),
+		//			  CommandException.class);
 	}
 
 	public static final void unregisterCommand(@NonNull final String label) {

@@ -1,25 +1,22 @@
 package com.ruthlessjailer.api.theseus.example;
 
+import com.ruthlessjailer.api.theseus.command.CommandBase;
 import com.ruthlessjailer.api.theseus.command.SubCommand;
 import com.ruthlessjailer.api.theseus.command.SuperiorCommand;
+import org.bukkit.Material;
 
-public class TestCommand /*extends CommandBase*/ implements SuperiorCommand {
+public class TestCommand extends CommandBase implements SuperiorCommand {
 
 	public TestCommand() {
-		//super("test|yeat");
+		super("test|yeat");
 	}
 
-	/*@Override*/
+	@Override
 	protected void runCommand() {
-		//this.sender.sendMessage("yeeted");
+		this.sender.sendMessage("yeeted");
 	}
 
-	@SubCommand(inputArgs = "test %s", argTypes = {String.class})
-	private void name() {
-
-	}
-
-	@SubCommand(inputArgs = "test create %s left|right", argTypes = {String.class})
+	@SubCommand(inputArgs = "test create %s %e", argTypes = {String.class, Material.class})
 	private void create() {
 
 	}
