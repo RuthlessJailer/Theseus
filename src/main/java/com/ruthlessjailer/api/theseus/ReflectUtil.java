@@ -65,10 +65,21 @@ public final class ReflectUtil {
 	 *
 	 * @param clazz the class to get the package from
 	 *
-	 * @return the {@link String} representation of the path to the class
+	 * @return the {@link String} representation of the package of the class
 	 */
 	public static String getPackage(@NonNull final Class<?> clazz) {
 		return clazz.getPackage().getName();
+	}
+
+	/**
+	 * Returns the path to the class
+	 *
+	 * @param clazz the class to get the package from
+	 *
+	 * @return the {@link String} representation of the path to the class
+	 */
+	public static String getPath(@NonNull final Class<?> clazz) {
+		return getPackage(clazz) + "." + clazz.getSimpleName();
 	}
 
 	/**

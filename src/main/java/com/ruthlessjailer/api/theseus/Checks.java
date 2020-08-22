@@ -112,7 +112,7 @@ public final class Checks {
 			} catch (final InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
 				throw new ReflectUtil.ReflectionException(String.format("Could not throw exception %s. Perhaps it is " +
 																		"missing a constructor?",
-																		ReflectUtil.getPackage(exception)));
+																		ReflectUtil.getPath(exception)));
 			}
 		}
 	}//TODO: ReflectUtil.newInstanceOf(Class, Object...) not working

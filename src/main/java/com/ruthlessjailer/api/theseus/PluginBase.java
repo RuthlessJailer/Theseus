@@ -161,21 +161,21 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	protected void registerEvents(@NonNull final Listener... listeners) {
 		for (@NonNull final Listener listener : listeners) {
 			this.getServer().getPluginManager().registerEvents(listener, this);
-			debug("Registered listener " + ReflectUtil.getPackage(listener.getClass()) + ".");
+			debug("Registered listener " + ReflectUtil.getPath(listener.getClass()) + ".");
 		}
 	}
 
 	protected void registerCommands(@NonNull final Command... commands) {
 		for (@NonNull final Command command : commands) {
 			Spigot.registerCommand(command);
-			debug("Registered command " + ReflectUtil.getPackage(command.getClass()) + ".");
+			debug("Registered command " + ReflectUtil.getPath(command.getClass()) + ".");
 		}
 	}
 
 	protected void registerCommands(@NonNull final CommandBase... commands) {
 		for (@NonNull final CommandBase command : commands) {
 			command.register();
-			debug("Registered command " + ReflectUtil.getPackage(command.getClass()) + ".");
+			debug("Registered command " + ReflectUtil.getPath(command.getClass()) + ".");
 		}
 	}
 }
