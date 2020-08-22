@@ -7,7 +7,7 @@
     <groupId>com.ruthlessjailer.api.theseus</groupId>
     <artifactId>Theseus</artifactId>
     <name>Theseus</name>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <properties>
         <main.class>com.ruthlessjailer.api.theseus.Theseus</main.class>

@@ -114,9 +114,10 @@ public final class Common {
 		Checks.verify(array.length == result.length,
 					  "Arrays are not the same length!");
 
-		final int i = 0;
+		int i = 0;
 		for (final O old : array) {
 			result[i] = converter.convert(old);
+			i++;
 		}
 
 		return result;

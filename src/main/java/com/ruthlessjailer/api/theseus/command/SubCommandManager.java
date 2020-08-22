@@ -58,77 +58,77 @@ public final class SubCommandManager {
 		final Class<?>[] types     = subCommand.argTypes();
 		final Argument[] arguments = new Argument[args.length];
 
+		int t = 0;
 		int i = 0;
-		int j = 0;
 
 		for (final String arg : args) {
-			if (arg.matches("%[sideb]")) {
-				switch (arg.toLowerCase()) {
-					case "%s":
-						Checks.verify(types[i].equals(String.class),
-									  String.format("ArgType %s does not match InputArg %s in method %s in class %s.",
-													types[i].getPackage().getName(),
-													args[i].toLowerCase(),
-													method.getName(),
-													ReflectUtil.getPackage(method.getClass())),
-									  SubCommandException.class);
+			final Class<?> type = types[t];
 
-						arguments[j] = new Argument(String.class);
+			switch (arg.toLowerCase()) {
+				case "%s":
+					Checks.verify(type.equals(String.class),
+								  String.format("ArgType %s does not match InputArg %s in method %s in class %s.",
+												type.getPackage().getName(),
+												arg.toLowerCase(),
+												method.getName(),
+												ReflectUtil.getPackage(method.getClass())),
+								  SubCommandException.class);
 
-						break;
-					case "%i":
-					case "%d":
-						Checks.verify(types[i].equals(Double.class) || types[i].equals(Integer.class),
-									  String.format("ArgType %s does not match InputArg %s in method %s in class %s.",
-													ReflectUtil.getPackage(types[i]),
-													args[i].toLowerCase(),
-													method.getName(),
-													method.getClass().getPackage().getName()),
-									  SubCommandException.class);
+					arguments[i] = new Argument(String.class);
 
-						arguments[j] = new Argument(Double.class);
+					break;
+				case "%e":
 
-						break;
-					case "%e":
+					Checks.verify(type.isEnum(),
+								  String.format("ArgType %s does not match InputArg %s in method %s in class %s.",
+												ReflectUtil.getPackage(type),
+												arg.toLowerCase(),
+												method.getName(),
+												ReflectUtil.getPackage(method.getClass())),
+								  SubCommandException.class);
 
-						Checks.verify(types[i].isEnum(),
-									  String.format("ArgType %s does not match InputArg %s in method %s in class %s.",
-													ReflectUtil.getPackage(types[i]),
-													args[i].toLowerCase(),
-													method.getName(),
-													method.getClass().getPackage().getName()),
-									  SubCommandException.class);
+					arguments[i] = new Argument(this.getEnumValueNames((Class<T>) type), (Class<T>) type);
 
-						arguments[j] = new Argument(this.getEnumValues((Class<T>) types[i]), (Class<T>) types[i]);
+					break;
+				case "%i":
+				case "%d":
+					Checks.verify(type.equals(Double.class) || type.equals(Integer.class),
+								  String.format("ArgType %s does not match InputArg %s in method %s in class %s.",
+												ReflectUtil.getPackage(type),
+												arg.toLowerCase(),
+												method.getName(),
+												ReflectUtil.getPackage(method.getClass())),
+								  SubCommandException.class);
 
-						break;
+					arguments[i] = new Argument(Double.class);
 
-					case "%b":
+					break;
+				case "%b":
 
-						Checks.verify(types[i].equals(Boolean.class),
-									  String.format("ArgType %s does not match InputArg %s in method %s in class %s.",
-													ReflectUtil.getPackage(types[i]),
-													args[i].toLowerCase(),
-													method.getName(),
-													method.getClass().getPackage().getName()),
-									  SubCommandException.class);
+					Checks.verify(type.equals(Boolean.class),
+								  String.format("ArgType %s does not match InputArg %s in method %s in class %s.",
+												ReflectUtil.getPackage(type),
+												arg.toLowerCase(),
+												method.getName(),
+												ReflectUtil.getPackage(method.getClass())),
+								  SubCommandException.class);
 
-						arguments[j] =
-								new Argument(Common.asArray("yes", "no", "y", "n", "true", "false"), Boolean.class);
+					arguments[i] =
+							new Argument(Common.asArray("true", "false"), Boolean.class);
 
-						break;
-				}
-				i++;
+					break;
+				default:
+					arguments[i] = new Argument(arg.split("\\|"), String.class);
 			}
 
-			if (arguments[j] == null) {
-				arguments[j] = new Argument(Common.asArray(args[j]), String.class);
+			if (arg.toLowerCase().matches("%[sideb]")) {
+				t++;
 			}
 
-			j++;
+			i++;
 		}
 
-		Checks.verify(i == types.length,
+		Checks.verify(t == types.length,
 					  String.format("ArgTypes do not match InputArgs in method %s in class %s.",
 									method.getName(),
 									ReflectUtil.getPackage(method.getClass())),
@@ -140,9 +140,33 @@ public final class SubCommandManager {
 									 method);
 	}
 
-	private <E extends Enum<E>> String[] getEnumValues(final Class<E> clazz) {
+	private void checkMethod(final Class<?>[] types, final Method method) {
+
+		final Class<?>[] methodTypes = method.getParameterTypes();
+
+		Checks.verify(methodTypes.length == types.length,
+					  String.format("Parameters on method %s in class %s do not " +
+									"match ArgTypes.",
+									method.getName(),
+									ReflectUtil.getPackage(method.getClass())),
+					  SubCommandException.class);
+
+		int i = 0;
+		for (final Class<?> clazz : types) {
+			Checks.verify(clazz.equals(methodTypes[i]),
+						  String.format("Parameter %s on method %s in class %s does not " +
+										"match ArgType %s.",
+										clazz.getName(),
+										method.getName(),
+										ReflectUtil.getPackage(method.getClass())),
+						  SubCommandException.class);
+			i++;
+		}
+
+	}
+
+	private <E extends Enum<E>> String[] getEnumValueNames(final Class<E> clazz) {
 		final E[] values = ReflectUtil.getEnumValues(clazz);
 		return Common.convert(values, new String[values.length], Enum::name);
 	}
-
 }

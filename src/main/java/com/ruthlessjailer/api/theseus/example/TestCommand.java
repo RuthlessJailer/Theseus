@@ -16,7 +16,13 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 		this.sender.sendMessage("yeeted");
 	}
 
-	@SubCommand(inputArgs = "test create %s %e", argTypes = {String.class, Material.class})
+	@SubCommand(inputArgs = "test create|new %s %e %b %i %d", argTypes = {
+			String.class,
+			Material.class,
+			Boolean.class,
+			Integer.class,
+			Double.class
+	})
 	private void create() {
 
 	}
