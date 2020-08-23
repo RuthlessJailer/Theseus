@@ -79,14 +79,15 @@ public final class SubCommandManager {
 
 			final Object[] parameters = new Object[declaredTypes.length];
 
-			int i = 0;
+			int i = 0;//counter
+			int p = 0;//parameter/declaredType counter
 
 			if (args.length < wrapper.getArguments().length) {//check args
 				System.out.println("args too short");
 				break;
 			}
 
-			for (final Argument argument : wrapper.getArguments()) {//check constant arguments
+			for (final Argument argument : wrapper.getArguments()) {//check constant arguments & parse variable placeholders
 				boolean match = false;
 				if (!argument.isInfinite()) {
 					for (final String possibility : argument.getPossibilities()) {
@@ -112,23 +113,18 @@ public final class SubCommandManager {
 					final Class<?> declaredType = argument.getType();
 
 					if (declaredType.isEnum()) {//get enum value
-						parameters[i] = ReflectUtil.getEnum((Class<E>) declaredType, args[i]);
-					} /*else if (declaredType.equals(String.class)) {//special case for string
-					parameters[i] = args[i];
-				}*/ else {//Integer, Double, Boolean
+						parameters[p] = ReflectUtil.getEnum((Class<E>) declaredType, args[i]);
+					} else {//Integer, Double, Boolean
 						try {
-							System.out.println(declaredType);
-							System.out.println(Arrays.toString(declaredType.getDeclaredMethods()));
-							parameters[i] = ReflectUtil.invokeMethod(declaredType, "valueOf", null, args[i]);
+							parameters[p] = ReflectUtil.invokeMethod(declaredType, "valueOf", null, args[i]);
 						} catch (final ReflectUtil.ReflectionException e) {
 							if (e.getCause() instanceof InvocationTargetException) {
 								System.out.println("no match");
 								continue wrappers;
 							} else {
 								try {
-									parameters[i] = ReflectUtil.newInstanceOf(declaredType, args[i]);
-								} catch (final ReflectUtil.ReflectionException x) {
-									//try constructor (string doesn't work with valueOf for some reason)
+									parameters[p] = ReflectUtil.newInstanceOf(declaredType, args[i]);
+								} catch (final ReflectUtil.ReflectionException x) { //try constructor (string doesn't work with valueOf for some reason)
 									if (e.getCause() instanceof InvocationTargetException) {
 										System.out.println("no match");
 										continue wrappers;
@@ -139,9 +135,9 @@ public final class SubCommandManager {
 								}
 							}
 						}
+						p++;
 					}
 				}
-
 				i++;
 			}
 
@@ -228,7 +224,7 @@ public final class SubCommandManager {
 
 					types[i] = String.class;
 					declaredTypes[t] = String.class;
-					arguments[i] = new Argument(String.class);
+					arguments[i] = new Argument(null, String.class, true);
 
 					break;
 				case "%e"://enum (class provided)

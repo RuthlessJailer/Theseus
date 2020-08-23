@@ -18,11 +18,12 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 
 	@SubCommand(inputArgs = "create|new %s %e", argTypes = Material.class)
 	private void create(final String name, final Material test) {
-		if (test != null) {
-			this.sender.sendMessage(name + " " + test.name());
-		} else {
-			this.sender.sendMessage(name + " invalid");
-		}
+		this.sender.sendMessage(name + " " + test);
+	}
+
+	@SubCommand(inputArgs = "delete|remove %d %b %e", argTypes = Material.class)
+	private void delete(final Double number, final Boolean bool, final Material test) {
+		this.sender.sendMessage(number + " " + bool + " " + test);
 	}
 
 }
