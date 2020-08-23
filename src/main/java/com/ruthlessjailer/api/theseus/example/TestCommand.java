@@ -8,7 +8,7 @@ import org.bukkit.Material;
 public class TestCommand extends CommandBase implements SuperiorCommand {
 
 	public TestCommand() {
-		super("test|yeat");
+		super("test");
 	}
 
 	@Override
@@ -16,9 +16,9 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 		this.sender.sendMessage("yeeted");
 	}
 
-	@SubCommand(inputArgs = "test create|new %s %e", argTypes = Material.class)
+	@SubCommand(inputArgs = "create|new %s %e", argTypes = Material.class)
 	private void create(final String name, final Material test) {
-
+		this.sender.sendMessage(name + test.name());
 	}
 
 }

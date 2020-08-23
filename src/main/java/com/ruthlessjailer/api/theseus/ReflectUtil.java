@@ -1,5 +1,6 @@
 package com.ruthlessjailer.api.theseus;
 
+import javafx.util.Pair;
 import lombok.NonNull;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
@@ -79,7 +80,7 @@ public final class ReflectUtil {
 	 * @return the {@link String} representation of the path to the class
 	 */
 	public static String getPath(@NonNull final Class<?> clazz) {
-		return getPackage(clazz) + "." + clazz.getSimpleName();
+		return clazz.getCanonicalName() == null ? clazz.getName() : clazz.getCanonicalName();
 	}
 
 	/**
@@ -435,6 +436,29 @@ public final class ReflectUtil {
 	}
 
 	/**
+	 * Wrapper for {@link Method#invoke(Object, Object...)}
+	 *
+	 * @param method     the {@link Method} to invoke
+	 * @param instance   the instance in which to invoke the method or {@code null} for static methods
+	 * @param parameters the parameters to invoke the method with
+	 *
+	 * @return the return of the invoked method
+	 *
+	 * @throws ReflectionException if the method cannot be invoked or an exception occurs during the invocation of
+	 *                             the method
+	 */
+	public static <T> T invokeMethodUnknownParameterTypes(@NonNull final Method method, final Object instance,
+														  final Iterable<Pair<Object, Class<?>>> pairs) {
+		try {
+			method.setAccessible(true);
+			return (T) method.invoke(instance, null);
+		} catch (final IllegalAccessException | InvocationTargetException | ClassCastException e) {
+			throw new ReflectionException(String.format("Error invoking method %s in class %s.", method.getName(),
+														method.getClass().getPackage().getName()), e);
+		}
+	}
+
+	/**
 	 * Wrapper for {@link Class#getConstructor(Class[])}
 	 *
 	 * @param pkg        the full path to the class
@@ -504,7 +528,7 @@ public final class ReflectUtil {
 	public static <T> T newInstanceOf(@NonNull final Class<T> clazz, final Object... parameters) {
 		try {
 
-			final Class<?>[] args = new Class[parameters.length - 1];
+			final Class<?>[] args = new Class[parameters.length];
 
 			int i = 0;
 

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.*;
 
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ public abstract class CommandBase extends Command {
 			"&cYou do not the permission &3${permission}&c needed to run this command!";
 	protected static final String DEFAULT_PERMISSION_SYNTAX  = "${plugin.name}.command.${command.label}";
 
-	private final List<SubCommandWrapper> subCommands = new ArrayList<>();
+	private final boolean isSuperior = this instanceof SuperiorCommand;
 
 	protected String        label;
 	protected String[]      args;
@@ -29,6 +30,10 @@ public abstract class CommandBase extends Command {
 	@Setter
 	@Getter
 	private int minArgs = 0;
+
+	@Setter
+	@Getter
+	private boolean tabCompleteSubCommands = true;
 
 	public CommandBase(@NonNull final String label) {
 		this(CommandBase.parseLabel(label), CommandBase.parseAliases(label));
@@ -73,7 +78,7 @@ public abstract class CommandBase extends Command {
 
 		Spigot.registerCommand(this);
 
-		if (this instanceof SuperiorCommand) {
+		if (this.isSuperior) {
 			SubCommandManager.register((SuperiorCommand) this);
 		}
 
@@ -100,8 +105,7 @@ public abstract class CommandBase extends Command {
 	}
 
 	@Override
-	public final boolean execute(final CommandSender sender, final String label,
-								 final String[] args) {
+	public final boolean execute(final CommandSender sender, final String label, final String[] args) {
 
 		this.label  = label;
 		this.args   = args;
@@ -109,8 +113,26 @@ public abstract class CommandBase extends Command {
 
 		this.runCommand();
 
+		if (this.isSuperior) {
+			SubCommandManager.executeFor(this, args);
+		}
+
 		return true;
 	}
 
+	@Override
+	public final List<String> tabComplete(final CommandSender sender, final String alias, final String[] args) throws IllegalArgumentException {
+		return this.tabComplete(sender, alias, args, null);
+	}
+
+	@Override
+	public final List<String> tabComplete(final CommandSender sender, final String alias, final String[] args, final Location location) throws IllegalArgumentException {
+		return this.tabCompleteSubCommands && this.isSuperior
+			   ? SubCommandManager.tabCompleteFor(this, args)
+			   : this.onTabComplete(sender, alias, args, location);
+	}
+
 	protected abstract void runCommand();
+
+	protected List<String> onTabComplete(final CommandSender sender, final String alias, final String[] args, final Location location) { return new ArrayList<>(); }
 }

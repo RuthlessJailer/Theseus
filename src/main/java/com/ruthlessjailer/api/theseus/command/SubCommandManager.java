@@ -4,6 +4,7 @@ import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
 import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
+import javafx.util.Pair;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,7 +39,7 @@ public final class SubCommandManager {
 					final SubCommandWrapper wrapper = getInstance().parseArgs((CommandBase) command, method,
 																			  (SubCommand) annotation);
 					wrappers.add(wrapper);
-					Chat.debug("[Commands]",
+					Chat.debug("Commands",
 							   String.format("Registering method %s in class %s as a sub command.",
 											 wrapper.getMethod().getName(),
 											 ReflectUtil.getPath(command.getClass())));
@@ -49,13 +50,82 @@ public final class SubCommandManager {
 		getInstance().subCommands.put((CommandBase) command, wrappers);
 	}
 
+	public static List<String> tabCompleteFor(final CommandBase command, final String[] args) {
+
+//		for (final SubCommandWrapper wrapper : getInstance().subCommands.get(command)) {
+//			for (final Argument argument : wrapper.getArguments()) {
+//				for (final String arg : args) {
+//					if (!argument.isInfinite()) {
+//						for (final String possibility : argument.getPossibilities()) {
+//							if (arg.equalsIgnoreCase(possibility)) {
+//
+//							}
+//						}
+//					} else {
+//						System.out.println("inifinite_");
+//					}
+//				}
+//			}
+//		}
+
+		return new ArrayList<>();
+	}
+
+	public static <E extends Enum<E>> void executeFor(final CommandBase command, final String[] args) {
+
+		int i = 0;
+		for (final SubCommandWrapper wrapper : getInstance().subCommands.get(command)) {
+
+			final Class<?>[] types = wrapper.getTypes();
+
+			final List<Pair<Object, Class<?>>> pairs = new ArrayList<>();
+
+			for (final Class<?> type : types) {
+
+//				if(type.equals(Double.class)){
+//
+//				}else if(type.equals(String.class)){
+//
+//				}else if(type.equals(Boolean.class)){
+//
+//				}else if(type.isEnum()){
+//
+//				}
+
+				if (!type.isEnum()) {
+					pairs.add(new Pair<>(ReflectUtil.invokeMethod(type, "valueOf", null, args[i]), type));
+				} else {
+					pairs.add(new Pair<>(ReflectUtil.getEnumSuppressed((Class<E>) type, args[i]), type));
+				}
+
+				i++;
+			}
+
+
+			ReflectUtil.invokeMethod(wrapper.getMethod(), null, "null");
+
+			for (final Argument argument : wrapper.getArguments()) {
+
+
+				final String arg = args[i];
+
+				System.out.println(argument.getType());
+
+
+			}
+
+
+		}
+
+	}
+
 	public List<SubCommandWrapper> getSubCommands(final CommandBase command) { return this.subCommands.get(command); }
 
 	@SuppressWarnings("unchecked")
 	private <T extends Enum<T>> SubCommandWrapper parseArgs(final CommandBase parent, final Method method,
 															final SubCommand subCommand) {
 		final String[] split = Checks.stringCheck(subCommand.inputArgs(),
-												  String.format("InutArgs on method %s in class %s cannot be null " +
+												  String.format("InputArgs on method %s in class %s cannot be null " +
 																"(or empty)!",
 																method.getName(),
 																method.getClass().getPackage().getName()))
@@ -69,56 +139,66 @@ public final class SubCommandManager {
 		int i = 0;//counter
 		int e = 0;//enum counter
 
-		for (final String arg : args) {//initialize types variable
+		for (final String arg : args) {//initialize declaredTypes variable
 			if (arg.matches("%[sideb]")) {
 				t++;
 			}
+			i++;
 		}
 
-		final Class<?>[] types = new Class[t];
+		final Class<?>[] types         = new Class[i];
+		final Class<?>[] declaredTypes = new Class[t];
 
 		t = 0;
+		i = 0;
 
 		for (final String arg : args) {
-			final Class<?> type = argTypes[e];
+			final Class<?> declaredType = argTypes[e];
 
 			switch (arg.toLowerCase()) {
-				case "%s":
+				case "%s"://string
 
-					types[t] = String.class;
+					types[i] = String.class;
+					declaredTypes[t] = String.class;
 					arguments[i] = new Argument(String.class);
 
 					break;
-				case "%e":
+				case "%e"://enum (class provided)
 
-					Checks.verify(type.isEnum(),
+					Checks.verify(declaredType.isEnum(),
 								  String.format(
 										  "ArgType %s does not match InputArg %s in method %s in class %s. Only include enums!",
-										  ReflectUtil.getPath(type),
+										  ReflectUtil.getPath(declaredType),
 										  arg.toLowerCase(),
 										  method.getName(),
 										  ReflectUtil.getPath(parent.getClass())),
 								  SubCommandException.class);
 
-					types[t] = type;
-					arguments[i] = new Argument(this.getEnumValueNames((Class<T>) type), (Class<T>) type);
+					types[i] = declaredType;
+					declaredTypes[t] = declaredType;
+					arguments[i] =
+							new Argument(this.getEnumValueNames((Class<T>) declaredType), (Class<T>) declaredType,
+										 true);
 
 					break;
-				case "%i":
-				case "%d":
+				case "%i"://integer
+				case "%d"://double
 
-					types[t] = Double.class;
+					types[i] = Double.class;
+					declaredTypes[t] = Double.class;
 					arguments[i] = new Argument(Double.class);
 
 					break;
-				case "%b":
+				case "%b"://boolean
 
-					types[t] = Boolean.class;
-					arguments[i] = new Argument(Common.asArray("true", "false"), Boolean.class);
+					types[i] = Boolean.class;
+					declaredTypes[t] = Boolean.class;
+					arguments[i] = new Argument(Common.asArray("true", "false"), Boolean.class, true);
 
 					break;
 				default:
-					arguments[i] = new Argument(arg.split("\\|"), String.class);
+					types[i] = String.class;
+					arguments[i] = new Argument(arg.split("\\|"), String.class, false);
 			}
 
 			if (arg.toLowerCase().matches("%[sideb]")) {
@@ -138,10 +218,12 @@ public final class SubCommandManager {
 									ReflectUtil.getPath(parent.getClass())),
 					  SubCommandException.class);
 
-		this.checkMethod(types, method, parent);
+		this.checkMethod(declaredTypes, method, parent);
 
 		return new SubCommandWrapper(parent,
 									 arguments,
+									 types,
+									 declaredTypes,
 									 method);
 	}
 

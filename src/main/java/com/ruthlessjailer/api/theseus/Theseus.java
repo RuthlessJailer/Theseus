@@ -2,7 +2,11 @@ package com.ruthlessjailer.api.theseus;
 
 import com.ruthlessjailer.api.theseus.example.TestCommand;
 
-public class Theseus extends PluginBase {
+public final class Theseus extends PluginBase {
+
+	static {
+		Chat.setDebugMode(true);
+	}
 
 	@Override
 	protected void onStart() {
