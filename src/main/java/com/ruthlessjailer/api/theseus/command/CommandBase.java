@@ -114,7 +114,7 @@ public abstract class CommandBase extends Command {
 		this.runCommand();
 
 		if (this.isSuperior) {
-			SubCommandManager.executeFor(this, args);
+			SubCommandManager.executeFor(this, sender, args);
 		}
 
 		return true;
@@ -128,7 +128,7 @@ public abstract class CommandBase extends Command {
 	@Override
 	public final List<String> tabComplete(final CommandSender sender, final String alias, final String[] args, final Location location) throws IllegalArgumentException {
 		return this.tabCompleteSubCommands && this.isSuperior
-			   ? SubCommandManager.tabCompleteFor(this, args)
+			   ? SubCommandManager.tabCompleteFor(this, sender, args)
 			   : this.onTabComplete(sender, alias, args, location);
 	}
 

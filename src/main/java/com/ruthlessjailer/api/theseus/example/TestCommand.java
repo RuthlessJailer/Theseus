@@ -18,7 +18,11 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 
 	@SubCommand(inputArgs = "create|new %s %e", argTypes = Material.class)
 	private void create(final String name, final Material test) {
-		this.sender.sendMessage(name + test.name());
+		if (test != null) {
+			this.sender.sendMessage(name + " " + test.name());
+		} else {
+			this.sender.sendMessage(name + " invalid");
+		}
 	}
 
 }

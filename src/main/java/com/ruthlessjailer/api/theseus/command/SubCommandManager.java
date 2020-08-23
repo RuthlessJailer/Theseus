@@ -4,17 +4,15 @@ import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
 import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
-import javafx.util.Pair;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.bukkit.command.CommandSender;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SubCommandManager {
@@ -50,7 +48,7 @@ public final class SubCommandManager {
 		getInstance().subCommands.put((CommandBase) command, wrappers);
 	}
 
-	public static List<String> tabCompleteFor(final CommandBase command, final String[] args) {
+	public static List<String> tabCompleteFor(final CommandBase command, final CommandSender sender, final String[] args) {
 
 //		for (final SubCommandWrapper wrapper : getInstance().subCommands.get(command)) {
 //			for (final Argument argument : wrapper.getArguments()) {
@@ -71,49 +69,121 @@ public final class SubCommandManager {
 		return new ArrayList<>();
 	}
 
-	public static <E extends Enum<E>> void executeFor(final CommandBase command, final String[] args) {
+	@SuppressWarnings("unchecked")
+	public static <E extends Enum<E>> void executeFor(final CommandBase command, final CommandSender sender, final String[] args) {
 
-		int i = 0;
+		wrappers:
 		for (final SubCommandWrapper wrapper : getInstance().subCommands.get(command)) {
 
-			final Class<?>[] types = wrapper.getTypes();
+			final Class<?>[] declaredTypes = wrapper.getDeclaredTypes();
 
-			final List<Pair<Object, Class<?>>> pairs = new ArrayList<>();
+			final Object[] parameters = new Object[declaredTypes.length];
 
-			for (final Class<?> type : types) {
+			int i = 0;
 
-//				if(type.equals(Double.class)){
-//
-//				}else if(type.equals(String.class)){
-//
-//				}else if(type.equals(Boolean.class)){
-//
-//				}else if(type.isEnum()){
-//
-//				}
+			if (args.length < wrapper.getArguments().length) {//check args
+				System.out.println("args too short");
+				break;
+			}
 
-				if (!type.isEnum()) {
-					pairs.add(new Pair<>(ReflectUtil.invokeMethod(type, "valueOf", null, args[i]), type));
-				} else {
-					pairs.add(new Pair<>(ReflectUtil.getEnumSuppressed((Class<E>) type, args[i]), type));
+			for (final Argument argument : wrapper.getArguments()) {//check constant arguments
+				boolean match = false;
+				if (!argument.isInfinite()) {
+					for (final String possibility : argument.getPossibilities()) {
+						if (possibility.equalsIgnoreCase(args[i])) {
+							System.out.println("match: " + args[i] + " == " +
+											   (argument.getPossibilities().length > 50
+												? "[..., " + possibility + ", ...]"
+												: Arrays.toString(argument.getPossibilities())));
+							match = true;
+							break;
+						}
+					}
+					if (!match) {
+						System.out.println("no match: " + args[i] + " != " +
+										   (argument.getPossibilities().length > 50
+											? "[...]"
+											: Arrays.toString(argument.getPossibilities())));
+						continue wrappers;
+					}
+				}
+
+				if (argument.isDeclaredType()) {
+					final Class<?> declaredType = argument.getType();
+
+					if (declaredType.isEnum()) {//get enum value
+						parameters[i] = ReflectUtil.getEnum((Class<E>) declaredType, args[i]);
+					} /*else if (declaredType.equals(String.class)) {//special case for string
+					parameters[i] = args[i];
+				}*/ else {//Integer, Double, Boolean
+						try {
+							System.out.println(declaredType);
+							System.out.println(Arrays.toString(declaredType.getDeclaredMethods()));
+							parameters[i] = ReflectUtil.invokeMethod(declaredType, "valueOf", null, args[i]);
+						} catch (final ReflectUtil.ReflectionException e) {
+							if (e.getCause() instanceof InvocationTargetException) {
+								System.out.println("no match");
+								continue wrappers;
+							} else {
+								try {
+									parameters[i] = ReflectUtil.newInstanceOf(declaredType, args[i]);
+								} catch (final ReflectUtil.ReflectionException x) {
+									//try constructor (string doesn't work with valueOf for some reason)
+									if (e.getCause() instanceof InvocationTargetException) {
+										System.out.println("no match");
+										continue wrappers;
+									} else {
+										e.printStackTrace();
+										continue wrappers;
+									}
+								}
+							}
+						}
+					}
 				}
 
 				i++;
 			}
 
+			i = 0;
 
-			ReflectUtil.invokeMethod(wrapper.getMethod(), null, "null");
+			/*for (final Class<?> declaredType : declaredTypes) {//extract variable arguments
 
-			for (final Argument argument : wrapper.getArguments()) {
+				if (declaredType.isEnum()) {//get enum value
+					parameters[i] = ReflectUtil.getEnum((Class<E>) declaredType, args[i]);
+				} /*else if (declaredType.equals(String.class)) {//special case for string
+					parameters[i] = args[i];
+				}/ else {//Integer, Double, Boolean
+					try {
+						System.out.println(declaredType);
+						System.out.println(Arrays.toString(declaredType.getDeclaredMethods()));
+						parameters[i] = ReflectUtil.invokeMethod(declaredType, "valueOf", null, args[i]);
+					} catch (final ReflectUtil.ReflectionException e) {
+						if (e.getCause() instanceof InvocationTargetException) {
+							System.out.println("no match");
+							continue wrappers;
+						} else {
+							try {
+								parameters[i] = ReflectUtil.newInstanceOf(declaredType, args[i]);
+							} catch (final ReflectUtil.ReflectionException x) {
+								//try constructor (string doesn't work with valueOf for some reason)
+								if (e.getCause() instanceof InvocationTargetException) {
+									System.out.println("no match");
+									continue wrappers;
+								} else {
+									e.printStackTrace();
+									continue wrappers;
+								}
+							}
+						}
+					}
+				}
 
+				i++;
+			}*/
 
-				final String arg = args[i];
-
-				System.out.println(argument.getType());
-
-
-			}
-
+			System.out.println("invoking");
+			ReflectUtil.invokeMethod(wrapper.getMethod(), command, parameters);
 
 		}
 
@@ -124,14 +194,12 @@ public final class SubCommandManager {
 	@SuppressWarnings("unchecked")
 	private <T extends Enum<T>> SubCommandWrapper parseArgs(final CommandBase parent, final Method method,
 															final SubCommand subCommand) {
-		final String[] split = Checks.stringCheck(subCommand.inputArgs(),
-												  String.format("InputArgs on method %s in class %s cannot be null " +
-																"(or empty)!",
-																method.getName(),
-																method.getClass().getPackage().getName()))
-									 .split(" ");
-		final String     label     = split[0];
-		final String[]   args      = split.length == 1 ? new String[0] : Common.copyToEnd(split, 1);
+		final String[] args = Checks.stringCheck(subCommand.inputArgs(),
+												 String.format("InputArgs on method %s in class %s cannot be null " +
+															   "(or empty)!",
+															   method.getName(),
+															   method.getClass().getPackage().getName()))
+									.split(" ");
 		final Class<?>[] argTypes  = subCommand.argTypes();
 		final Argument[] arguments = new Argument[args.length];
 
@@ -227,11 +295,11 @@ public final class SubCommandManager {
 									 method);
 	}
 
-	private void checkMethod(final Class<?>[] types, final Method method, final CommandBase parent) {
+	private void checkMethod(final Class<?>[] declaredTypes, final Method method, final CommandBase parent) {
 
-		final Class<?>[] methodTypes = method.getParameterTypes();
+		final Class<?>[] methodParameterTypes = method.getParameterTypes();
 
-		Checks.verify(methodTypes.length == types.length,
+		Checks.verify(methodParameterTypes.length == declaredTypes.length,
 					  String.format("Parameters on method %s in class %s do not " +
 									"match ArgTypes.",
 									method.getName(),
@@ -239,11 +307,11 @@ public final class SubCommandManager {
 					  SubCommandException.class);
 
 		int i = 0;
-		for (final Class<?> type : types) {
-			Checks.verify(type.equals(methodTypes[i]),
+		for (final Class<?> type : declaredTypes) {
+			Checks.verify(type.equals(methodParameterTypes[i]),
 						  String.format("Parameter %s on method %s in class %s does not " +
 										"match ArgType %s.",
-										methodTypes[i].getName(),
+										methodParameterTypes[i].getName(),
 										method.getName(),
 										ReflectUtil.getPath(parent.getClass()),
 										type.getName()),

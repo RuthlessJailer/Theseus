@@ -123,11 +123,6 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 		this.onStart();
 		debug("Called onStart()");
 
-		if (!this.enabled || !this.isEnabled()) {
-			debug("Fatal error in onStart(), exiting...");
-			return;
-		}
-
 		this.registerEvents(this);
 
 	}

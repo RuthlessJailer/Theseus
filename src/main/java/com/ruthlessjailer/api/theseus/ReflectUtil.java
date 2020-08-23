@@ -1,6 +1,5 @@
 package com.ruthlessjailer.api.theseus;
 
-import javafx.util.Pair;
 import lombok.NonNull;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
@@ -231,7 +230,7 @@ public final class ReflectUtil {
 				field = clazz.getField(name);
 			} catch (final NoSuchFieldException x) {
 				throw new ReflectionException(String.format("Field %s in class %s not found.", name,
-															clazz.getPackage().getName()));
+															getPath(clazz)));
 			}
 		}
 
@@ -283,7 +282,7 @@ public final class ReflectUtil {
 			field.set(instance, value);
 		} catch (final IllegalAccessException e) {
 			throw new ReflectionException(String.format("Error setting field %s in class %s.", field.getName(),
-														field.getClass().getPackage().getName()), e);
+														getPath(instance.getClass())), e);
 		}
 	}
 
@@ -332,7 +331,7 @@ public final class ReflectUtil {
 			return (T) field.get(instance);
 		} catch (final IllegalAccessException | ClassCastException e) {
 			throw new ReflectionException(String.format("Error getting field %s in class %s.", field.getName(),
-														field.getClass().getPackage().getName()), e);
+														getPath(instance.getClass())), e);
 		}
 	}
 
@@ -369,7 +368,7 @@ public final class ReflectUtil {
 				method = clazz.getMethod(name);
 			} catch (final NoSuchMethodException x) {
 				throw new ReflectionException(String.format("Method %s in class %s not found.", name,
-															clazz.getPackage().getName()));
+															getPath(clazz)));
 			}
 		}
 
@@ -431,30 +430,7 @@ public final class ReflectUtil {
 			return (T) method.invoke(instance, parameters);
 		} catch (final IllegalAccessException | InvocationTargetException | ClassCastException e) {
 			throw new ReflectionException(String.format("Error invoking method %s in class %s.", method.getName(),
-														method.getClass().getPackage().getName()), e);
-		}
-	}
-
-	/**
-	 * Wrapper for {@link Method#invoke(Object, Object...)}
-	 *
-	 * @param method     the {@link Method} to invoke
-	 * @param instance   the instance in which to invoke the method or {@code null} for static methods
-	 * @param parameters the parameters to invoke the method with
-	 *
-	 * @return the return of the invoked method
-	 *
-	 * @throws ReflectionException if the method cannot be invoked or an exception occurs during the invocation of
-	 *                             the method
-	 */
-	public static <T> T invokeMethodUnknownParameterTypes(@NonNull final Method method, final Object instance,
-														  final Iterable<Pair<Object, Class<?>>> pairs) {
-		try {
-			method.setAccessible(true);
-			return (T) method.invoke(instance, null);
-		} catch (final IllegalAccessException | InvocationTargetException | ClassCastException e) {
-			throw new ReflectionException(String.format("Error invoking method %s in class %s.", method.getName(),
-														method.getClass().getPackage().getName()), e);
+														getPath(instance.getClass())), e);
 		}
 	}
 
@@ -489,7 +465,7 @@ public final class ReflectUtil {
 			return constructor;
 		} catch (final NoSuchMethodException exception) {
 			throw new ReflectionException(String.format("No constructor found in class %s.",
-														clazz.getPackage().getName()));
+														getPath(clazz)));
 		}
 	}
 
@@ -510,7 +486,7 @@ public final class ReflectUtil {
 			return constructor.newInstance();
 		} catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
 			throw new ReflectionException(String.format("Could not instantiate a new instance of class %s.",
-														clazz.getPackage().getName()));
+														getPath(clazz)));
 		}
 	}
 
@@ -535,7 +511,7 @@ public final class ReflectUtil {
 			for (final Object parameter : parameters) {
 				args[i] = Checks.nullCheck(parameter,
 										   String.format("Parameters cannot be null when instantiating class %s.",
-														 clazz.getPackage().getName()))
+														 getPath(clazz)))
 								.getClass().isPrimitive()
 						  ? ClassUtils.wrapperToPrimitive(parameter.getClass())
 						  : parameter.getClass();
@@ -547,7 +523,7 @@ public final class ReflectUtil {
 			return constructor.newInstance(parameters);
 		} catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
 			throw new ReflectionException(String.format("Could not instantiate a new instance of class %s.",
-														clazz.getPackage().getName()));
+														getPath(clazz)));
 		}
 	}
 
@@ -568,7 +544,7 @@ public final class ReflectUtil {
 			return constructor.newInstance(parameters);
 		} catch (final InstantiationException | IllegalAccessException | InvocationTargetException e) {
 			throw new ReflectionException(String.format("Could not instantiate a new instance of class %s.",
-														constructor.getClass().getPackage().getName()));
+														getPath(constructor.getDeclaringClass())));
 		}
 	}
 
