@@ -84,10 +84,13 @@ public final class SubCommandManager {
 
 			if (args.length < wrapper.getArguments().length) {//check args
 				System.out.println("args too short");
-				break;
+				continue;
 			}
 
 			for (final Argument argument : wrapper.getArguments()) {//check constant arguments & parse variable placeholders
+
+				System.out.println(argument.toString());
+
 				boolean match = false;
 				if (!argument.isInfinite()) {
 					for (final String possibility : argument.getPossibilities()) {
@@ -141,44 +144,8 @@ public final class SubCommandManager {
 				i++;
 			}
 
-			i = 0;
-
-			/*for (final Class<?> declaredType : declaredTypes) {//extract variable arguments
-
-				if (declaredType.isEnum()) {//get enum value
-					parameters[i] = ReflectUtil.getEnum((Class<E>) declaredType, args[i]);
-				} /*else if (declaredType.equals(String.class)) {//special case for string
-					parameters[i] = args[i];
-				}/ else {//Integer, Double, Boolean
-					try {
-						System.out.println(declaredType);
-						System.out.println(Arrays.toString(declaredType.getDeclaredMethods()));
-						parameters[i] = ReflectUtil.invokeMethod(declaredType, "valueOf", null, args[i]);
-					} catch (final ReflectUtil.ReflectionException e) {
-						if (e.getCause() instanceof InvocationTargetException) {
-							System.out.println("no match");
-							continue wrappers;
-						} else {
-							try {
-								parameters[i] = ReflectUtil.newInstanceOf(declaredType, args[i]);
-							} catch (final ReflectUtil.ReflectionException x) {
-								//try constructor (string doesn't work with valueOf for some reason)
-								if (e.getCause() instanceof InvocationTargetException) {
-									System.out.println("no match");
-									continue wrappers;
-								} else {
-									e.printStackTrace();
-									continue wrappers;
-								}
-							}
-						}
-					}
-				}
-
-				i++;
-			}*/
-
 			System.out.println("invoking");
+
 			ReflectUtil.invokeMethod(wrapper.getMethod(), command, parameters);
 
 		}
@@ -204,7 +171,7 @@ public final class SubCommandManager {
 		int e = 0;//enum counter
 
 		for (final String arg : args) {//initialize declaredTypes variable
-			if (arg.matches("%[sideb]")) {
+			if (arg.toLowerCase().matches("%[sideb](<[a-z0-9_]+>)?")) {
 				t++;
 			}
 			i++;
@@ -219,12 +186,18 @@ public final class SubCommandManager {
 		for (final String arg : args) {
 			final Class<?> declaredType = argTypes[e];
 
-			switch (arg.toLowerCase()) {
+			String description = null;
+
+			if (arg.matches("%[sidebSIDEB]<[A-Za-z0-9_]+>")) {//description storage
+				description = arg.substring(3, arg.length() - 1);
+			}
+
+			switch (arg.toLowerCase().substring(0, 2)) {//get variable, regardless of description
 				case "%s"://string
 
 					types[i] = String.class;
 					declaredTypes[t] = String.class;
-					arguments[i] = new Argument(null, String.class, true);
+					arguments[i] = new Argument(String.class, true, description);
 
 					break;
 				case "%e"://enum (class provided)
@@ -242,34 +215,39 @@ public final class SubCommandManager {
 					declaredTypes[t] = declaredType;
 					arguments[i] =
 							new Argument(this.getEnumValueNames((Class<T>) declaredType), (Class<T>) declaredType,
-										 true);
+										 true, description);
 
 					break;
 				case "%i"://integer
+					types[i] = Integer.class;
+					declaredTypes[t] = Integer.class;
+					arguments[i] = new Argument(Integer.class, true, description);
+
+					break;
 				case "%d"://double
 
 					types[i] = Double.class;
 					declaredTypes[t] = Double.class;
-					arguments[i] = new Argument(Double.class);
+					arguments[i] = new Argument(Double.class, true, description);
 
 					break;
 				case "%b"://boolean
 
 					types[i] = Boolean.class;
 					declaredTypes[t] = Boolean.class;
-					arguments[i] = new Argument(Common.asArray("true", "false"), Boolean.class, true);
+					arguments[i] = new Argument(Common.asArray("true", "false"), Boolean.class, true, description);
 
 					break;
 				default:
 					types[i] = String.class;
-					arguments[i] = new Argument(arg.split("\\|"), String.class, false);
+					arguments[i] = new Argument(arg.split("\\|"), String.class, false, null);
 			}
 
-			if (arg.toLowerCase().matches("%[sideb]")) {
+			if (arg.toLowerCase().matches("%[sideb](<[a-z0-9_]+>)?")) {//type counter increment
 				t++;
 			}
 
-			if (arg.toLowerCase().matches("%e")) {
+			if (arg.toLowerCase().matches("%e(<[a-z0-9_]+>)?")) {//enum counter increment
 				e++;
 			}
 

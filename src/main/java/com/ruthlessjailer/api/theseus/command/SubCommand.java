@@ -13,11 +13,13 @@ import java.lang.annotation.Target;
  * Available variables: <p>
  * %s - String <p>
  * %e - Enum (provide class) <p>
- * %i - Integer (will be converted to double) <p>
+ * %i - Integer <p>
  * %d - Double <p>
  * %b - Boolean <p>
  * Any arguments provided must be present in the method's parameters, but only enum classes must be provided in
  * annotation parameters (argTypes).
+ * <p>
+ * Code will be run regardless of trailing arguments.
  * <p>
  * The {@code |} character can be used to show multiple possibilities.
  * <p>
@@ -36,8 +38,12 @@ import java.lang.annotation.Target;
  *    }
  *
  *    @SubCommand(inputArgs = "create|new %s %e", argTypes = Material.class)
- * 	private void create(final String name, final Material test) {
+ * 	private void create(final String name, final Material material) {
  * 		//this code will be run only when the sent command matches the given argument syntax (inputArgs)
+ * 		//e.g.:
+ * 		//test delete 4 air -> will not trigger
+ * 		//test new Name stone -> will trigger
+ * 		//test create 1 grass_block false -> will trigger
  *    }
  *
  * }
