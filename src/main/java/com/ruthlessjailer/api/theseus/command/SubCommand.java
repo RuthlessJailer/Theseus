@@ -8,6 +8,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * See wiki for full documentation: https://github.com/RuthlessJailer/Theseus
+ * <p>
  * Annotation that enables automatic sub command parsing.
  * <p>
  * Available variables: <p>

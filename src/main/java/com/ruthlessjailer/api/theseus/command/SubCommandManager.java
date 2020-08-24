@@ -7,6 +7,9 @@ import com.ruthlessjailer.api.theseus.ReflectUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.command.CommandSender;
 
 import java.lang.annotation.Annotation;
@@ -150,6 +153,11 @@ public final class SubCommandManager {
 
 		}
 
+	}
+
+	public static void displayHelpMenuTo(@NonNull final CommandBase command, @NonNull final CommandSender sender) {
+		sender.spigot().sendMessage(new ComponentBuilder().append("").event(new ClickEvent(
+				ClickEvent.Action.RUN_COMMAND, "")).create());
 	}
 
 	public List<SubCommandWrapper> getSubCommands(final CommandBase command) { return this.subCommands.get(command); }
