@@ -4,6 +4,7 @@ import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
 import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
+import com.ruthlessjailer.api.theseus.command.help.HelpLine;
 import com.ruthlessjailer.api.theseus.command.help.HelpMenu;
 import com.ruthlessjailer.api.theseus.command.help.HelpMenuFormat;
 import com.ruthlessjailer.api.theseus.command.help.HelpPage;
@@ -11,8 +12,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.CommandSender;
@@ -32,7 +35,7 @@ public final class SubCommandManager {
 
 	private final Map<CommandBase, HelpMenu> helpMenus = new HashMap<>();
 
-	public static void register(@NonNull final SuperiorCommand command) {
+	public void register(@NonNull final SuperiorCommand command) {
 		Checks.verify(command instanceof CommandBase,
 					  "SuperiorCommand implementations must extend CommandBase.",
 					  SubCommandException.class);
@@ -55,10 +58,10 @@ public final class SubCommandManager {
 			}
 		}
 
-		getInstance().subCommands.put((CommandBase) command, wrappers);
+		this.subCommands.put((CommandBase) command, wrappers);
 	}
 
-	public static List<String> tabCompleteFor(@NonNull final CommandBase command, @NonNull final CommandSender sender, final String[] args) {
+	public List<String> tabCompleteFor(@NonNull final CommandBase command, @NonNull final CommandSender sender, final String[] args) {
 
 //		for (final SubCommandWrapper wrapper : getInstance().subCommands.get(command)) {
 //			for (final Argument argument : wrapper.getArguments()) {
@@ -79,8 +82,16 @@ public final class SubCommandManager {
 		return new ArrayList<>();
 	}
 
+	public void sendHelpMenuTo(@NonNull final HelpMenu menu, @NonNull final CommandSender sender) {
+		for (final HelpPage page : menu.getPages()) {
+			for (final HelpLine line : page.getLines()) {
+				sender.spigot().sendMessage(line.getFormatted());
+			}
+		}
+	}
+
 	@SuppressWarnings("unchecked")
-	public static <E extends Enum<E>> void executeFor(@NonNull final CommandBase command, @NonNull final CommandSender sender, final String[] args) {
+	public <E extends Enum<E>> void executeFor(@NonNull final CommandBase command, @NonNull final CommandSender sender, final String[] args) {
 
 		wrappers:
 		for (final SubCommandWrapper wrapper : getInstance().subCommands.get(command)) {
@@ -162,9 +173,13 @@ public final class SubCommandManager {
 
 	}
 
-	public List<SubCommandWrapper> getSubCommands(@NonNull final CommandBase command) { return this.subCommands.get(command); }
+	public List<SubCommandWrapper> getSubCommands(@NonNull final CommandBase command) {
+		return this.subCommands.containsKey(command)
+			   ? this.subCommands.get(command)
+			   : new ArrayList<>();
+	}
 
-	public HelpMenu getHelpMenu(@NonNull final CommandBase command)                   { return this.helpMenus.get(command); }
+	public HelpMenu getHelpMenu(@NonNull final CommandBase command) { return this.helpMenus.get(command); }
 
 	@SuppressWarnings("unchecked")
 	private <T extends Enum<T>> SubCommandWrapper parseArgs(@NonNull final CommandBase parent, @NonNull final Method method,
@@ -311,43 +326,84 @@ public final class SubCommandManager {
 		return Common.convert(values, new String[values.length], Enum::name);
 	}
 
-	private HelpMenu generateHelpMenu(@NonNull final CommandBase command, @NonNull final List<SubCommandWrapper> subCommands,
-									  @NonNull final int pageSize, final HelpMenuFormat menuFormat) {
+	public HelpMenu generateHelpMenu(@NonNull final CommandBase command, final HelpMenuFormat menuFormat) {
 
-		final int pageCount = (int) Math.ceil((double) subCommands.size() / (double) pageSize);
+		final List<SubCommandWrapper> subCommands = this.getSubCommands(command);
+		final HelpMenuFormat          format      = menuFormat == null ? HelpMenuFormat.DEFAULT_FORMAT : menuFormat;
 
-		final HelpPage[]     pages  = new HelpPage[pageCount];
-		final HelpMenuFormat format = menuFormat == null ? HelpMenuFormat.DEFAULT_FORMAT : menuFormat;
+		final int pageCount = (int) Math.ceil((double) subCommands.size() / (double) format.getPageSize());
 
-		int i = 0;//counter
+		final HelpPage[] pages = new HelpPage[pageCount];
+
+		int l = 0;//line counter
 		int p = 0;//page counter
+
+		final ComponentBuilder builder = new ComponentBuilder();
+
+		final HelpLine[] lines = new HelpLine[format.getPageSize()];
+
 		for (final SubCommandWrapper wrapper : subCommands) {
 
-			final ComponentBuilder builder = new ComponentBuilder();
-
-			final String c = format.getCommand().replace("${command.label}", command.getLabel());
+			final StringBuilder fullCommand = new StringBuilder(
+					format.getCommand().replace(
+							HelpMenuFormat.Placeholder.COMMAND,
+							command.getLabel()));
 
 			for (final Argument argument : wrapper.getArguments()) {
 
+				final String append;
+
 				if (argument.isDeclaredType()) {//TODO: formatting
-//					builder.append(c.replaceFirst("\\$\\{variable\\.argument\\}", argument.getDescription()));
-					builder.append("<" + argument.getDescription() + ">");
+					append = format.getVariable().replace(
+							HelpMenuFormat.Placeholder.VARIABLE,
+							argument.getDescription());
 				} else {
-					builder.append(StringUtils.join(argument.getPossibilities(), "|"));
+					//	final String prefix = format.getVariable().substring(0, format.getVariable().indexOf(variable));
+					//	final String separator = format.getVariable().substring(format.getVariable().lastIndexOf(variable) + variable.length());
+					//	System.out.println(separator);
+					//	System.out.println(prefix);
+					append = format.getChoice().replace(
+							HelpMenuFormat.Placeholder.CHOICE,
+							StringUtils.join(argument.getPossibilities(), format.getSeparator()));
 				}
 
+				System.out.println(Chat.stripColors(append));
+				fullCommand.append(append);
 			}
 
-			builder.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(new ComponentBuilder("").create())));
+			lines[l] = new HelpLine(
+					Chat.stripColors(fullCommand.toString()),
 
-			if (i % pageSize == 0) {//new page
+					fullCommand.toString(),
 
+					new ComponentBuilder(fullCommand.toString())
+							.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+												  new Text(new ComponentBuilder(format.getSuggest().replace(
+														  HelpMenuFormat.Placeholder.COMMAND,
+														  fullCommand.toString())).create())))
+							.event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
+												  Chat.stripColors(fullCommand.toString())))
+							.create());
+
+			builder.append(new TextComponent(fullCommand.toString()));
+
+			builder.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+										 new Text(new ComponentBuilder(format.getSuggest().replace(
+												 HelpMenuFormat.Placeholder.COMMAND,
+												 fullCommand.toString())).create())));
+
+			builder.event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
+										 Chat.stripColors(fullCommand.toString())));
+
+			if (l % format.getPageSize() == 0) {//new page
+				pages[p] = new HelpPage(lines);
 				p++;
+				l = 0;
 			}
 
-			i++;
+			l++;
 		}
 
-		return new HelpMenu(null, pageSize, pageCount);
+		return this.helpMenus.put(command, new HelpMenu(pages, format.getPageSize(), pageCount));
 	}
 }

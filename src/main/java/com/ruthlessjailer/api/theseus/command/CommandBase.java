@@ -1,6 +1,7 @@
 package com.ruthlessjailer.api.theseus.command;
 
 import com.ruthlessjailer.api.theseus.*;
+import com.ruthlessjailer.api.theseus.command.help.HelpMenuFormat;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -39,6 +40,10 @@ public abstract class CommandBase extends Command {
 	@Setter
 	private boolean autoGenerateHelpMenu = true;
 
+	@Getter
+	@Setter
+	private HelpMenuFormat helpMenuFormatOverride;
+
 	public CommandBase(@NonNull final String label) {
 		this(CommandBase.parseLabel(label), CommandBase.parseAliases(label));
 	}
@@ -53,6 +58,7 @@ public abstract class CommandBase extends Command {
 
 		this.label = label;
 		this.setPermissionMessage(this.getPermissionMessage());
+		this.setHelpMenuFormatOverride(HelpMenuFormat.DEFAULT_FORMAT);//super is called before constructor
 	}
 
 	private static String parseLabel(final String label) {
@@ -66,6 +72,10 @@ public abstract class CommandBase extends Command {
 
 	public final void register() {
 		Checks.verify(!this.registered, "Command is already registered", CommandException.class);
+
+		if (this.isSuperior) {
+			SubCommandManager.getInstance().generateHelpMenu(this, this.helpMenuFormatOverride);
+		}
 
 		final PluginCommand currentCommand = Bukkit.getPluginCommand(this.label);
 
@@ -83,7 +93,7 @@ public abstract class CommandBase extends Command {
 		Spigot.registerCommand(this);
 
 		if (this.isSuperior) {
-			SubCommandManager.register((SuperiorCommand) this);
+			SubCommandManager.getInstance().register((SuperiorCommand) this);
 		}
 
 		this.registered = true;
@@ -118,7 +128,7 @@ public abstract class CommandBase extends Command {
 		this.runCommand();
 
 		if (this.isSuperior) {
-			SubCommandManager.executeFor(this, sender, args);
+			SubCommandManager.getInstance().executeFor(this, sender, args);
 		}
 
 		return true;
@@ -132,7 +142,7 @@ public abstract class CommandBase extends Command {
 	@Override
 	public final List<String> tabComplete(final CommandSender sender, final String alias, final String[] args, final Location location) throws IllegalArgumentException {
 		return this.tabCompleteSubCommands && this.isSuperior
-			   ? SubCommandManager.tabCompleteFor(this, sender, args)
+			   ? SubCommandManager.getInstance().tabCompleteFor(this, sender, args)
 			   : this.onTabComplete(sender, alias, args, location);
 	}
 
