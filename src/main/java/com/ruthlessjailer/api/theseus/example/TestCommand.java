@@ -1,8 +1,10 @@
 package com.ruthlessjailer.api.theseus.example;
 
+import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.command.CommandBase;
 import com.ruthlessjailer.api.theseus.command.SubCommand;
 import com.ruthlessjailer.api.theseus.command.SuperiorCommand;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
 
 public class TestCommand extends CommandBase implements SuperiorCommand {
@@ -13,7 +15,7 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 
 	@Override
 	protected void runCommand() {
-		this.sender.sendMessage("yeeted");
+		this.sender.sendMessage(Chat.colorize(StringUtils.join(this.args, " ")));
 	}
 
 	@SubCommand(inputArgs = "create|new %s<Name> %e", argTypes = Material.class)

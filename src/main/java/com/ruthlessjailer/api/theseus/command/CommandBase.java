@@ -35,6 +35,10 @@ public abstract class CommandBase extends Command {
 	@Getter
 	private boolean tabCompleteSubCommands = true;
 
+	@Getter
+	@Setter
+	private boolean autoGenerateHelpMenu = true;
+
 	public CommandBase(@NonNull final String label) {
 		this(CommandBase.parseLabel(label), CommandBase.parseAliases(label));
 	}

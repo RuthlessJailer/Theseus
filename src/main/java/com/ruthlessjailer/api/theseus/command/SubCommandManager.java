@@ -4,12 +4,17 @@ import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
 import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
+import com.ruthlessjailer.api.theseus.command.help.HelpMenu;
+import com.ruthlessjailer.api.theseus.command.help.HelpMenuFormat;
+import com.ruthlessjailer.api.theseus.command.help.HelpPage;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.hover.content.Text;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.CommandSender;
 
 import java.lang.annotation.Annotation;
@@ -25,7 +30,9 @@ public final class SubCommandManager {
 
 	private final Map<CommandBase, List<SubCommandWrapper>> subCommands = new HashMap<>();
 
-	public static void register(final SuperiorCommand command) {
+	private final Map<CommandBase, HelpMenu> helpMenus = new HashMap<>();
+
+	public static void register(@NonNull final SuperiorCommand command) {
 		Checks.verify(command instanceof CommandBase,
 					  "SuperiorCommand implementations must extend CommandBase.",
 					  SubCommandException.class);
@@ -51,7 +58,7 @@ public final class SubCommandManager {
 		getInstance().subCommands.put((CommandBase) command, wrappers);
 	}
 
-	public static List<String> tabCompleteFor(final CommandBase command, final CommandSender sender, final String[] args) {
+	public static List<String> tabCompleteFor(@NonNull final CommandBase command, @NonNull final CommandSender sender, final String[] args) {
 
 //		for (final SubCommandWrapper wrapper : getInstance().subCommands.get(command)) {
 //			for (final Argument argument : wrapper.getArguments()) {
@@ -73,7 +80,7 @@ public final class SubCommandManager {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <E extends Enum<E>> void executeFor(final CommandBase command, final CommandSender sender, final String[] args) {
+	public static <E extends Enum<E>> void executeFor(@NonNull final CommandBase command, @NonNull final CommandSender sender, final String[] args) {
 
 		wrappers:
 		for (final SubCommandWrapper wrapper : getInstance().subCommands.get(command)) {
@@ -155,16 +162,13 @@ public final class SubCommandManager {
 
 	}
 
-	public static void displayHelpMenuTo(@NonNull final CommandBase command, @NonNull final CommandSender sender) {
-		sender.spigot().sendMessage(new ComponentBuilder().append("").event(new ClickEvent(
-				ClickEvent.Action.RUN_COMMAND, "")).create());
-	}
+	public List<SubCommandWrapper> getSubCommands(@NonNull final CommandBase command) { return this.subCommands.get(command); }
 
-	public List<SubCommandWrapper> getSubCommands(final CommandBase command) { return this.subCommands.get(command); }
+	public HelpMenu getHelpMenu(@NonNull final CommandBase command)                   { return this.helpMenus.get(command); }
 
 	@SuppressWarnings("unchecked")
-	private <T extends Enum<T>> SubCommandWrapper parseArgs(final CommandBase parent, final Method method,
-															final SubCommand subCommand) {
+	private <T extends Enum<T>> SubCommandWrapper parseArgs(@NonNull final CommandBase parent, @NonNull final Method method,
+															@NonNull final SubCommand subCommand) {
 		final String[] args = Checks.stringCheck(subCommand.inputArgs(),
 												 String.format("InputArgs on method %s in class %s cannot be null " +
 															   "(or empty)!",
@@ -277,7 +281,7 @@ public final class SubCommandManager {
 									 method);
 	}
 
-	private void checkMethod(final Class<?>[] declaredTypes, final Method method, final CommandBase parent) {
+	private void checkMethod(@NonNull final Class<?>[] declaredTypes, @NonNull final Method method, @NonNull final CommandBase parent) {
 
 		final Class<?>[] methodParameterTypes = method.getParameterTypes();
 
@@ -302,8 +306,48 @@ public final class SubCommandManager {
 		}
 	}
 
-	private <E extends Enum<E>> String[] getEnumValueNames(final Class<E> clazz) {
+	private <E extends Enum<E>> String[] getEnumValueNames(@NonNull final Class<E> clazz) {
 		final E[] values = ReflectUtil.getEnumValues(clazz);
 		return Common.convert(values, new String[values.length], Enum::name);
+	}
+
+	private HelpMenu generateHelpMenu(@NonNull final CommandBase command, @NonNull final List<SubCommandWrapper> subCommands,
+									  @NonNull final int pageSize, final HelpMenuFormat menuFormat) {
+
+		final int pageCount = (int) Math.ceil((double) subCommands.size() / (double) pageSize);
+
+		final HelpPage[]     pages  = new HelpPage[pageCount];
+		final HelpMenuFormat format = menuFormat == null ? HelpMenuFormat.DEFAULT_FORMAT : menuFormat;
+
+		int i = 0;//counter
+		int p = 0;//page counter
+		for (final SubCommandWrapper wrapper : subCommands) {
+
+			final ComponentBuilder builder = new ComponentBuilder();
+
+			final String c = format.getCommand().replace("${command.label}", command.getLabel());
+
+			for (final Argument argument : wrapper.getArguments()) {
+
+				if (argument.isDeclaredType()) {//TODO: formatting
+//					builder.append(c.replaceFirst("\\$\\{variable\\.argument\\}", argument.getDescription()));
+					builder.append("<" + argument.getDescription() + ">");
+				} else {
+					builder.append(StringUtils.join(argument.getPossibilities(), "|"));
+				}
+
+			}
+
+			builder.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(new ComponentBuilder("").create())));
+
+			if (i % pageSize == 0) {//new page
+
+				p++;
+			}
+
+			i++;
+		}
+
+		return new HelpMenu(null, pageSize, pageCount);
 	}
 }

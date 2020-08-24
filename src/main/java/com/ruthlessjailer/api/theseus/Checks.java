@@ -115,7 +115,7 @@ public final class Checks {
 																		ReflectUtil.getPath(exception)));
 			}
 		}
-	}//TODO: ReflectUtil.newInstanceOf(Class, Object...) not working
+	}
 
 	/**
 	 * Generic check exception.
