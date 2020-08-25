@@ -1,10 +1,10 @@
 package com.ruthlessjailer.api.theseus.command.help;
 
-import com.ruthlessjailer.api.theseus.Chat;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NonNull;
 
 @Getter
+@AllArgsConstructor
 public final class HelpMenuFormat {
 
 	public static final HelpMenuFormat DEFAULT_FORMAT = new HelpMenuFormat(
@@ -30,20 +30,20 @@ public final class HelpMenuFormat {
 	private final String footer;//&e&m&l-------------
 	private final int    pageSize;
 
-	public HelpMenuFormat(@NonNull final String suggest, @NonNull final String command, @NonNull final String variable,
-						  @NonNull final String choice, @NonNull final String separator, @NonNull final String header, @NonNull final String previous,
-						  @NonNull final String next, @NonNull final String footer, final int pageSize) {
-		this.suggest   = Chat.colorize(suggest);
-		this.command   = Chat.colorize(command);
-		this.variable  = Chat.colorize(variable);
-		this.choice    = Chat.colorize(choice);
-		this.separator = Chat.colorize(separator);
-		this.header    = Chat.colorize(header);
-		this.previous  = Chat.colorize(previous);
-		this.next      = Chat.colorize(next);
-		this.footer    = Chat.colorize(footer);
-		this.pageSize  = pageSize;
-	}
+//	public HelpMenuFormat(@NonNull final String suggest, @NonNull final String command, @NonNull final String variable,
+//						  @NonNull final String choice, @NonNull final String separator, @NonNull final String header, @NonNull final String previous,
+//						  @NonNull final String next, @NonNull final String footer, final int pageSize) {
+//		this.suggest   = Chat.colorize(suggest);
+//		this.command   = Chat.colorize(command);
+//		this.variable  = Chat.colorize(variable);
+//		this.choice    = Chat.colorize(choice);
+//		this.separator = Chat.colorize(separator);
+//		this.header    = Chat.colorize(header);
+//		this.previous  = Chat.colorize(previous);
+//		this.next      = Chat.colorize(next);
+//		this.footer    = Chat.colorize(footer);
+//		this.pageSize  = pageSize;
+//	}
 
 	public static final class Placeholder {
 		public static final String COMMAND  = "${command}";

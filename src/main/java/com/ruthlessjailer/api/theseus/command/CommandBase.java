@@ -25,8 +25,13 @@ public abstract class CommandBase extends Command {
 	protected String[]      args;
 	protected CommandSender sender;
 
-	@Getter
 	protected boolean registered = false;
+
+	@Getter
+	private String customPermissionSyntax = this.getDefaultPermissionSyntax();
+
+	@Getter
+	private String customPermissionMessage = this.getDefaultPermissionMessage();
 
 	@Setter
 	@Getter
@@ -42,7 +47,7 @@ public abstract class CommandBase extends Command {
 
 	@Getter
 	@Setter
-	private HelpMenuFormat helpMenuFormatOverride;
+	private HelpMenuFormat helpMenuFormatOverride = HelpMenuFormat.DEFAULT_FORMAT;
 
 	public CommandBase(@NonNull final String label) {
 		this(CommandBase.parseLabel(label), CommandBase.parseAliases(label));
@@ -57,8 +62,7 @@ public abstract class CommandBase extends Command {
 					  CommandException.class);
 
 		this.label = label;
-		this.setPermissionMessage(this.getPermissionMessage());
-		this.setHelpMenuFormatOverride(HelpMenuFormat.DEFAULT_FORMAT);//super is called before constructor
+		this.setCustomPermissionMessage(this.getCustomPermissionMessage());
 	}
 
 	private static String parseLabel(final String label) {
@@ -73,27 +77,24 @@ public abstract class CommandBase extends Command {
 	public final void register() {
 		Checks.verify(!this.registered, "Command is already registered", CommandException.class);
 
-		if (this.isSuperior) {
-			SubCommandManager.getInstance().generateHelpMenu(this, this.helpMenuFormatOverride);
-		}
-
-		final PluginCommand currentCommand = Bukkit.getPluginCommand(this.label);
+		final PluginCommand currentCommand = Bukkit.getPluginCommand(this.getLabel());
 
 		if (currentCommand != null) {
 			final String plugin = currentCommand.getPlugin().getName();
 
 			if (!plugin.equals(PluginBase.getCurrentName())) {
-				Chat.warning(String.format("Plugin %s is already using command %s! Stealing...", plugin, this.label));
+				Chat.warning(String.format("Plugin %s is already using command %s! Stealing...", plugin, this.getLabel()));
 			}
-			Spigot.unregisterCommand(this.label);
+			Spigot.unregisterCommand(this.getLabel());
 
-			Chat.info(String.format("Muahahahaha! Stole command %s from plugin %s!", this.label, plugin));
+			Chat.info(String.format("Muahahahaha! Stole command %s from plugin %s!", this.getLabel(), plugin));
 		}
 
 		Spigot.registerCommand(this);
 
 		if (this.isSuperior) {
 			SubCommandManager.getInstance().register((SuperiorCommand) this);
+			SubCommandManager.getInstance().generateHelpMenu(this, this.helpMenuFormatOverride);
 		}
 
 		this.registered = true;
@@ -102,15 +103,17 @@ public abstract class CommandBase extends Command {
 	public final void unregister() {
 		Checks.verify(this.registered, "Already unregistered.", CommandException.class);
 
-		Spigot.unregisterCommand(this.label);
+		Spigot.unregisterCommand(this.getLabel());
 
 		this.registered = false;
 	}
 
 	private final String getDefaultPermissionSyntax() {
-		return CommandBase.DEFAULT_PERMISSION_SYNTAX.replace("${plugin.name}", PluginBase.getCurrentName())
-													.replace("${command.label}",
-															 this.label);
+		return CommandBase.DEFAULT_PERMISSION_SYNTAX
+				.replace("${plugin.name}",
+						 PluginBase.getCurrentName())
+				.replace("${command.label}",
+						 this.getLabel());
 	}
 
 	public final String getDefaultPermissionMessage() {
@@ -118,8 +121,24 @@ public abstract class CommandBase extends Command {
 				CommandBase.DEFAULT_PERMISSION_MESSAGE.replace("${permission}", this.getDefaultPermissionSyntax()));
 	}
 
+	protected final void setCustomPermissionSyntax(@NonNull final String syntax) {
+		this.customPermissionSyntax = syntax.replace("${plugin.name}", PluginBase.getCurrentName())
+											.replace("${command.label}",
+													 this.getLabel());
+	}
+
+	protected final void setCustomPermissionMessage(@NonNull final String message) {
+		this.customPermissionMessage = message.replace("${permission}",
+													   this.getCustomPermissionSyntax());
+	}
+
 	@Override
 	public final boolean execute(final CommandSender sender, final String label, final String[] args) {
+
+		if (!sender.hasPermission(this.getCustomPermissionSyntax())) {
+			sender.sendMessage(this.getCustomPermissionMessage());
+			return false;
+		}
 
 		this.label  = label;
 		this.args   = args;
@@ -128,7 +147,7 @@ public abstract class CommandBase extends Command {
 		this.runCommand();
 
 		if (this.isSuperior) {
-			SubCommandManager.getInstance().executeFor(this, sender, args);
+			return SubCommandManager.getInstance().executeFor(this, sender, args);
 		}
 
 		return true;
