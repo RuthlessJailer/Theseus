@@ -365,7 +365,9 @@ public final class SubCommandManager {
 		int l = 1;//line counter (starts at 1 because of header)
 		int p = 0;//page counter
 
-		final HelpLine[] lines = new HelpLine[format.getPageSize() + 2];//+2 for header and footer
+		final HelpLine[] lines = new HelpLine[(subCommands.size() < format.getPageSize())//in case the size is less
+											  ? (subCommands.size() + 2)
+											  : (format.getPageSize() + 2)];//+2 for header and footer
 
 		for (final SubCommandWrapper wrapper : subCommands) {
 
@@ -411,7 +413,8 @@ public final class SubCommandManager {
 												  Chat.stripColors(fullCommand.toString())))
 							.create());
 
-			if (l % format.getPageSize() == 0) {//new page
+			if ((l - 1 != 0) && (l - 1 % format.getPageSize() == 0) || (l == subCommands.size()) || (subCommands.size() < format.getPageSize())) {//new page; -1 because
+				// of header
 
 				//this never hits if you have less than the pageSize
 
@@ -429,19 +432,27 @@ public final class SubCommandManager {
 				final String postNext           = headerPostPrevious.substring(headerPostPrevious.lastIndexOf(next) + next.length());//anything after the next button
 				final String rawHeader          = headerPostPrevious.substring(0, headerPostPrevious.lastIndexOf(next));//everything in between the back and the next buttons
 
-				headerBuilder.append(prePrevious, ComponentBuilder.FormatRetention.FORMATTING);//anything before the back button
+				headerBuilder.append(Chat.colorize(prePrevious), ComponentBuilder.FormatRetention.FORMATTING);//anything before the back button
 
-				headerBuilder.append(format.getPrevious(), ComponentBuilder.FormatRetention.FORMATTING)//the back button
+				headerBuilder.append(Chat.colorize(format.getPrevious()), ComponentBuilder.FormatRetention.FORMATTING)//the back button
 							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), p == 0 ? p : p - 1)));
 
-				headerBuilder.append(rawHeader, ComponentBuilder.FormatRetention.FORMATTING);//everything in between the back and the next buttons
+				headerBuilder.append(Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel())),
+									 ComponentBuilder.FormatRetention.FORMATTING);//everything in between the
+				// back and
+				// the next
+				// buttons
 
-				headerBuilder.append(format.getNext(), ComponentBuilder.FormatRetention.FORMATTING)//the next button
+				headerBuilder.append(Chat.colorize(format.getNext()), ComponentBuilder.FormatRetention.FORMATTING)//the next button
 							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), p == pageCount - 1 ? p : p + 1)));
 
-				headerBuilder.append(postNext, ComponentBuilder.FormatRetention.FORMATTING);//anything after the next button
+				headerBuilder.append(Chat.colorize(postNext), ComponentBuilder.FormatRetention.FORMATTING);//anything after the next button
 
-				rawHeaderBuilder.append(prePrevious).append(previous).append(rawHeader).append(next).append(postNext);
+				rawHeaderBuilder.append(prePrevious)
+								.append(format.getPrevious())
+								.append(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel()))
+								.append(format.getNext())
+								.append(postNext);
 
 				lines[0] = new HelpLine(//header with buttons
 										Chat.stripColors(rawHeaderBuilder.toString()),
@@ -457,7 +468,7 @@ public final class SubCommandManager {
 
 				pages[p] = new HelpPage(lines);
 				p++;
-				l = 1;
+				l = 1;//1 because of header
 			}
 
 			l++;

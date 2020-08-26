@@ -19,37 +19,37 @@ public final class Chat {
 
 	public static void send(final CommandSender who, final String... what) {
 		for (final String s : what) {
-			who.sendMessage(Chat.colorize(s));
+			who.sendMessage(colorize(s));
 		}
 	}
 
 	public static void send(final CommandSender who, final Collection<String> what) {
 		for (final String s : what) {
-			who.sendMessage(Chat.colorize(s));
+			who.sendMessage(colorize(s));
 		}
 	}
 
 	public static void send(final String what, final CommandSender... who) {
 		for (final CommandSender sender : who) {
-			Chat.send(sender, what);
+			send(sender, what);
 		}
 	}
 
 	public static void send(final Collection<String> what, final CommandSender... who) {
 		for (final CommandSender sender : who) {
-			Chat.send(sender, what);
+			send(sender, what);
 		}
 	}
 
 	public static void send(final String what, final Collection<CommandSender> who) {
 		for (final CommandSender sender : who) {
-			Chat.send(sender, what);
+			send(sender, what);
 		}
 	}
 
 	public static void send(final Collection<String> what, final Collection<CommandSender> who) {
 		for (final CommandSender sender : who) {
-			Chat.send(sender, what);
+			send(sender, what);
 		}
 	}
 
@@ -76,16 +76,15 @@ public final class Chat {
 	}
 
 	public static String colorize(final String... strings) {
-		return Chat.colorize(StringUtils.join(strings, "\n"));
+		return colorize(StringUtils.join(strings, "\n"));
+	}
+
+	public static String stripColors(final String string) {
+		return Common.getString(string).replaceAll("([&" + ChatColor.COLOR_CHAR + "])([0-9a-fk-or])", "");
 	}
 
 	public static String stripColors(final String... strings) {
-		final StringBuilder result = new StringBuilder();
-		for (final String string : strings) {
-			result.append(Common.getString(string).replaceAll("([&" + ChatColor.COLOR_CHAR + "])([0-9a-fk-or])", ""))
-				  .append("\n");
-		}
-		return result.toString();
+		return stripColors(StringUtils.join(strings, "\n"));
 	}
 
 	/**
@@ -145,7 +144,7 @@ public final class Chat {
 	}
 
 	public static String consoleColorize(final String... strings) {
-		return Chat.consoleColorize(StringUtils.join(strings, "\n"));
+		return consoleColorize(StringUtils.join(strings, "\n"));
 	}
 
 	public static String bungeeColorize(final String string) {
@@ -153,7 +152,7 @@ public final class Chat {
 	}
 
 	public static String bungeeColorize(final String... string) {
-		return Chat.bungeeColorize(StringUtils.join(string, "\n"));
+		return bungeeColorize(StringUtils.join(string, "\n"));
 	}
 
 	@AllArgsConstructor
