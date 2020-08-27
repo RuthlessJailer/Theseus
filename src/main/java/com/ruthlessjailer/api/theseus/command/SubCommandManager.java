@@ -65,6 +65,8 @@ public final class SubCommandManager {
 
 	public List<String> tabCompleteFor(@NonNull final CommandBase command, @NonNull final CommandSender sender, final String[] args) {
 
+		//Common.convert(getSubCommands(command), value -> value.getArguments()[0].getPossibilities());//get first arg
+
 //		for (final SubCommandWrapper wrapper : getInstance().subCommands.get(command)) {
 //			for (final Argument argument : wrapper.getArguments()) {
 //				for (final String arg : args) {
@@ -90,7 +92,13 @@ public final class SubCommandManager {
 
 		if (pageNumber <= 0) {
 			page = 0;
-		} else { page = Math.min(pageNumber, menu.getPages().length); }
+		} else if (pageNumber > menu.getPages().length) {
+			page = menu.getPages().length - 1;
+		} else if (pageNumber == menu.getPages().length) {
+			page = menu.getPages().length - 1;
+		} else {
+			page = pageNumber;
+		}
 
 		for (final HelpLine line : menu.getPages()[page].getLines()) {
 			if (line != null) {//line can be null if there aren't enough elements to populate the page
@@ -144,13 +152,11 @@ public final class SubCommandManager {
 				if (!argument.isInfinite()) {
 					for (final String possibility : argument.getPossibilities()) {
 						if (possibility.equalsIgnoreCase(args[i])) {
-							System.out.println("MATCH: " + args[i] + " == " + possibility);
 							match = true;
 							break;
 						}
 					}
 					if (!match) {
-						System.out.println("NO MATCH: " + args[i]);
 						continue wrappers;
 					}
 				}
@@ -230,7 +236,7 @@ public final class SubCommandManager {
 		if (args.length == 1 && argTypes.length == 0 && !args[0].toLowerCase().matches("%sideb(<[a-z_0-9]+>)?")) {//no need to parse args if there are none
 			return new SubCommandWrapper(parent,
 										 Common.asArray(new Argument(
-												 args[0].split(" "),
+												 args[0].split("\\|"),
 												 String.class,
 												 false,
 												 null)),
@@ -460,7 +466,6 @@ public final class SubCommandManager {
 
 				headerBuilder.append(Chat.colorize(format.getNext()), ComponentBuilder.FormatRetention.FORMATTING)//the next button
 							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), p == pageCount - 1 ? p : p + 2)));
-				//lastPage ? p : nextPage (+2 because index and also the method takes normal numbers)
 
 				//TODO: page logic
 

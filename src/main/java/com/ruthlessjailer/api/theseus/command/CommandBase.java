@@ -144,7 +144,7 @@ public abstract class CommandBase extends Command {
 		this.args   = args;
 		this.sender = sender;
 
-		if (!(this.autoGenerateHelpMenu && args.length == 1 && args[0].equalsIgnoreCase("help"))) {//don't run on help command
+		if (!(this.autoGenerateHelpMenu && args.length >= 1 && args[0].equalsIgnoreCase("help"))) {//don't run on help command
 			this.runCommand();
 		}
 
