@@ -88,15 +88,15 @@ public final class SubCommandManager {
 
 		final int page;
 
-		if (pageNumber == 0 || pageNumber > menu.getPages().length || pageNumber < 0) {
+		if (pageNumber <= 0) {
 			page = 0;
-		} else {
-			page = pageNumber - 1;
-		}
+		} else { page = Math.min(pageNumber, menu.getPages().length); }
 
 		for (final HelpLine line : menu.getPages()[page].getLines()) {
-			sender.spigot().sendMessage(line.getFormatted());
-			System.out.println(line.getRaw());
+			if (line != null) {//line can be null if there aren't enough elements to populate the page
+				sender.spigot().sendMessage(line.getFormatted());
+				System.out.println(line.getRaw());
+			}
 		}
 
 	}
@@ -104,7 +104,7 @@ public final class SubCommandManager {
 	@SuppressWarnings("unchecked")
 	public <E extends Enum<E>> boolean executeFor(@NonNull final CommandBase command, @NonNull final CommandSender sender, final String[] args) {
 
-		if (command.isAutoGenerateHelpMenu()) {//automatic help command
+		if (command.isAutoGenerateHelpMenu() && args.length >= 1) {//automatic help command
 			if (args[0].equalsIgnoreCase("help")) {
 				int page = 0;
 
@@ -144,11 +144,13 @@ public final class SubCommandManager {
 				if (!argument.isInfinite()) {
 					for (final String possibility : argument.getPossibilities()) {
 						if (possibility.equalsIgnoreCase(args[i])) {
+							System.out.println("MATCH: " + args[i] + " == " + possibility);
 							match = true;
 							break;
 						}
 					}
 					if (!match) {
+						System.out.println("NO MATCH: " + args[i]);
 						continue wrappers;
 					}
 				}
@@ -204,7 +206,7 @@ public final class SubCommandManager {
 	public HelpMenu getHelpMenu(@NonNull final CommandBase command) { return this.helpMenus.get(command); }
 
 	@SuppressWarnings("unchecked")
-	private <T extends Enum<T>> SubCommandWrapper parseArgs(@NonNull final CommandBase parent, @NonNull final Method method, @NonNull final SubCommand subCommand) {
+	private <E extends Enum<E>> SubCommandWrapper parseArgs(@NonNull final CommandBase parent, @NonNull final Method method, @NonNull final SubCommand subCommand) {
 		final String[] args = Checks.stringCheck(subCommand.inputArgs(),
 												 String.format("InputArgs on method %s in class %s cannot be null " +
 															   "(or empty)!",
@@ -222,6 +224,19 @@ public final class SubCommandManager {
 			Chat.warning(String.format("Sub-command %s in class %s overrides default help command. Disabling automatic help menu...",
 									   method.getName(), ReflectUtil.getPath(parent.getClass())));
 			parent.setAutoGenerateHelpMenu(false);
+		}
+
+
+		if (args.length == 1 && argTypes.length == 0 && !args[0].toLowerCase().matches("%sideb(<[a-z_0-9]+>)?")) {//no need to parse args if there are none
+			return new SubCommandWrapper(parent,
+										 Common.asArray(new Argument(
+												 args[0].split(" "),
+												 String.class,
+												 false,
+												 null)),
+										 Common.asArray(String.class),
+										 new Class<?>[0],
+										 method);
 		}
 
 		for (final String arg : args) {//initialize declaredTypes variable
@@ -268,7 +283,7 @@ public final class SubCommandManager {
 					types[i] = declaredType;
 					declaredTypes[t] = declaredType;
 					arguments[i] =
-							new Argument(this.getEnumValueNames((Class<T>) declaredType), (Class<T>) declaredType,
+							new Argument(this.getEnumValueNames((Class<E>) declaredType), (Class<E>) declaredType,
 										 true, description);
 
 					break;
@@ -358,6 +373,8 @@ public final class SubCommandManager {
 		final List<SubCommandWrapper> subCommands = this.getSubCommands(command);
 		final HelpMenuFormat          format      = menuFormat == null ? HelpMenuFormat.DEFAULT_FORMAT : menuFormat;
 
+		final List<SubCommandWrapper> wrappers = new ArrayList<>(subCommands);
+
 		final int pageCount = (int) Math.ceil((double) subCommands.size() / (double) format.getPageSize());
 
 		final HelpPage[] pages = new HelpPage[pageCount];
@@ -365,11 +382,13 @@ public final class SubCommandManager {
 		int l = 1;//line counter (starts at 1 because of header)
 		int p = 0;//page counter
 
-		final HelpLine[] lines = new HelpLine[(subCommands.size() < format.getPageSize())//in case the size is less
-											  ? (subCommands.size() + 2)
-											  : (format.getPageSize() + 2)];//+2 for header and footer
+		HelpLine[] lines = new HelpLine[(subCommands.size() < format.getPageSize())//in case the size is less
+										? (subCommands.size() + 2)
+										: (format.getPageSize() + 2)];//+2 for header and footer
 
 		for (final SubCommandWrapper wrapper : subCommands) {
+
+			wrappers.remove(wrapper);
 
 			final StringBuilder fullCommand = new StringBuilder(
 					Chat.colorize(format.getCommand().replace(
@@ -406,15 +425,14 @@ public final class SubCommandManager {
 
 					new ComponentBuilder(Chat.colorize(fullCommand.toString()))
 							.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-												  new Text(new ComponentBuilder(format.getSuggest().replace(
+												  new Text(new ComponentBuilder(Chat.colorize(format.getSuggest().replace(
 														  HelpMenuFormat.Placeholder.COMMAND,
-														  fullCommand.toString())).create())))
+														  fullCommand.toString()))).create())))
 							.event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
 												  Chat.stripColors(fullCommand.toString())))
 							.create());
 
-			if ((l - 1 != 0) && (l - 1 % format.getPageSize() == 0) || (l == subCommands.size()) || (subCommands.size() < format.getPageSize())) {//new page; -1 because
-				// of header
+			if (l % format.getPageSize() == 0 || wrappers.isEmpty()) {//new page
 
 				//this never hits if you have less than the pageSize
 
@@ -435,16 +453,16 @@ public final class SubCommandManager {
 				headerBuilder.append(Chat.colorize(prePrevious), ComponentBuilder.FormatRetention.FORMATTING);//anything before the back button
 
 				headerBuilder.append(Chat.colorize(format.getPrevious()), ComponentBuilder.FormatRetention.FORMATTING)//the back button
-							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), p == 0 ? p : p - 1)));
+							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), p)));
 
 				headerBuilder.append(Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel())),
-									 ComponentBuilder.FormatRetention.FORMATTING);//everything in between the
-				// back and
-				// the next
-				// buttons
+									 ComponentBuilder.FormatRetention.FORMATTING);//everything in between the back and the next buttons
 
 				headerBuilder.append(Chat.colorize(format.getNext()), ComponentBuilder.FormatRetention.FORMATTING)//the next button
-							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), p == pageCount - 1 ? p : p + 1)));
+							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), p == pageCount - 1 ? p : p + 2)));
+				//lastPage ? p : nextPage (+2 because index and also the method takes normal numbers)
+
+				//TODO: page logic
 
 				headerBuilder.append(Chat.colorize(postNext), ComponentBuilder.FormatRetention.FORMATTING);//anything after the next button
 
@@ -469,6 +487,10 @@ public final class SubCommandManager {
 				pages[p] = new HelpPage(lines);
 				p++;
 				l = 1;//1 because of header
+
+				lines = new HelpLine[format.getPageSize() + 2];
+
+				continue;
 			}
 
 			l++;
