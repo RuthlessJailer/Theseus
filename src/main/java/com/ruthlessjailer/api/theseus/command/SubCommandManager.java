@@ -22,11 +22,11 @@ import org.bukkit.command.CommandSender;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+/**
+ * @author Vadim Hagedorn
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SubCommandManager {
 
@@ -67,35 +67,50 @@ public final class SubCommandManager {
 
 		//Common.convert(getSubCommands(command), value -> value.getArguments()[0].getPossibilities());//get first arg
 
-//		for (final SubCommandWrapper wrapper : getInstance().subCommands.get(command)) {
-//			for (final Argument argument : wrapper.getArguments()) {
-//				for (final String arg : args) {
-//					if (!argument.isInfinite()) {
-//						for (final String possibility : argument.getPossibilities()) {
-//							if (arg.equalsIgnoreCase(possibility)) {
-//
-//							}
-//						}
-//					} else {
-//						System.out.println("inifinite_");
-//					}
-//				}
-//			}
-//		}
+		final List<String> result = new ArrayList<>();
 
-		return new ArrayList<>();
+		for (final SubCommandWrapper wrapper : this.getSubCommands(command)) {
+
+			if (wrapper.getArguments().length >= args.length) {
+				final Argument argument = wrapper.getArguments()[args.length - 1];
+
+				if (!argument.isInfinite()) {
+
+					for (int i = 0; i < args.length; i++) {
+						final String   arg  = args[i];
+						final Argument argu = wrapper.getArguments()[i];
+
+						if (!argu.isInfinite()) {
+							for (final String p : argu.getPossibilities()) {
+								if (p.toLowerCase().startsWith(arg.toLowerCase())) {
+									for (final String possibility : argument.getPossibilities()) {
+										if (possibility.toLowerCase().startsWith(args[args.length - 1].toLowerCase())) {
+											result.addAll(Arrays.asList(argument.getPossibilities()));
+										}
+									}//TODO: cleanup
+								}
+							}
+						}
+
+					}
+				}
+
+			}
+
+		}
+
+
+		return result;
 	}
 
-	public void sendHelpMenuTo(@NonNull final HelpMenu menu, @NonNull final CommandSender sender, final int pageNumber) {
+	public void sendHelpMenuTo(@NonNull final HelpMenu menu, @NonNull final CommandSender sender, final int pageNumber) {//it's getting an index, no need to correct
 
 		final int page;
 
 		if (pageNumber <= 0) {
 			page = 0;
-		} else if (pageNumber > menu.getPages().length) {
-			page = menu.getPages().length - 1;
-		} else if (pageNumber == menu.getPages().length) {
-			page = menu.getPages().length - 1;
+		} else if (pageNumber >= menu.getPageCount()) {
+			page = menu.getPageCount() - 1;
 		} else {
 			page = pageNumber;
 		}
@@ -461,13 +476,13 @@ public final class SubCommandManager {
 				headerBuilder.append(Chat.colorize(format.getPrevious()), ComponentBuilder.FormatRetention.FORMATTING)//the back button
 							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), p)));
 
-				headerBuilder.append(Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel())),
+
+				headerBuilder.append(Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel()))
+										 .replaceAll(Common.escape(HelpMenuFormat.Placeholder.PAGE), String.valueOf(p + 1)),
 									 ComponentBuilder.FormatRetention.FORMATTING);//everything in between the back and the next buttons
 
 				headerBuilder.append(Chat.colorize(format.getNext()), ComponentBuilder.FormatRetention.FORMATTING)//the next button
-							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), p == pageCount - 1 ? p : p + 2)));
-
-				//TODO: page logic
+							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), p == pageCount ? p : p + 2)));
 
 				headerBuilder.append(Chat.colorize(postNext), ComponentBuilder.FormatRetention.FORMATTING);//anything after the next button
 
@@ -484,10 +499,10 @@ public final class SubCommandManager {
 
 				//header stuff end
 
-				lines[l + 1] = new HelpLine(//footer
-											Chat.stripColors(format.getFooter()),
-											Chat.colorize(format.getFooter()),
-											new ComponentBuilder(Chat.colorize(format.getFooter())).create());
+				lines[format.getPageSize() + 1] = new HelpLine(//footer
+															   Chat.stripColors(format.getFooter()),
+															   Chat.colorize(format.getFooter()),
+															   new ComponentBuilder(Chat.colorize(format.getFooter())).create());
 
 				pages[p] = new HelpPage(lines);
 				p++;

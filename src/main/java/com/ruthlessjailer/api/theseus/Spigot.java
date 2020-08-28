@@ -11,6 +11,9 @@ import java.util.Map;
 
 import static com.ruthlessjailer.api.theseus.ReflectUtil.*;
 
+/**
+ * @author Vadim Hagedorn
+ */
 public final class Spigot {
 
 	public static final void registerCommand(@NonNull final Command command) {

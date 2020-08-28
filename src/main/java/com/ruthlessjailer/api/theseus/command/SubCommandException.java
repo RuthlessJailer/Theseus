@@ -1,5 +1,8 @@
 package com.ruthlessjailer.api.theseus.command;
 
+/**
+ * @author Vadim Hagedorn
+ */
 public final class SubCommandException extends RuntimeException {
 
 	private static final long serialVersionUID = 5895339610034949652L;

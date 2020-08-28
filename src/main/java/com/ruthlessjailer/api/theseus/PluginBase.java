@@ -10,6 +10,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.util.logging.Logger;
 
+/**
+ * @author Vadim Hagedorn
+ */
 public abstract class PluginBase extends JavaPlugin implements Listener {
 
 	private static volatile PluginBase instance;

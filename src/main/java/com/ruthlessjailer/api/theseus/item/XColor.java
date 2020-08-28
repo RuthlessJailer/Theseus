@@ -8,6 +8,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 
+/**
+ * @author Vadim Hagedorn
+ */
 @ToString
 @AllArgsConstructor
 public enum XColor {

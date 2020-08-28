@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @author Vadim Hagedorn
+ */
 public abstract class CommandBase extends Command {
 
 	protected static final String DEFAULT_PERMISSION_MESSAGE =

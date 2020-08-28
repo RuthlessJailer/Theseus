@@ -6,6 +6,9 @@ import com.ruthlessjailer.api.theseus.command.SuperiorCommand;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
+/**
+ * @author Vadim Hagedorn
+ */
 public class TestCommand extends CommandBase implements SuperiorCommand {
 
 	public TestCommand() {

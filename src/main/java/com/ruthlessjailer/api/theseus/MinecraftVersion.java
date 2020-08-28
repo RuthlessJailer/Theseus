@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 
+/**
+ * @author Vadim Hagedorn
+ */
 @AllArgsConstructor
 @Getter
 public enum MinecraftVersion {
@@ -74,25 +77,25 @@ public enum MinecraftVersion {
 	private final String      name;
 	private final VersionType type;
 
-	public static boolean atLeast(final MinecraftVersion version)     {
-																		  return MinecraftVersion.CURRENT_VERSION.isAtLeast(
-																				  version);
-																	  }
+	public static boolean atLeast(final MinecraftVersion version) {
+		return MinecraftVersion.CURRENT_VERSION.isAtLeast(
+				version);
+	}
 
-	public static boolean atMost(final MinecraftVersion version)      {
-																		  return MinecraftVersion.CURRENT_VERSION.isAtMost(
-																				  version);
-																	  }
+	public static boolean atMost(final MinecraftVersion version) {
+		return MinecraftVersion.CURRENT_VERSION.isAtMost(
+				version);
+	}
 
 	public static boolean greaterThan(final MinecraftVersion version) {
-																		  return MinecraftVersion.CURRENT_VERSION.isAfter(
-																				  version);
-																	  }
+		return MinecraftVersion.CURRENT_VERSION.isAfter(
+				version);
+	}
 
-	public static boolean lessThan(final MinecraftVersion version)    {
-																		  return MinecraftVersion.CURRENT_VERSION.isBefore(
-																				  version);
-																	  }
+	public static boolean lessThan(final MinecraftVersion version) {
+		return MinecraftVersion.CURRENT_VERSION.isBefore(
+				version);
+	}
 
 	public static MinecraftVersion fromId(final int id) {
 		for (final MinecraftVersion version : MinecraftVersion.values()) {
@@ -103,21 +106,21 @@ public enum MinecraftVersion {
 		throw new IllegalArgumentException("Unknown version identifier " + id);
 	}
 
-	public boolean isAtLeast(final MinecraftVersion version)          { return this.id >= version.id; }
+	public boolean isAtLeast(final MinecraftVersion version) { return this.id >= version.id; }
 
-	public boolean isAtMost(final MinecraftVersion version)           { return this.id <= version.id; }
+	public boolean isAtMost(final MinecraftVersion version)  { return this.id <= version.id; }
 
-	public boolean isBefore(final MinecraftVersion version)           { return this.id < version.id; }
+	public boolean isBefore(final MinecraftVersion version)  { return this.id < version.id; }
 
-	public boolean isAfter(final MinecraftVersion version)            { return this.id > version.id; }
+	public boolean isAfter(final MinecraftVersion version)   { return this.id > version.id; }
 
-	public boolean equals(final MinecraftVersion version)             { return this.id == version.id; }
+	public boolean equals(final MinecraftVersion version)    { return this.id == version.id; }
 
-	public String getXname()                                          { return this.name + ".x"; }
+	public String getXname()                                 { return this.name + ".x"; }
 
-	public MinecraftVersion getPrevious()                             { return MinecraftVersion.fromId(this.id - 1); }
+	public MinecraftVersion getPrevious()                    { return MinecraftVersion.fromId(this.id - 1); }
 
-	public MinecraftVersion getNext()                                 { return MinecraftVersion.fromId(this.id + 1); }
+	public MinecraftVersion getNext()                        { return MinecraftVersion.fromId(this.id + 1); }
 
 	@AllArgsConstructor
 	@Getter

@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @author Vadim Hagedorn
+ */
 public final class Common {
 
 	/**
@@ -61,6 +64,38 @@ public final class Common {
 	 * @return the string or {@code ""}
 	 */
 	public static String getString(final String string) { return string == null ? "" : string; }
+
+	/**
+	 * Performs a regex escape on each character in the string (places {@code "\\"} before each reserved (regex) character.
+	 *
+	 * @param string the string to escape
+	 *
+	 * @return the escaped string or {@code ""}
+	 */
+	public static String escape(final String string) {
+		final StringBuilder result = new StringBuilder();
+
+		for (final char c : getString(string).toCharArray()) {
+			if (c == '\\'
+				|| c == '^'
+				|| c == '$'
+				|| c == '.'
+				|| c == '|'
+				|| c == '?'
+				|| c == '*'
+				|| c == '+'
+				|| c == '-'
+				|| c == '('
+				|| c == ')'
+				|| c == '{'
+				|| c == '[') {
+				result.append("\\");
+			}
+			result.append(c);
+		}
+
+		return result.toString();
+	}
 
 	/**
 	 * Copies an array from the given start index to the end.

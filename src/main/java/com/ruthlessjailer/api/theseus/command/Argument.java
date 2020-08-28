@@ -4,6 +4,10 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 
+
+/**
+ * @author Vadim Hagedorn
+ */
 @Getter
 @ToString
 public final class Argument {

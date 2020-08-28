@@ -50,6 +50,10 @@ import java.lang.annotation.Target;
  *
  * }
  * }</pre>
+ *
+ * @author Vadim Hagedorn
+ * @see CommandBase
+ * @see SuperiorCommand
  */
 
 @NonNull

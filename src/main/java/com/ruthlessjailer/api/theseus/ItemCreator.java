@@ -3,7 +3,6 @@ package com.ruthlessjailer.api.theseus;
 import javafx.util.Pair;
 import lombok.Builder;
 import lombok.Singular;
-import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -12,6 +11,9 @@ import org.bukkit.inventory.ItemStack;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author Vadim Hagedorn
+ */
 @Builder
 public class ItemCreator {
 

@@ -11,6 +11,9 @@ import org.bukkit.entity.Player;
 
 import java.util.Collection;
 
+/**
+ * @author Vadim Hagedorn
+ */
 public final class Chat {
 
 	@Getter

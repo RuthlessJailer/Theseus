@@ -3,6 +3,15 @@ package com.ruthlessjailer.api.theseus.command.help;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * See wiki for full documentation: https://github.com/RuthlessJailer/Theseus
+ * <p>
+ * Format object to override color scheme/style of automatically generated help menu.
+ * <p>
+ * See {@link HelpMenuFormat#DEFAULT_FORMAT} for a shallow example of usage.
+ *
+ * @author Vadim Hagedorn
+ */
 @Getter
 @AllArgsConstructor
 public final class HelpMenuFormat {
@@ -13,7 +22,7 @@ public final class HelpMenuFormat {
 			"&8<&3" + Placeholder.VARIABLE + "&8>",
 			"&e" + Placeholder.CHOICE,
 			"&8|",
-			Placeholder.PREVIOUS + "&e&l&m------&r&e[ &bHelp for &8/&9" + Placeholder.COMMAND + " &e]&l&m------" + Placeholder.NEXT,
+			Placeholder.PREVIOUS + "&e&l&m------&r&e[ &bHelp for &8/&9" + Placeholder.COMMAND + " &8(&a" + Placeholder.PAGE + "&8) &e]&l&m------" + Placeholder.NEXT,
 			"&4<<",
 			"&4>>",
 			"&e&m&l-------------",
@@ -36,6 +45,7 @@ public final class HelpMenuFormat {
 		public static final String CHOICE   = "${choice}";
 		public static final String PREVIOUS = "${previous}";
 		public static final String NEXT     = "${next}";
+		public static final String PAGE     = "${page}";
 	}
 
 }

@@ -13,23 +13,33 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.*;
 
+/**
+ * @author Vadim Hagedorn
+ * @see com.ruthlessjailer.api.theseus.ItemCreator
+ * @deprecated see {@link com.ruthlessjailer.api.theseus.ItemCreator}
+ */
+@Deprecated
 public final class ItemBuilder {
 
-	static final UUID BLANK_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+	public static final UUID BLANK_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
+	@Deprecated
 	public static UnmadeItem create(final Material material) {
 		return new UnmadeItem(material);
 	}
 
+	@Deprecated
 	public static UnmadeItem edit(final ItemStack item) {
 		return new UnmadeItem(item);
 	}
 
+	@Deprecated
 	public static ConstructedItem view(final ItemStack item) {
 		return new ConstructedItem(item);
 	}
 
 
+	@Deprecated
 	public static final class UnmadeItem {
 
 		private final Material                                 material;
@@ -62,78 +72,7 @@ public final class ItemBuilder {
 			this.flags = meta.getItemFlags();
 		}
 
-		/*
-		public UnmadeItem amount(final int amount) {
-			this.amount = amount;
-			return this;
-		}
-
-		public UnmadeItem name(final String name) {
-			this.name = Chat.colorize(name);
-			return this;
-		}
-
-		public UnmadeItem lore(final String... lore) {
-			this.lore = new ArrayList<>();
-			for (final String s : lore) {
-				this.lore.add(Chat.colorize(s));
-			}
-			return this;
-		}
-
-		public UnmadeItem appendLore(final String... lore){
-			for (final String s : lore) {
-				this.lore.add(Chat.colorize(s));
-			}
-			return this;
-		}
-
-		public UnmadeItem addItemFlags(final ItemFlag... flags) {
-			this.flags.addAll(Arrays.asList(flags));
-			return this;
-		}
-
-		public UnmadeItem removeItemFlags(final ItemFlag... flags) {
-			this.flags.removeAll(Arrays.asList(flags));
-			return this;
-		}
-
-		public UnmadeItem setUnbreakable(final boolean unbreakable) {
-			this.unbreakable = unbreakable;
-			return this;
-		}
-
-		public UnmadeItem skullOwner(final UUID uuid) {
-			this.skullOwner = uuid;
-			return this;
-		}
-
-		public UnmadeItem skullOwner(final String owner) {
-			CompletableFuture.runAsync(() -> {
-				final Player player = Bukkit.getOfflinePlayer(owner).getPlayer();
-				this.skullOwner = player != null ? player.getUniqueId() : ItemBuilder.BLANK_UUID;
-			});
-			return this;
-		}
-
-		public UnmadeItem addEnchantment(final Enchantment enchantment) {
-			return this.addEnchantment(enchantment, 1);
-		}
-
-		public UnmadeItem addEnchantment(final Enchantment enchantment, final int level) {
-			return this.addEnchantment(enchantment, level, true);
-		}
-
-		public UnmadeItem addEnchantment(final Enchantment enchantment, final int level,
-										 final boolean ignoreLevelRestriction) {
-			this.enchantments.put(enchantment, new Pair<>(level, ignoreLevelRestriction));
-			return this;
-		}
-
-		public UnmadeItem removeEnchantment(final Enchantment enchantment) {
-			this.enchantments.remove(enchantment);
-			return this;
-		}*/
+		@Deprecated
 		public ItemStack make() {
 
 			final ItemStack item = new ItemStack(Checks.nullCheck(this.material, "Material must be set."));
@@ -167,6 +106,7 @@ public final class ItemBuilder {
 	}
 
 	@Getter
+	@Deprecated
 	public static final class ConstructedItem {
 
 		private final Material                                 material;
@@ -219,11 +159,13 @@ public final class ItemBuilder {
 
 		}
 
+		@Deprecated
 		public boolean hasEnchantment(final Enchantment enchantment) {
 			return this.enchantments.containsKey(
 					enchantment);
 		}
 
+		@Deprecated
 		public Integer getEnchantmentLevel(final Enchantment enchantment) {
 			return this.enchantments.get(enchantment) != null
 				   ? this.enchantments.get(enchantment).getKey()

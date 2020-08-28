@@ -1,7 +1,6 @@
 package com.ruthlessjailer.api.theseus.item;
 
 
-
 import com.ruthlessjailer.api.theseus.Chat;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -11,43 +10,46 @@ import org.bukkit.inventory.meta.BookMeta;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class BookUtil {
+/**
+ * @author Vadim Hagedorn
+ */
+public final class BookUtil {//TODO: use reflection to exclude version-dependent imports
 
 	private final Material     material;
+	private final List<String> pages  = new ArrayList<>();
 	private       String       title;
 	private       String       author = "RuthlessJailer";
 	private       String       name   = "Book";
-	private final List<String> pages  = new ArrayList<>();
 	private       List<String> lore   = new ArrayList<>();
 
 
-	private BookUtil(final Material material, final String title){
+	private BookUtil(final Material material, final String title) {
 		this.material = material;
-		this.title = Chat.colorize(title);
+		this.title    = Chat.colorize(title);
 	}
 
-	public static BookUtil writtenBook(final String author, final String title){
+	public static BookUtil writtenBook(final String author, final String title) {
 		return new BookUtil(Material.WRITTEN_BOOK, title);
 	}
 
-	public static BookUtil unsignedBook(final String author, final String title){
+	public static BookUtil unsignedBook(final String author, final String title) {
 		return new BookUtil(Material.WRITABLE_BOOK, title);
 	}
 
 
-	public BookUtil name(final String name){
+	public BookUtil name(final String name) {
 		this.name = Chat.colorize(name);
 		return this;
 	}
 
-	public BookUtil addLore(final String... lore){
+	public BookUtil addLore(final String... lore) {
 		for (final String line : lore) {
 			this.lore.add(Chat.colorize(line));
 		}
 		return this;
 	}
 
-	public BookUtil lore(final String... lore){
+	public BookUtil lore(final String... lore) {
 		this.lore = new ArrayList<>();
 		for (final String line : lore) {
 			this.lore.add(Chat.colorize(line));
@@ -55,26 +57,26 @@ public final class BookUtil {
 		return this;
 	}
 
-	public BookUtil title(final String title){
+	public BookUtil title(final String title) {
 		this.title = Chat.colorize(title);
 		return this;
 	}
 
-	public BookUtil author(final String name){
+	public BookUtil author(final String name) {
 		this.author = Chat.colorize(name);
 		return this;
 	}
 
-	public BookUtil addPage(final String... lines){
+	public BookUtil addPage(final String... lines) {
 		final StringBuilder page = new StringBuilder();
-		for (final String line : lines){
+		for (final String line : lines) {
 			page.append(Chat.colorize(line));
 		}
 		this.pages.add(page.toString());
 		return this;
 	}
 
-	public void displayTo(final Player player){
+	public void displayTo(final Player player) {
 //		int slot = player.getInventory().getHeldItemSlot();
 //		ItemStack original = player.getInventory().getItem(slot);
 //		player.getInventory().setItem(slot, this.make());
@@ -89,7 +91,7 @@ public final class BookUtil {
 //		player.getInventory().setItem(slot, original);
 	}
 
-	public ItemBuilder.UnmadeItem build(){
+	public ItemBuilder.UnmadeItem build() {
 		final ItemStack item = new ItemStack(this.material);
 		final BookMeta  meta = (BookMeta) item.getItemMeta();
 
@@ -103,7 +105,7 @@ public final class BookUtil {
 		return ItemBuilder.edit(item);
 	}
 
-	public ItemStack make(){
+	public ItemStack make() {
 		final ItemStack item = new ItemStack(this.material);
 		final BookMeta  meta = (BookMeta) item.getItemMeta();
 
