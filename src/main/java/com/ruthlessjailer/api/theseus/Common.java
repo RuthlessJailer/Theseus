@@ -66,6 +66,26 @@ public final class Common {
 	public static String getString(final String string) { return string == null ? "" : string; }
 
 	/**
+	 * Checks if a string starts with another, ignoring
+	 *
+	 * @param string the string to check
+	 * @param prefix the string to check with
+	 *
+	 * @return the string or {@code ""}
+	 */
+	public static boolean startsWithIgnoreCase(final String string, final String prefix) { return getString(string).toLowerCase().startsWith(getString(prefix).toLowerCase()); }
+
+	/**
+	 * Returns the string or a blank string if it is null.
+	 *
+	 * @param string the string to check
+	 * @param prefix the string to check with
+	 *
+	 * @return the string or {@code ""}
+	 */
+	public static boolean endsWithIgnoreCase(final String string, final String prefix) { return getString(string).toLowerCase().endsWith(getString(prefix).toLowerCase()); }
+
+	/**
 	 * Performs a regex escape on each character in the string (places {@code "\\"} before each reserved (regex) character.
 	 *
 	 * @param string the string to escape

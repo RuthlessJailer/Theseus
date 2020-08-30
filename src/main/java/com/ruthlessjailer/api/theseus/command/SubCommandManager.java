@@ -64,41 +64,34 @@ public final class SubCommandManager {
 	}
 
 	public List<String> tabCompleteFor(@NonNull final CommandBase command, @NonNull final CommandSender sender, final String[] args) {
-
-		//Common.convert(getSubCommands(command), value -> value.getArguments()[0].getPossibilities());//get first arg
-
 		final List<String> result = new ArrayList<>();
 
+		wrappers:
 		for (final SubCommandWrapper wrapper : this.getSubCommands(command)) {
 
 			if (wrapper.getArguments().length >= args.length) {
-				final Argument argument = wrapper.getArguments()[args.length - 1];
+				for (int i = 0; i < args.length; i++) {
+					final String   arg      = args[i];
+					final Argument argument = wrapper.getArguments()[i];
 
-				if (!argument.isInfinite()) {
-
-					for (int i = 0; i < args.length; i++) {
-						final String   arg  = args[i];
-						final Argument argu = wrapper.getArguments()[i];
-
-						if (!argu.isInfinite()) {
-							for (final String p : argu.getPossibilities()) {
-								if (p.toLowerCase().startsWith(arg.toLowerCase())) {
-									for (final String possibility : argument.getPossibilities()) {
-										if (possibility.toLowerCase().startsWith(args[args.length - 1].toLowerCase())) {
-											result.addAll(Arrays.asList(argument.getPossibilities()));
-										}
-									}//TODO: cleanup
-								}
+					if (!argument.isInfinite()) {
+						boolean match = false;
+						for (final String possibility : argument.getPossibilities()) {
+							if (Common.startsWithIgnoreCase(possibility, arg)) {
+								match = true;
+							}
+							if (!match) {
+								continue wrappers;
 							}
 						}
-
 					}
 				}
-
+				if (!wrapper.getArguments()[args.length - 1].isInfinite()) {
+					//we got past all the checks
+					result.addAll(Arrays.asList(wrapper.getArguments()[args.length - 1].getPossibilities()));
+				}
 			}
-
 		}
-
 
 		return result;
 	}
@@ -155,7 +148,6 @@ public final class SubCommandManager {
 			int p = 0;//parameter/declaredType counter
 
 			if (args.length < wrapper.getArguments().length) {//check args
-				System.out.println("args too short");
 				continue;
 			}
 
@@ -248,7 +240,14 @@ public final class SubCommandManager {
 		}
 
 
-		if (args.length == 1 && argTypes.length == 0 && !args[0].toLowerCase().matches("%sideb(<[a-z_0-9]+>)?")) {//no need to parse args if there are none
+		boolean variables = false;
+		for (final String arg : args) {
+			if (arg.toLowerCase().matches("%[sideb](<[a-z_0-9]+>)?")) {
+				variables = true;
+				break;
+			}
+		}
+		if (!variables && argTypes.length == 0) {//no need to parse args if there are none
 			return new SubCommandWrapper(parent,
 										 Common.asArray(new Argument(
 												 args[0].split("\\|"),
@@ -264,16 +263,36 @@ public final class SubCommandManager {
 			if (arg.toLowerCase().matches("%[sideb](<[a-z0-9_]+>)?")) {
 				t++;
 			}
+			if (arg.toLowerCase().matches("%e(<[a-z_0-9]+>)?")) {
+				e++;
+			}
 			i++;
 		}
 
 		final Class<?>[] types         = new Class[i];
 		final Class<?>[] declaredTypes = new Class[t];
 
+		Checks.verify(argTypes.length == e,
+					  String.format(
+							  "ArgTypes do not match InputArgs in method %s in class %s. Only include enums!",
+							  method.getName(),
+							  ReflectUtil.getPath(parent.getClass())),
+					  SubCommandException.class);
+
 		t = 0;
 		i = 0;
+		e = 0;
+
+		Chat.debug("sub-command", argTypes, declaredTypes, types);
 
 		for (final String arg : args) {
+
+			if (declaredTypes.length == 0) {//no variables; fill out all the strings and move on
+				types[i]     = String.class;
+				arguments[i] = new Argument(arg.split("\\|"), String.class, false, null);
+				continue;
+			}
+
 			final Class<?> declaredType = argTypes[e];
 
 			String description = null;
@@ -303,9 +322,7 @@ public final class SubCommandManager {
 
 					types[i] = declaredType;
 					declaredTypes[t] = declaredType;
-					arguments[i] =
-							new Argument(this.getEnumValueNames((Class<E>) declaredType), (Class<E>) declaredType,
-										 true, description);
+					arguments[i] = new Argument(this.getEnumValueNames((Class<E>) declaredType), (Class<E>) declaredType, true, description);
 
 					break;
 				case "%i"://integer
@@ -350,7 +367,11 @@ public final class SubCommandManager {
 									ReflectUtil.getPath(parent.getClass())),
 					  SubCommandException.class);
 
-		this.checkMethod(declaredTypes, method, parent);
+		try {
+			this.checkMethod(declaredTypes, method, parent);
+		} catch (final NullPointerException x) {
+			Chat.debug("xd", Arrays.toString(args));
+		}
 
 		return new SubCommandWrapper(parent,
 									 arguments,
@@ -372,6 +393,15 @@ public final class SubCommandManager {
 
 		int i = 0;
 		for (final Class<?> type : declaredTypes) {
+
+			if (type == null) {
+				throw new SubCommandException("ArgTypes in method " + method.getName() + " in class " + ReflectUtil.getPath(parent.getClass()) + " cannot be null.");
+			}
+
+			if (declaredTypes[i] == null) {
+				throw new SubCommandException("Parameters for method " + method.getName() + " in class " + ReflectUtil.getPath(parent.getClass()) + " cannot be null.");
+			}
+
 			Checks.verify(type.equals(methodParameterTypes[i]),
 						  String.format("Parameter %s on method %s in class %s does not " +
 										"match ArgType %s.",
@@ -380,6 +410,7 @@ public final class SubCommandManager {
 										ReflectUtil.getPath(parent.getClass()),
 										type.getName()),
 						  SubCommandException.class);
+
 			i++;
 		}
 	}

@@ -9,6 +9,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -101,6 +102,35 @@ public final class Chat {
 		final String parsed = Common.getString(prefix);
 		if (debugMode) {
 			for (final String message : messages) {
+				final String text = String.format("[DEBUG] [%s] %s", parsed.isEmpty() ? "|" : parsed, message);
+
+				if (PluginBase.hasLog()) {
+					PluginBase.getLog().info(text);
+				} else {
+					System.out.println(new StringBuilder(text).insert(7, ":"));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Prints a debug message.
+	 * Will only trigger if {@link Chat#isDebugMode()}.
+	 * <p>
+	 * Format: {@code "[00:00:00 INFO]: [DEBUG] [PREFIX] message"}
+	 * If prefix is null or empty: {@code "[00:00:00 INFO]: [DEBUG] [|] message"}
+	 */
+	public static void debug(final String prefix, final Object... objects) {
+		final String parsed = Common.getString(prefix);
+		if (debugMode) {
+			for (final String message : Common.convert(
+					Arrays.asList(objects),
+					(o) -> o != null && o.getClass().isArray()
+						   ? Arrays.toString((Object[]) o)
+						   : (o != null
+							  ? o.toString()
+							  : "null"))) {
+
 				final String text = String.format("[DEBUG] [%s] %s", parsed.isEmpty() ? "|" : parsed, message);
 
 				if (PluginBase.hasLog()) {

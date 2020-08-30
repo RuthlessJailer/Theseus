@@ -1,5 +1,8 @@
 package com.ruthlessjailer.api.theseus;
 
+import com.ruthlessjailer.api.theseus.example.TestCommand;
+import com.ruthlessjailer.api.theseus.example.TestListener;
+
 /**
  * For testing purposes only.
  * <p>
@@ -7,17 +10,17 @@ package com.ruthlessjailer.api.theseus;
  *
  * @author Vadim Hagedorn
  */
-public final class Theseus {
+public final class Theseus extends PluginBase {
 
 	static {
 		Chat.setDebugMode(true);
 	}
 
-//	@Override
-//	protected void onStart() {
-//		System.out.println("Starting.");
-//
-//		this.registerCommands(new TestCommand());
-//		this.registerEvents(new TestListener());
-//	}
+	@Override
+	protected void onStart() {
+		System.out.println("Starting.");
+
+		this.registerCommands(new TestCommand());
+		this.registerEvents(new TestListener());
+	}
 }
