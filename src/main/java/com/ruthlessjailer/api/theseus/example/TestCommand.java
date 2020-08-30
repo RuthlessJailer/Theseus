@@ -17,7 +17,6 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 
 	@Override
 	protected void runCommand() {
-//		this.sender.sendMessage(Chat.colorize(StringUtils.join(this.args, " ")));
 		if (this.sender instanceof Player) {
 			((Player) this.sender).setVelocity(((Player) this.sender).getVelocity().setY(15));
 		}
@@ -35,7 +34,7 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 		this.sender.sendMessage(bool + " " + doub + " " + test);
 	}
 
-	@SubCommand(inputArgs = "action add|new %s<Name>", argTypes = {})
+	@SubCommand(inputArgs = "action add|new|create %s<Name>", argTypes = {})
 	public void actionAdd(final String name) {
 		this.sender.sendMessage("created: " + name);
 	}

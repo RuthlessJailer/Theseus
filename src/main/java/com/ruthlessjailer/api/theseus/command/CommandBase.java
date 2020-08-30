@@ -138,6 +138,10 @@ public abstract class CommandBase extends Command {
 	@Override
 	public final boolean execute(final CommandSender sender, final String label, final String[] args) {
 
+		if (!Bukkit.isPrimaryThread()) {
+			Chat.warning("Async call to command " + ReflectUtil.getPath(this.getClass()) + ".");
+		}
+
 		if (!sender.hasPermission(this.getCustomPermissionSyntax())) {
 			sender.sendMessage(this.getCustomPermissionMessage());
 			return false;

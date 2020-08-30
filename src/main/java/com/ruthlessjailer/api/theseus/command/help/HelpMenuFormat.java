@@ -25,18 +25,18 @@ public final class HelpMenuFormat {
 			Placeholder.PREVIOUS + "&e&l&m------&r&e[ &bHelp for &8/&9" + Placeholder.COMMAND + " &8(&a" + Placeholder.PAGE + "&8) &e]&l&m------" + Placeholder.NEXT,
 			"&4<<",
 			"&4>>",
-			"&e&m&l-------------",
+			"&e&m&l-",
 			5);
 
-	private final String suggest;//&5Suggest&b: ${command}
-	private final String command;//&8/&9${command}
-	private final String variable;//&8<&3${variable}&8>
-	private final String choice;//&e${choice}
-	private final String separator;//&8|
-	private final String header;//${previous}&e&l&m------&r&e[ &bHelp for &8/&9${command.label} &e]&l&m------&r${next}
-	private final String previous;//&4<<
-	private final String next;//&4>>
-	private final String footer;//&e&m&l-------------
+	private final String suggest;
+	private final String command;
+	private final String variable;
+	private final String choice;
+	private final String separator;
+	private final String header;
+	private final String previous;
+	private final String next;
+	private final String footer;//will be multiplied out to the length of page size
 	private final int    pageSize;
 
 	public static final class Placeholder {

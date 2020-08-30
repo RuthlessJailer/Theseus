@@ -22,7 +22,10 @@ import org.bukkit.command.CommandSender;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Vadim Hagedorn
@@ -80,16 +83,21 @@ public final class SubCommandManager {
 							if (Common.startsWithIgnoreCase(possibility, arg)) {
 								match = true;
 							}
-							if (!match) {
-								continue wrappers;
-							}
+						}
+						if (!match) {
+							continue wrappers;
 						}
 					}
 				}
+
 				if (!wrapper.getArguments()[args.length - 1].isInfinite()) {
-					//we got past all the checks
-					result.addAll(Arrays.asList(wrapper.getArguments()[args.length - 1].getPossibilities()));
+					for (final String possibility : wrapper.getArguments()[args.length - 1].getPossibilities()) {
+						if (Common.startsWithIgnoreCase(possibility, args[args.length - 1])) {
+							result.add(possibility);
+						}
+					}
 				}
+
 			}
 		}
 
@@ -111,7 +119,6 @@ public final class SubCommandManager {
 		for (final HelpLine line : menu.getPages()[page].getLines()) {
 			if (line != null) {//line can be null if there aren't enough elements to populate the page
 				sender.spigot().sendMessage(line.getFormatted());
-				System.out.println(line.getRaw());
 			}
 		}
 
@@ -152,9 +159,6 @@ public final class SubCommandManager {
 			}
 
 			for (final Argument argument : wrapper.getArguments()) {//check constant arguments & parse variable placeholders
-
-				System.out.println(argument.toString());
-
 				boolean match = false;
 				if (!argument.isInfinite()) {
 					for (final String possibility : argument.getPossibilities()) {
@@ -298,10 +302,7 @@ public final class SubCommandManager {
 
 		//variables end
 
-		Chat.debug("sub-command, pre  parse", args, argTypes, declaredTypes, types);
-
 		//main loop
-
 		for (final String arg : args) {
 
 			boolean d = !arg.toLowerCase().matches("%[sideb](<[a-z_0-9]+>)?");//is default argument (not variable)
@@ -407,8 +408,6 @@ public final class SubCommandManager {
 			i++;
 		}
 		//end main loop
-
-		Chat.debug("sub-command, post parse", args, argTypes, declaredTypes, types);
 
 		//final checks
 		this.checkMethod(declaredTypes, method, parent);//make sure that the method's match the parse arguments
@@ -518,7 +517,6 @@ public final class SubCommandManager {
 							StringUtils.join(argument.getPossibilities(), postChoice + format.getSeparator() + preChoice));
 				}
 
-				System.out.println(Chat.stripColors(append));
 				fullCommand.append(" ").append(Chat.colorize(append));
 			}
 
@@ -582,10 +580,20 @@ public final class SubCommandManager {
 
 				//header stuff end
 
+				//footer stuff start
+
+				final StringBuilder footer = new StringBuilder();
+
+				for (int i = 0; i < Chat.stripColors(format.getHeader()).length(); i += format.getFooter().length()) {
+					footer.append(Chat.colorize(format.getFooter()));
+				}
+
 				lines[format.getPageSize() + 1] = new HelpLine(//footer
-															   Chat.stripColors(format.getFooter()),
-															   Chat.colorize(format.getFooter()),
-															   new ComponentBuilder(Chat.colorize(format.getFooter())).create());
+															   Chat.stripColors(footer.toString()),
+															   Chat.colorize(footer.toString()),
+															   new ComponentBuilder(Chat.colorize(footer.toString())).create());
+
+				//footer stuff end
 
 				pages[p] = new HelpPage(lines);
 				p++;
