@@ -220,6 +220,8 @@ public final class SubCommandManager {
 
 	@SuppressWarnings("unchecked")
 	private <E extends Enum<E>> SubCommandWrapper parseArgs(@NonNull final CommandBase parent, @NonNull final Method method, @NonNull final SubCommand subCommand) {
+
+		//variables start
 		final String[] args = Checks.stringCheck(subCommand.inputArgs(),
 												 String.format("InputArgs on method %s in class %s cannot be null " +
 															   "(or empty)!",
@@ -239,6 +241,7 @@ public final class SubCommandManager {
 			parent.setAutoGenerateHelpMenu(false);
 		}
 
+		//initial arg check
 
 		boolean variables = false;
 		for (final String arg : args) {
@@ -247,6 +250,7 @@ public final class SubCommandManager {
 				break;
 			}
 		}
+
 		if (!variables && argTypes.length == 0) {//no need to parse args if there are none
 			return new SubCommandWrapper(parent,
 										 Common.asArray(new Argument(
@@ -259,96 +263,126 @@ public final class SubCommandManager {
 										 method);
 		}
 
-		for (final String arg : args) {//initialize declaredTypes variable
+		//initialize variables
+
+		for (final String arg : args) {//initialize declaredTypes and types variables
 			if (arg.toLowerCase().matches("%[sideb](<[a-z0-9_]+>)?")) {
-				t++;
+				t++;//type
 			}
 			if (arg.toLowerCase().matches("%e(<[a-z_0-9]+>)?")) {
-				e++;
+				e++;//enum
 			}
-			i++;
+			i++;//counter
 		}
 
-		final Class<?>[] types         = new Class[i];
-		final Class<?>[] declaredTypes = new Class[t];
-
-		Checks.verify(argTypes.length == e,
-					  String.format(
-							  "ArgTypes do not match InputArgs in method %s in class %s. Only include enums!",
-							  method.getName(),
-							  ReflectUtil.getPath(parent.getClass())),
+		//make sure enums are provided
+		Checks.verify(e == argTypes.length,
+					  String.format("ArgTypes do not match InputArgs in method %s in class %s. Only include enums!",
+									method.getName(),
+									ReflectUtil.getPath(parent.getClass())),
 					  SubCommandException.class);
+
+
+		final Class<?>[] types         = new Class[i];//all types (choice arguments)
+		final Class<?>[] declaredTypes = new Class[t];//declared method types (variables, not choices)
 
 		t = 0;
 		i = 0;
 		e = 0;
 
-		Chat.debug("sub-command", argTypes, declaredTypes, types);
+		//variables end
+
+		Chat.debug("sub-command", args, argTypes, declaredTypes, types);
+
+		//main loop
 
 		for (final String arg : args) {
 
-			if (declaredTypes.length == 0) {//no variables; fill out all the strings and move on
+			boolean d = argTypes.length == 0 && declaredTypes.length > 0;//is default argument
+
+			if (!d) {//not default argument; parsing needed
+
+				//begin parsing
+
+				final Class<?> declaredType = argTypes[e];//shouldn't throw ArrayIndexOutOfBoundsException ever again
+
+				String description = null;
+
+				if (arg.matches("%[sidebSIDEB]<[A-Za-z0-9_]+>")) {//description storage
+					description = arg.substring(3, arg.length() - 1);
+				}
+
+				//main parsing
+
+				switch (arg.toLowerCase().substring(0, 2)) {//get variable, regardless of description
+
+					case "%s"://string
+
+						types[i] = String.class;
+						declaredTypes[t] = String.class;
+						arguments[i] = new Argument(String.class, true, description);
+
+						break;
+
+					case "%e"://enum (class provided)
+
+						if (declaredType == null) {//TODO: not sure if this check is needed because of variable initialization and checks before loop
+							d = true;
+							break;
+						}
+
+						Checks.verify(declaredType.isEnum(),
+									  String.format(
+											  "ArgType %s does not match InputArg %s in method %s in class %s. Only include enums!",
+											  ReflectUtil.getPath(declaredType),
+											  arg.toLowerCase(),
+											  method.getName(),
+											  ReflectUtil.getPath(parent.getClass())),
+									  SubCommandException.class);
+
+						types[i] = declaredType;
+						declaredTypes[t] = declaredType;
+						arguments[i] = new Argument(this.getEnumValueNames((Class<E>) declaredType), (Class<E>) declaredType, true, description);
+
+						break;
+
+					case "%i"://integer
+						types[i] = Integer.class;
+						declaredTypes[t] = Integer.class;
+						arguments[i] = new Argument(Integer.class, true, description);
+
+						break;
+
+					case "%d"://double
+
+						types[i] = Double.class;
+						declaredTypes[t] = Double.class;
+						arguments[i] = new Argument(Double.class, true, description);
+
+						break;
+
+					case "%b"://boolean
+
+						types[i] = Boolean.class;
+						declaredTypes[t] = Boolean.class;
+						arguments[i] = new Argument(Common.asArray("true", "false"), Boolean.class, true, description);
+
+						break;
+
+					default://none; it's a choice argument
+						d = true;
+				}
+
+				//end parsing
+
+			}
+
+			if (d) {//default argument assignment; no parsing needed
 				types[i]     = String.class;
-				arguments[i] = new Argument(arg.split("\\|"), String.class, false, null);
-				continue;
+				arguments[i] = new Argument(arg.split("\\|"), String.class, false);
 			}
 
-			final Class<?> declaredType = argTypes[e];
-
-			String description = null;
-
-			if (arg.matches("%[sidebSIDEB]<[A-Za-z0-9_]+>")) {//description storage
-				description = arg.substring(3, arg.length() - 1);
-			}
-
-			switch (arg.toLowerCase().substring(0, 2)) {//get variable, regardless of description
-				case "%s"://string
-
-					types[i] = String.class;
-					declaredTypes[t] = String.class;
-					arguments[i] = new Argument(String.class, true, description);
-
-					break;
-				case "%e"://enum (class provided)
-
-					Checks.verify(declaredType.isEnum(),
-								  String.format(
-										  "ArgType %s does not match InputArg %s in method %s in class %s. Only include enums!",
-										  ReflectUtil.getPath(declaredType),
-										  arg.toLowerCase(),
-										  method.getName(),
-										  ReflectUtil.getPath(parent.getClass())),
-								  SubCommandException.class);
-
-					types[i] = declaredType;
-					declaredTypes[t] = declaredType;
-					arguments[i] = new Argument(this.getEnumValueNames((Class<E>) declaredType), (Class<E>) declaredType, true, description);
-
-					break;
-				case "%i"://integer
-					types[i] = Integer.class;
-					declaredTypes[t] = Integer.class;
-					arguments[i] = new Argument(Integer.class, true, description);
-
-					break;
-				case "%d"://double
-
-					types[i] = Double.class;
-					declaredTypes[t] = Double.class;
-					arguments[i] = new Argument(Double.class, true, description);
-
-					break;
-				case "%b"://boolean
-
-					types[i] = Boolean.class;
-					declaredTypes[t] = Boolean.class;
-					arguments[i] = new Argument(Common.asArray("true", "false"), Boolean.class, true, description);
-
-					break;
-				default:
-					types[i] = String.class;
-					arguments[i] = new Argument(arg.split("\\|"), String.class, false, null);
-			}
+			//variable incrementation
 
 			if (arg.toLowerCase().matches("%[sideb](<[a-z0-9_]+>)?")) {//type counter increment
 				t++;
@@ -361,16 +395,10 @@ public final class SubCommandManager {
 			i++;
 		}
 
-		Checks.verify(e == argTypes.length,
-					  String.format("ArgTypes do not match InputArgs in method %s in class %s. Only include enums!",
-									method.getName(),
-									ReflectUtil.getPath(parent.getClass())),
-					  SubCommandException.class);
-
 		try {
 			this.checkMethod(declaredTypes, method, parent);
 		} catch (final NullPointerException x) {
-			Chat.debug("xd", Arrays.toString(args));
+			Chat.debug("npe", Arrays.toString(args));
 		}
 
 		return new SubCommandWrapper(parent,

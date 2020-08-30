@@ -18,6 +18,10 @@ public final class Argument {
 	private final boolean  declaredType;
 	private final String   description;
 
+	public Argument(@NonNull final String[] possibilities, @NonNull final Class<?> type, @NonNull final Boolean declaredType) {
+		this(possibilities, type, declaredType, null);
+	}
+
 	public Argument(@NonNull final Class<?> type, @NonNull final Boolean declaredType, final String description) {
 		this(null, type, declaredType, description);
 	}
