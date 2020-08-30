@@ -31,7 +31,7 @@ import java.util.*;
 public final class SubCommandManager {
 
 	@Getter
-	private static final SubCommandManager instance = new SubCommandManager();
+	private static final SubCommandManager manager = new SubCommandManager();
 
 	private final Map<CommandBase, List<SubCommandWrapper>> subCommands = new HashMap<>();
 
@@ -49,8 +49,8 @@ public final class SubCommandManager {
 		for (final Method method : command.getClass().getDeclaredMethods()) {
 			for (final Annotation annotation : method.getDeclaredAnnotations()) {
 				if (annotation.annotationType().equals(SubCommand.class)) {
-					final SubCommandWrapper wrapper = getInstance().parseArgs((CommandBase) command, method,
-																			  (SubCommand) annotation);
+					final SubCommandWrapper wrapper = getManager().parseArgs((CommandBase) command, method,
+																			 (SubCommand) annotation);
 					wrappers.add(wrapper);
 					Chat.debug("Commands",
 							   String.format("Registering method %s in class %s as a sub command.",
@@ -138,7 +138,7 @@ public final class SubCommandManager {
 		}
 
 		wrappers:
-		for (final SubCommandWrapper wrapper : getInstance().subCommands.get(command)) {
+		for (final SubCommandWrapper wrapper : getManager().subCommands.get(command)) {
 
 			final Class<?>[] declaredTypes = wrapper.getDeclaredTypes();
 
@@ -394,13 +394,12 @@ public final class SubCommandManager {
 
 			i++;
 		}
+		//end main loop
 
-		try {
-			this.checkMethod(declaredTypes, method, parent);
-		} catch (final NullPointerException x) {
-			Chat.debug("npe", Arrays.toString(args));
-		}
+		//final checks
+		this.checkMethod(declaredTypes, method, parent);//make sure that the method's match the parse arguments
 
+		//finally, create and return the wrapper
 		return new SubCommandWrapper(parent,
 									 arguments,
 									 types,
@@ -423,16 +422,21 @@ public final class SubCommandManager {
 		for (final Class<?> type : declaredTypes) {
 
 			if (type == null) {
-				throw new SubCommandException("ArgTypes in method " + method.getName() + " in class " + ReflectUtil.getPath(parent.getClass()) + " cannot be null.");
+				throw new SubCommandException(
+						String.format("ArgTypes on method %s in class %s do not match method parameters or InputArgs.",
+									  method.getName(),
+									  ReflectUtil.getPath(parent.getClass())));
 			}
 
 			if (declaredTypes[i] == null) {
-				throw new SubCommandException("Parameters for method " + method.getName() + " in class " + ReflectUtil.getPath(parent.getClass()) + " cannot be null.");
+				throw new SubCommandException(
+						String.format("Parameters on method %s in class %s do not match InputArgs.",
+									  method.getName(),
+									  ReflectUtil.getPath(parent.getClass())));
 			}
 
 			Checks.verify(type.equals(methodParameterTypes[i]),
-						  String.format("Parameter %s on method %s in class %s does not " +
-										"match ArgType %s.",
+						  String.format("Parameter %s on method %s in class %s does not match ArgType %s.",
 										methodParameterTypes[i].getName(),
 										method.getName(),
 										ReflectUtil.getPath(parent.getClass()),

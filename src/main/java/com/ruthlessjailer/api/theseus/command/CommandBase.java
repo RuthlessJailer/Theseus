@@ -96,8 +96,8 @@ public abstract class CommandBase extends Command {
 		Spigot.registerCommand(this);
 
 		if (this.isSuperior) {
-			SubCommandManager.getInstance().register((SuperiorCommand) this);
-			SubCommandManager.getInstance().generateHelpMenu(this, this.helpMenuFormatOverride);
+			SubCommandManager.getManager().register((SuperiorCommand) this);
+			SubCommandManager.getManager().generateHelpMenu(this, this.helpMenuFormatOverride);
 		}
 
 		this.registered = true;
@@ -152,7 +152,7 @@ public abstract class CommandBase extends Command {
 		}
 
 		if (this.isSuperior) {
-			return SubCommandManager.getInstance().executeFor(this, sender, args);
+			return SubCommandManager.getManager().executeFor(this, sender, args);
 		}
 
 		return true;
@@ -166,7 +166,7 @@ public abstract class CommandBase extends Command {
 	@Override
 	public final List<String> tabComplete(final CommandSender sender, final String alias, final String[] args, final Location location) throws IllegalArgumentException {
 		return this.tabCompleteSubCommands && this.isSuperior
-			   ? SubCommandManager.getInstance().tabCompleteFor(this, sender, args)
+			   ? SubCommandManager.getManager().tabCompleteFor(this, sender, args)
 			   : this.onTabComplete(sender, alias, args, location);
 	}
 

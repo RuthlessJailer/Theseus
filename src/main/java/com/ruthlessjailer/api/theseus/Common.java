@@ -1,6 +1,7 @@
 package com.ruthlessjailer.api.theseus;
 
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -151,6 +152,50 @@ public final class Common {
 	@SafeVarargs
 	public static <T> T[] asArray(@NonNull final T... objects) {
 		return objects;
+	}
+
+	/**
+	 * Throws an exception, regardless of its constructor visibility.
+	 *
+	 * @param exception the class to instantiate a new instance of and throw
+	 */
+	@SneakyThrows
+	public static void exception(@NonNull final Class<? extends Throwable> exception) {
+		throw ReflectUtil.newInstanceOf(exception);
+	}
+
+	/**
+	 * Throws an exception, regardless of its constructor visibility.
+	 *
+	 * @param exception the class to instantiate a new instance of and throw
+	 * @param message   the message to with which to instantiate the exception
+	 */
+	@SneakyThrows
+	public static void exception(@NonNull final Class<? extends Throwable> exception, @NonNull final String message) {
+		throw ReflectUtil.newInstanceOf(exception, message);
+	}
+
+	/**
+	 * Throws an exception, regardless of its constructor visibility.
+	 *
+	 * @param exception the class to instantiate a new instance of and throw
+	 * @param message   the message to with which to instantiate the exception
+	 * @param cause     the {@link Throwable} that caused it
+	 */
+	@SneakyThrows
+	public static void exception(@NonNull final Class<? extends Throwable> exception, @NonNull final String message, final Throwable cause) {
+		throw ReflectUtil.newInstanceOf(exception, message, cause);
+	}
+
+	/**
+	 * Throws an exception, regardless of its constructor visibility.
+	 *
+	 * @param exception the class to instantiate a new instance of and throw
+	 * @param cause     the {@link Throwable} that caused it
+	 */
+	@SneakyThrows
+	public static void exception(@NonNull final Class<? extends Throwable> exception, final Throwable cause) {
+		throw ReflectUtil.newInstanceOf(exception, cause);
 	}
 
 	/**
