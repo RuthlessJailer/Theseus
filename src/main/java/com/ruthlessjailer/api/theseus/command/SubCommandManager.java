@@ -282,6 +282,12 @@ public final class SubCommandManager {
 									ReflectUtil.getPath(parent.getClass())),
 					  SubCommandException.class);
 
+		//make sure that the method has the same amount of declared parameters as there are variables
+		Checks.verify(t == method.getParameterCount(),
+					  String.format("InputArgs do not match method parameters in method %s in class %s. Only include enums!",
+									method.getName(),
+									ReflectUtil.getPath(parent.getClass())),
+					  SubCommandException.class);
 
 		final Class<?>[] types         = new Class[i];//all types (choice arguments)
 		final Class<?>[] declaredTypes = new Class[t];//declared method types (variables, not choices)
@@ -292,19 +298,20 @@ public final class SubCommandManager {
 
 		//variables end
 
-		Chat.debug("sub-command", args, argTypes, declaredTypes, types);
+		Chat.debug("sub-command, pre  parse", args, argTypes, declaredTypes, types);
 
 		//main loop
 
 		for (final String arg : args) {
 
-			boolean d = argTypes.length == 0 && declaredTypes.length > 0;//is default argument
+			boolean d = !arg.toLowerCase().matches("%[sideb](<[a-z_0-9]+>)?");//is default argument (not variable)
 
 			if (!d) {//not default argument; parsing needed
 
 				//begin parsing
 
-				final Class<?> declaredType = argTypes[e];//shouldn't throw ArrayIndexOutOfBoundsException ever again
+				//TODO: possible remove this as it only causes problems and is only used in one place
+				final Class<?> declaredType = argTypes.length > 0 ? argTypes[e] : null;//shouldn't throw ArrayIndexOutOfBoundsException ever again
 
 				String description = null;
 
@@ -326,9 +333,14 @@ public final class SubCommandManager {
 
 					case "%e"://enum (class provided)
 
-						if (declaredType == null) {//TODO: not sure if this check is needed because of variable initialization and checks before loop
-							d = true;
-							break;
+						if (declaredType == null) {//when ArrayIndexOutOfBoundsException when declaring declaredType was fixed it became nullable
+							throw new SubCommandException(String.format(
+									"ArgType for InputArg %s in method %s in class %s is missing. Only include enums!",
+									arg.toLowerCase(),
+									method.getName(),
+									ReflectUtil.getPath(parent.getClass())));
+							//d = true;
+							//break;
 						}
 
 						Checks.verify(declaredType.isEnum(),
@@ -396,6 +408,8 @@ public final class SubCommandManager {
 		}
 		//end main loop
 
+		Chat.debug("sub-command, post parse", args, argTypes, declaredTypes, types);
+
 		//final checks
 		this.checkMethod(declaredTypes, method, parent);//make sure that the method's match the parse arguments
 
@@ -411,30 +425,35 @@ public final class SubCommandManager {
 
 		final Class<?>[] methodParameterTypes = method.getParameterTypes();
 
-		Checks.verify(methodParameterTypes.length == declaredTypes.length,
+		Checks.verify(method.getParameterCount() == declaredTypes.length,
 					  String.format("Parameters on method %s in class %s do not " +
 									"match ArgTypes.",
 									method.getName(),
 									ReflectUtil.getPath(parent.getClass())),
 					  SubCommandException.class);
 
-		int i = 0;
-		for (final Class<?> type : declaredTypes) {
+		if (declaredTypes.length == 0 && method.getParameterCount() == 0) {//nothing to check
+			return;
+		}
 
-			if (type == null) {
+		int i = 0;//counter
+		for (final Class<?> type : declaredTypes) {//loop through expected declared types
+
+			if (type == null) {//should never throw
 				throw new SubCommandException(
 						String.format("ArgTypes on method %s in class %s do not match method parameters or InputArgs.",
 									  method.getName(),
 									  ReflectUtil.getPath(parent.getClass())));
 			}
 
-			if (declaredTypes[i] == null) {
+			if (declaredTypes[i] == null) {//method's parameters don't match given args
 				throw new SubCommandException(
 						String.format("Parameters on method %s in class %s do not match InputArgs.",
 									  method.getName(),
 									  ReflectUtil.getPath(parent.getClass())));
 			}
 
+			//make sure the expected type and the method's declared parameter are same
 			Checks.verify(type.equals(methodParameterTypes[i]),
 						  String.format("Parameter %s on method %s in class %s does not match ArgType %s.",
 										methodParameterTypes[i].getName(),
@@ -443,6 +462,7 @@ public final class SubCommandManager {
 										type.getName()),
 						  SubCommandException.class);
 
+			//increment
 			i++;
 		}
 	}
