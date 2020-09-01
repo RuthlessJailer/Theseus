@@ -30,6 +30,41 @@ public final class Common {
 	}
 
 	/**
+	 * Schedule a task to run asynchronously one tick later.
+	 *
+	 * @param task the task to run
+	 *
+	 * @return the {@link BukkitTask} representing the task
+	 */
+	public static <T extends Runnable> BukkitTask runLaterAsync(@NonNull final T task) {
+		return runLaterAsync(1, task);
+	}
+
+	/**
+	 * Schedule a task to run repeatedly one tick later.
+	 *
+	 * @param task        the task to run
+	 * @param repeatTicks the delay (in ticks) between each cycle
+	 *
+	 * @return the {@link BukkitTask} representing the task
+	 */
+	public static <T extends Runnable> BukkitTask runLaterTimer(@NonNull final T task, final int repeatTicks) {
+		return runLaterTimer(1, repeatTicks, task);
+	}
+
+	/**
+	 * Schedule a task to run repeatedly one tick later asynchronously.
+	 *
+	 * @param task        the task to run
+	 * @param repeatTicks the delay (in ticks) between each cycle
+	 *
+	 * @return the {@link BukkitTask} representing the task
+	 */
+	public static <T extends Runnable> BukkitTask runLaterTimerAsync(@NonNull final T task, final int repeatTicks) {
+		return runLaterTimer(1, repeatTicks, task);
+	}
+
+	/**
 	 * Schedule a task to run zero ticks later.
 	 *
 	 * @param task the task to run
@@ -38,6 +73,41 @@ public final class Common {
 	 */
 	public static <T extends Runnable> BukkitTask runTask(@NonNull final T task) {
 		return runTaskLater(0, task);
+	}
+
+	/**
+	 * Schedule a task to run asynchronously zero ticks later.
+	 *
+	 * @param task the task to run
+	 *
+	 * @return the {@link BukkitTask} representing the task
+	 */
+	public static <T extends Runnable> BukkitTask runAsync(@NonNull final T task) {
+		return runLaterAsync(0, task);
+	}
+
+	/**
+	 * Schedule a task to run repeatedly zero ticks later.
+	 *
+	 * @param task        the task to run
+	 * @param repeatTicks the delay (in ticks) between each cycle
+	 *
+	 * @return the {@link BukkitTask} representing the task
+	 */
+	public static <T extends Runnable> BukkitTask runTimer(@NonNull final T task, final int repeatTicks) {
+		return runLaterTimer(0, repeatTicks, task);
+	}
+
+	/**
+	 * Schedule a task to run repeatedly zero ticks later asynchronously.
+	 *
+	 * @param task        the task to run
+	 * @param repeatTicks the delay (in ticks) between each cycle
+	 *
+	 * @return the {@link BukkitTask} representing the task
+	 */
+	public static <T extends Runnable> BukkitTask runTimerAsync(@NonNull final T task, final int repeatTicks) {
+		return runLaterTimerAsync(0, repeatTicks, task);
 	}
 
 	/**
@@ -66,6 +136,91 @@ public final class Common {
 			return delayTicks == 0
 				   ? scheduler.runTask(instance, task)
 				   : scheduler.runTaskLater(instance, task, delayTicks);
+		}
+	}
+
+	/**
+	 * Schedule a task to run asynchronously.
+	 * If the plugin instance is null the task will run immediately, independent of the Bukkit scheduler.
+	 *
+	 * @param delayTicks how long to wait (in ticks)
+	 * @param task       the task to run
+	 *
+	 * @return the {@link BukkitTask} representing the task
+	 */
+	public static BukkitTask runLaterAsync(final int delayTicks, @NonNull final Runnable task) {
+		final BukkitScheduler scheduler = Bukkit.getScheduler();
+		final JavaPlugin      instance  = PluginBase.getInstance();
+		final BukkitRunnable  runnable;
+
+		if (instance == null) {//runs anyway if the plugin is disable improperly
+			task.run();
+			throw new IllegalStateException("Plugin instance is null. Task was run anyway.");
+		}
+
+		if (task instanceof BukkitRunnable) {
+			runnable = (BukkitRunnable) task;
+			return delayTicks == 0 ? runnable.runTaskAsynchronously(instance) : runnable.runTaskLaterAsynchronously(instance, delayTicks);
+		} else {
+			return delayTicks == 0
+				   ? scheduler.runTaskAsynchronously(instance, task)
+				   : scheduler.runTaskLaterAsynchronously(instance, task, delayTicks);
+		}
+	}
+
+	/**
+	 * Schedule a task to run repeatedly.
+	 * If the plugin instance is null the task will run immediately, independent of the Bukkit scheduler.
+	 *
+	 * @param delayTicks  how long to wait (in ticks) before the first run
+	 * @param repeatTicks how long to wait (in ticks) between each cycle
+	 * @param task        the task to run
+	 *
+	 * @return the {@link BukkitTask} representing the task
+	 */
+	public static BukkitTask runLaterTimer(final int delayTicks, final int repeatTicks, @NonNull final Runnable task) {
+		final BukkitScheduler scheduler = Bukkit.getScheduler();
+		final JavaPlugin      instance  = PluginBase.getInstance();
+		final BukkitRunnable  runnable;
+
+		if (instance == null) {//runs anyway if the plugin is disable improperly
+			task.run();
+			throw new IllegalStateException("Plugin instance is null. Task was run anyway.");
+		}
+
+		if (task instanceof BukkitRunnable) {
+			runnable = (BukkitRunnable) task;
+			return runnable.runTaskTimer(instance, delayTicks, repeatTicks);
+		} else {
+			return scheduler.runTaskTimer(instance, task, delayTicks, repeatTicks);
+		}
+	}
+
+	/**
+	 * Schedule a task to run repeatedly.
+	 * If the plugin instance is null the task will run immediately, independent of the Bukkit scheduler.
+	 *
+	 * @param delayTicks  how long to wait (in ticks) before the first run
+	 * @param repeatTicks how long to wait (in ticks) between each cycle
+	 * @param task        the task to run
+	 *
+	 * @return the {@link BukkitTask} representing the task
+	 */
+	public static BukkitTask runLaterTimerAsync(final int delayTicks, final int repeatTicks, @NonNull final Runnable task) {
+		final BukkitScheduler scheduler = Bukkit.getScheduler();
+		final JavaPlugin      instance  = PluginBase.getInstance();
+		final BukkitRunnable  runnable;
+
+		if (instance == null) {//runs anyway if the plugin is disable improperly
+			task.run();
+			throw new IllegalStateException("Plugin instance is null. Task was run anyway.");
+		}
+
+		if (task instanceof BukkitRunnable) {
+			runnable = (BukkitRunnable) task;
+			return runnable.runTaskTimerAsynchronously(instance, delayTicks, repeatTicks);
+		} else {
+			return scheduler.runTaskTimerAsynchronously(instance, task, delayTicks, repeatTicks);
 		}
 	}
 
