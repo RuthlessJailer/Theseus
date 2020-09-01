@@ -96,8 +96,10 @@ public abstract class CommandBase extends Command {
 		Spigot.registerCommand(this);
 
 		if (this.isSuperior) {
-			SubCommandManager.getManager().register((SuperiorCommand) this);
-			SubCommandManager.getManager().generateHelpMenu(this, this.helpMenuFormatOverride);
+			Common.runAsync(() -> {
+				SubCommandManager.register((SuperiorCommand) this);
+				SubCommandManager.generateHelpMenu(this, this.helpMenuFormatOverride);
+			});
 		}
 
 		this.registered = true;
@@ -136,7 +138,9 @@ public abstract class CommandBase extends Command {
 	}
 
 	@Override
-	public final boolean execute(final CommandSender sender, final String label, final String[] args) {
+	public final synchronized boolean execute(final CommandSender sender, final String label, final String[] args) {
+
+		Chat.debug("Commands", "Command " + label + " with args " + Arrays.toString(args) + " executed by " + sender.getName() + ".");
 
 		if (!Bukkit.isPrimaryThread()) {
 			Chat.warning("Async call to command " + ReflectUtil.getPath(this.getClass()) + ".");
@@ -152,11 +156,11 @@ public abstract class CommandBase extends Command {
 		this.sender = sender;
 
 		if (!(this.autoGenerateHelpMenu && args.length >= 1 && args[0].equalsIgnoreCase("help"))) {//don't run on help command
-			this.runCommand();
+			this.runCommand(sender, args, label);
 		}
 
 		if (this.isSuperior) {
-			return SubCommandManager.getManager().executeFor(this, sender, args);
+			Common.runAsync(() -> SubCommandManager.executeFor(this, sender, args));
 		}
 
 		return true;
@@ -170,11 +174,11 @@ public abstract class CommandBase extends Command {
 	@Override
 	public final List<String> tabComplete(final CommandSender sender, final String alias, final String[] args, final Location location) throws IllegalArgumentException {
 		return this.tabCompleteSubCommands && this.isSuperior
-			   ? SubCommandManager.getManager().tabCompleteFor(this, sender, args)
+			   ? SubCommandManager.tabCompleteFor(this, sender, args)
 			   : this.onTabComplete(sender, alias, args, location);
 	}
 
-	protected abstract void runCommand();
+	protected abstract void runCommand(@NonNull final CommandSender sender, final String[] args, @NonNull final String label);
 
 	protected List<String> onTabComplete(final CommandSender sender, final String alias, final String[] args, final Location location) { return new ArrayList<>(); }
 }
