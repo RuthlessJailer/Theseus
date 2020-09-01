@@ -25,6 +25,22 @@ public final class Checks {
 	}
 
 	/**
+	 * Null checks the instance.
+	 *
+	 * @param falseMessage the message to send if the instance is null
+	 *
+	 * @return the {@link PluginBase} instance
+	 *
+	 * @throws IllegalStateException if the instance is null
+	 */
+	public static PluginBase instanceCheck(final String falseMessage) {
+		if (PluginBase.getInstance() == null) {
+			throw new IllegalStateException(falseMessage);
+		}
+		return PluginBase.getInstance();
+	}
+
+	/**
 	 * Null checks and makes sure an array is not empty.
 	 *
 	 * @param array        the array to check

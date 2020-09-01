@@ -18,6 +18,7 @@ import java.lang.annotation.Target;
  * %i - Integer <p>
  * %d - Double <p>
  * %b - Boolean <p>
+ * %p - Player <p>
  * Any arguments provided must be present in the method's parameters, but only enum classes must be provided in
  * annotation parameters (argTypes).
  * <p>

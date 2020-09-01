@@ -13,10 +13,10 @@ import lombok.ToString;
 public final class Argument {
 
 	private final boolean  infinite;
-	private final String[] possibilities;
 	private final Class<?> type;
 	private final boolean  declaredType;
 	private final String   description;
+	private       String[] possibilities;//non-final because player names can change/players can leave and join
 
 	public Argument(@NonNull final String[] possibilities, @NonNull final Class<?> type, @NonNull final Boolean declaredType) {
 		this(possibilities, type, declaredType, null);
@@ -36,6 +36,10 @@ public final class Argument {
 							 && (type.equals(String.class)
 								 || type.equals(Integer.class)
 								 || type.equals(Double.class));
+	}
+
+	protected void updatePossibilities(@NonNull final String[] newPossibilities) {//should only be used for updating player names
+		this.possibilities = newPossibilities;
 	}
 
 }

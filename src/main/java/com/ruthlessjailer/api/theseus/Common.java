@@ -3,6 +3,7 @@ package com.ruthlessjailer.api.theseus;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -18,7 +19,18 @@ import java.util.List;
 public final class Common {
 
 	/**
-	 * Schedule a task to run.
+	 * Schedule a task to run one tick later.
+	 *
+	 * @param task the task to run
+	 *
+	 * @return the {@link BukkitTask} representing the task
+	 */
+	public static <T extends Runnable> BukkitTask runLater(@NonNull final T task) {
+		return runTaskLater(1, task);
+	}
+
+	/**
+	 * Schedule a task to run zero ticks later.
 	 *
 	 * @param task the task to run
 	 *
@@ -224,12 +236,12 @@ public final class Common {
 	}
 
 	/**
-	 * Converts an iterable into a different type list.
+	 * Converts an iterable into a different type iterable.
 	 *
 	 * @param iterable  the {@link Iterable} to convert
 	 * @param converter the {@link TypeConverter} used to convert
 	 *
-	 * @return the converted list
+	 * @return the converted iterable
 	 */
 	public static <O, N> List<N> convert(@NonNull final Iterable<O> iterable,
 										 @NonNull final TypeConverter<O, N> converter) {
@@ -241,6 +253,24 @@ public final class Common {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Gets the names of all online players.
+	 *
+	 * @return a {@link List} containing all the names of current online players
+	 */
+	public static List<String> getPlayerNames() {
+		return convert(Bukkit.getOnlinePlayers(), Player::getName);
+	}
+
+	/**
+	 * Gets the display names of all online players.
+	 *
+	 * @return a {@link List} containing all the display names of current online players
+	 */
+	public static List<String> getPlayerDisplayNames() {
+		return convert(Bukkit.getOnlinePlayers(), Player::getDisplayName);
 	}
 
 }

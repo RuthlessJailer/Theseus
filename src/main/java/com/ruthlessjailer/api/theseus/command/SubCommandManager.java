@@ -17,7 +17,9 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -76,6 +78,10 @@ public final class SubCommandManager {
 				for (int i = 0; i < args.length; i++) {
 					final String   arg      = args[i];
 					final Argument argument = wrapper.getArguments()[i];
+
+					if (argument.getType().equals(Player.class)) {
+						argument.updatePossibilities(Common.getPlayerNames().toArray(new String[0]));
+					}
 
 					if (!argument.isInfinite()) {
 						boolean match = false;
@@ -159,6 +165,10 @@ public final class SubCommandManager {
 			}
 
 			for (final Argument argument : wrapper.getArguments()) {//check constant arguments & parse variable placeholders
+				if (argument.getType().equals(Player.class)) {
+					argument.updatePossibilities(Common.getPlayerNames().toArray(new String[0]));
+				}
+
 				boolean match = false;
 				if (!argument.isInfinite()) {
 					for (final String possibility : argument.getPossibilities()) {
@@ -178,22 +188,24 @@ public final class SubCommandManager {
 					if (declaredType.isEnum()) {//get enum value
 						parameters[p] = ReflectUtil.getEnum((Class<E>) declaredType, args[i]);
 					} else {//Integer, Double, Boolean
-						try {
-							parameters[p] = ReflectUtil.invokeMethod(declaredType, "valueOf", null, args[i]);
-						} catch (final ReflectUtil.ReflectionException e) {
-							if (e.getCause() instanceof InvocationTargetException) {
-								continue wrappers;
-							} else {
-								try {
-									parameters[p] = ReflectUtil.newInstanceOf(declaredType, args[i]);
-								} catch (final ReflectUtil.ReflectionException x) { //try constructor (string doesn't work with valueOf for some reason)
-									if (!(e.getCause() instanceof InvocationTargetException)) {
-										e.printStackTrace();
-									}
+						if (declaredType.equals(Integer.class) || declaredType.equals(Double.class) || declaredType.equals(Boolean.class)) {
+							try {
+								parameters[p] = ReflectUtil.invokeMethod(declaredType, "valueOf", null, args[i]);
+							} catch (final ReflectUtil.ReflectionException e) {
+								if (e.getCause() instanceof InvocationTargetException) {//NumberFormatException
 									continue wrappers;
 								}
 							}
+						} else if (declaredType.equals(String.class)) {
+							parameters[p] = args[i];
+						} else if (declaredType.equals(Player.class)) {
+							//final int finalP = p;
+							parameters[p] = Bukkit.getPlayer(args[i]);
+							//if(parameters[p] == null){
+							//TODO: run async getOfflinePlayer
+							//}
 						}
+
 						p++;
 					}
 				}
@@ -249,7 +261,7 @@ public final class SubCommandManager {
 
 		boolean variables = false;
 		for (final String arg : args) {
-			if (arg.toLowerCase().matches("%[sideb](<[a-z_0-9]+>)?")) {
+			if (arg.toLowerCase().matches("%[sidebp](<[a-z_0-9]+>)?")) {
 				variables = true;
 				break;
 			}
@@ -270,7 +282,7 @@ public final class SubCommandManager {
 		//initialize variables
 
 		for (final String arg : args) {//initialize declaredTypes and types variables
-			if (arg.toLowerCase().matches("%[sideb](<[a-z0-9_]+>)?")) {
+			if (arg.toLowerCase().matches("%[sidebp](<[a-z0-9_]+>)?")) {
 				t++;//type
 			}
 			if (arg.toLowerCase().matches("%e(<[a-z_0-9]+>)?")) {
@@ -305,7 +317,7 @@ public final class SubCommandManager {
 		//main loop
 		for (final String arg : args) {
 
-			boolean d = !arg.toLowerCase().matches("%[sideb](<[a-z_0-9]+>)?");//is default argument (not variable)
+			boolean d = !arg.toLowerCase().matches("%[sidebp](<[a-z_0-9]+>)?");//is default argument (not variable)
 
 			if (!d) {//not default argument; parsing needed
 
@@ -316,7 +328,7 @@ public final class SubCommandManager {
 
 				String description = null;
 
-				if (arg.matches("%[sidebSIDEB]<[A-Za-z0-9_]+>")) {//description storage
+				if (arg.matches("%[sidebpSIDEBP]<[A-Za-z0-9_]+>")) {//description storage
 					description = arg.substring(3, arg.length() - 1);
 				}
 
@@ -382,6 +394,13 @@ public final class SubCommandManager {
 
 						break;
 
+					case "%p"://player
+
+						types[i] = Player.class;
+						declaredTypes[t] = Player.class;
+						arguments[i] = new Argument(Common.getPlayerNames().toArray(new String[0]), Player.class, true, description);
+
+						break;
 					default://none; it's a choice argument
 						d = true;
 				}
@@ -397,7 +416,7 @@ public final class SubCommandManager {
 
 			//variable incrementation
 
-			if (arg.toLowerCase().matches("%[sideb](<[a-z0-9_]+>)?")) {//type counter increment
+			if (arg.toLowerCase().matches("%[sidebp](<[a-z0-9_]+>)?")) {//type counter increment
 				t++;
 			}
 
