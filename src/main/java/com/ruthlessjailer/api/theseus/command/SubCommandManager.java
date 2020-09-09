@@ -50,6 +50,10 @@ public final class SubCommandManager {
 
 		assert command instanceof CommandBase;
 
+		if (!Bukkit.isPrimaryThread()) {
+			Chat.warning("Async call to command /" + ((CommandBase) command).getLabel() + " (" + ReflectUtil.getPath(command.getClass()) + ") while registering.");
+		}
+
 		final List<SubCommandWrapper> wrappers = new ArrayList<>();
 
 		for (final Method method : command.getClass().getDeclaredMethods()) {
@@ -115,6 +119,10 @@ public final class SubCommandManager {
 
 	@SuppressWarnings("unchecked")
 	public static <E extends Enum<E>> void executeFor(@NonNull final CommandBase command, @NonNull final CommandSender sender, final String[] args) {
+
+		if (!Bukkit.isPrimaryThread()) {
+			Chat.warning("Async call to command /" + command.getLabel() + " (" + ReflectUtil.getPath(command.getClass()) + ") while executing sub-commands.");
+		}
 
 		if (command.isAutoGenerateHelpMenu() && args.length >= 1) {//automatic help command
 			if (args[0].equalsIgnoreCase("help")) {
@@ -183,7 +191,7 @@ public final class SubCommandManager {
 							//final int finalP = p;
 							parameters[p] = Bukkit.getPlayer(args[i]);
 							if (parameters[p] == null) {
-								parameters[p] = Bukkit.getOfflinePlayer(args[i]);//this method is run async anyway
+								parameters[p] = Bukkit.getOfflinePlayer(args[i]).getPlayer();//this method is run async anyway
 							}
 						}
 						p++;
@@ -196,17 +204,20 @@ public final class SubCommandManager {
 			Chat.debug("SubCommands", String.format("Invoking method %s in class %s for args '%s'.",
 													wrapper.getMethod().getName(), command.getClass(), StringUtils.join(args, " ")));
 
-
 			try {
-				Common.runTask(() -> ReflectUtil.invokeMethod(wrapper.getMethod(), command, parameters));
-			} catch (final ReflectUtil.ReflectionException ignored) {
-				return;
+				ReflectUtil.invokeMethod(wrapper.getMethod(), command, parameters);
+			} catch (final ReflectUtil.ReflectionException e) {
+				e.getCause().getCause().printStackTrace();//ReflectionException -> InvocationTargetException -> whatever caused it
 			}
 
 		}
 	}
 
-	public static HelpMenu generateHelpMenu(@NonNull final CommandBase command, final HelpMenuFormat menuFormat) {
+	public static void generateHelpMenu(@NonNull final CommandBase command, final HelpMenuFormat menuFormat) {
+
+		if (!Bukkit.isPrimaryThread()) {
+			Chat.warning("Async call to command /" + command.getLabel() + " (" + ReflectUtil.getPath(command.getClass()) + ") while generating help menu.");
+		}
 
 		final List<SubCommandWrapper> subCommands = getManager().getSubCommands(command);
 		final HelpMenuFormat          format      = menuFormat == null ? HelpMenuFormat.DEFAULT_FORMAT : menuFormat;
@@ -220,9 +231,7 @@ public final class SubCommandManager {
 		int l = 1;//line counter (starts at 1 because of header)
 		int p = 0;//page counter
 
-		HelpLine[] lines = new HelpLine[(subCommands.size() < format.getPageSize())//in case the size is less
-										? (subCommands.size() + 2)
-										: (format.getPageSize() + 2)];//+2 for header and footer
+		HelpLine[] lines = new HelpLine[format.getPageSize() + 2];//+2 for header and footer
 
 		for (final SubCommandWrapper wrapper : subCommands) {
 
@@ -298,7 +307,10 @@ public final class SubCommandManager {
 									 ComponentBuilder.FormatRetention.FORMATTING);//everything in between the back and the next buttons
 
 				headerBuilder.append(Chat.colorize(format.getNext()), ComponentBuilder.FormatRetention.FORMATTING)//the next button
-							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), p == pageCount ? p : p + 2)));
+							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(),
+																								p == pageCount
+																								? p
+																								: p + 2)));
 
 				headerBuilder.append(Chat.colorize(postNext), ComponentBuilder.FormatRetention.FORMATTING);//anything after the next button
 
@@ -343,7 +355,7 @@ public final class SubCommandManager {
 		}
 
 		synchronized (getManager().subCommands) {
-			return getManager().helpMenus.put(command, new HelpMenu(pages, format.getPageSize(), pageCount));
+			getManager().helpMenus.put(command, new HelpMenu(pages, format.getPageSize(), pageCount));
 		}
 	}
 
@@ -383,6 +395,10 @@ public final class SubCommandManager {
 
 	@SuppressWarnings("unchecked")
 	private <E extends Enum<E>> SubCommandWrapper parseArgs(@NonNull final CommandBase parent, @NonNull final Method method, @NonNull final SubCommand subCommand) {
+
+		if (!Bukkit.isPrimaryThread()) {
+			Chat.warning("Async call to command /" + parent.getLabel() + " (" + ReflectUtil.getPath(parent.getClass()) + ") while parsing method " + method.getName() + ".");
+		}
 
 		//variables start
 		final String[] args = Checks.stringCheck(subCommand.inputArgs(),
@@ -471,7 +487,9 @@ public final class SubCommandManager {
 				//begin parsing
 
 				//TODO: possible remove this as it only causes problems and is only used in one place
-				final Class<?> declaredType = argTypes.length > 0 ? argTypes[e] : null;//shouldn't throw ArrayIndexOutOfBoundsException ever again
+				final Class<?> declaredType = argTypes.length > 0
+											  ? argTypes[e]
+											  : null;//shouldn't throw ArrayIndexOutOfBoundsException ever again
 
 				String description = null;
 

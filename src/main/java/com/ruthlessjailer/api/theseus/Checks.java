@@ -27,6 +27,20 @@ public final class Checks {
 	/**
 	 * Null checks the instance.
 	 *
+	 * @return the {@link PluginBase} instance
+	 *
+	 * @throws IllegalStateException if the instance is null
+	 */
+	public static PluginBase instanceCheck() {
+		if (PluginBase.getInstance() == null) {
+			throw new IllegalStateException("Plugin instance is null!");
+		}
+		return PluginBase.getInstance();
+	}
+
+	/**
+	 * Null checks the instance.
+	 *
 	 * @param falseMessage the message to send if the instance is null
 	 *
 	 * @return the {@link PluginBase} instance

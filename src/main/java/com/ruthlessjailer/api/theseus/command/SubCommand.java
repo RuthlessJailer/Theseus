@@ -64,6 +64,6 @@ public @interface SubCommand {
 
 	String inputArgs();
 
-	Class<?>[] argTypes();
+	Class<?>[] argTypes() default {};
 
 }

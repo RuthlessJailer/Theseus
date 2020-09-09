@@ -96,10 +96,8 @@ public abstract class CommandBase extends Command {
 		Spigot.registerCommand(this);
 
 		if (this.isSuperior) {
-			Common.runAsync(() -> {
-				SubCommandManager.register((SuperiorCommand) this);
-				SubCommandManager.generateHelpMenu(this, this.helpMenuFormatOverride);
-			});
+			SubCommandManager.register((SuperiorCommand) this);
+			SubCommandManager.generateHelpMenu(this, this.helpMenuFormatOverride);
 		}
 
 		this.registered = true;
@@ -140,10 +138,10 @@ public abstract class CommandBase extends Command {
 	@Override
 	public final synchronized boolean execute(final CommandSender sender, final String label, final String[] args) {
 
-		Chat.debug("Commands", "Command " + label + " with args " + Arrays.toString(args) + " executed by " + sender.getName() + ".");
+		Chat.debug("Commands", "Command /" + label + " with args " + Arrays.toString(args) + " executed by " + sender.getName() + ".");
 
 		if (!Bukkit.isPrimaryThread()) {
-			Chat.warning("Async call to command " + ReflectUtil.getPath(this.getClass()) + ".");
+			Chat.warning("Async call to command /" + label + " (" + ReflectUtil.getPath(this.getClass()) + ").");
 		}
 
 		if (!sender.hasPermission(this.getCustomPermissionSyntax())) {
@@ -160,7 +158,7 @@ public abstract class CommandBase extends Command {
 		}
 
 		if (this.isSuperior) {
-			Common.runAsync(() -> SubCommandManager.executeFor(this, sender, args));
+			SubCommandManager.executeFor(this, sender, args);
 		}
 
 		return true;

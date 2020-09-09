@@ -19,6 +19,28 @@ import java.util.List;
 public final class Common {
 
 	/**
+	 * Cancels a task.
+	 *
+	 * @param taskId the id of the task to cancel
+	 *
+	 * @see BukkitScheduler#cancelTask(int)
+	 */
+	public static void cancelTask(final int taskId) {
+		Bukkit.getScheduler().cancelTask(taskId);
+	}
+
+	/**
+	 * Cancels a task.
+	 *
+	 * @param task the {@link BukkitTask} to cancel
+	 *
+	 * @see BukkitTask#cancel()
+	 */
+	public static void cancelTask(@NonNull final BukkitTask task) {
+		task.cancel();
+	}
+
+	/**
 	 * Schedule a task to run one tick later.
 	 *
 	 * @param task the task to run

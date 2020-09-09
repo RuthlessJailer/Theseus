@@ -342,7 +342,7 @@ public final class ReflectUtil {
 	 * Wrapper for {@link Class#getDeclaredMethod(String, Class[])}
 	 *
 	 * @param pkg  the full path to the class
-	 * @param name the name of the field
+	 * @param name the name of the method
 	 *
 	 * @return the found {@link Method}
 	 *
@@ -356,7 +356,7 @@ public final class ReflectUtil {
 	 * Wrapper for {@link Class#getDeclaredMethod(String, Class[])}
 	 *
 	 * @param clazz the class to search
-	 * @param name  the name of the field
+	 * @param name  the name of the method
 	 *
 	 * @return the found {@link Method}
 	 *
@@ -369,6 +369,49 @@ public final class ReflectUtil {
 		} catch (final NoSuchMethodException e) {
 			try {
 				method = clazz.getMethod(name);
+			} catch (final NoSuchMethodException x) {
+				throw new ReflectionException(String.format("Method %s in class %s not found.", name,
+															getPath(clazz)));
+			}
+		}
+
+		return method;
+	}
+
+
+	/**
+	 * Wrapper for {@link Class#getDeclaredMethod(String, Class[])}
+	 *
+	 * @param pkg        the full path to the class class
+	 * @param name       the name of the method
+	 * @param parameters the parameters of the method
+	 *
+	 * @return the found {@link Method}
+	 *
+	 * @throws ReflectionException if the method is not found
+	 */
+	public static Method getMethod(@NonNull final String pkg, @NonNull final String name, @NonNull final Class<?>... parameters) {
+		return getMethod(getClass(pkg), name, parameters);
+	}
+
+	/**
+	 * Wrapper for {@link Class#getDeclaredMethod(String, Class[])}
+	 *
+	 * @param clazz      the class to search
+	 * @param name       the name of the field
+	 * @param parameters the parameters of the method
+	 *
+	 * @return the found {@link Method}
+	 *
+	 * @throws ReflectionException if the method is not found
+	 */
+	public static Method getMethod(@NonNull final Class<?> clazz, @NonNull final String name, @NonNull final Class<?>... parameters) {
+		Method method;
+		try {
+			method = clazz.getDeclaredMethod(name, parameters);
+		} catch (final NoSuchMethodException e) {
+			try {
+				method = clazz.getMethod(name, parameters);
 			} catch (final NoSuchMethodException x) {
 				throw new ReflectionException(String.format("Method %s in class %s not found.", name,
 															getPath(clazz)));

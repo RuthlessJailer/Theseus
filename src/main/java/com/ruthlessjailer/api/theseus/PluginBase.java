@@ -44,7 +44,6 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	 */
 	public static boolean hasLog() { return log != null; }
 
-
 	/**
 	 * Instance check.
 	 *
@@ -76,7 +75,9 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	/**
 	 * Shortcut for {@link Chat#debug(String, String...)}.
 	 */
-	protected static final void debug(@NonNull final String... messages) { Chat.debug("Plugin", messages); }
+	protected static final void debug(
+			@NonNull
+			final String... messages) { Chat.debug("Plugin", messages); }
 
 	@Override
 	public final void onLoad() {
@@ -123,7 +124,12 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 		}
 
 		debug("Calling onStart()");
-		this.onStart();
+		try {
+			this.onStart();
+		} catch (final Throwable t) {
+			Chat.severe("Fatal error in onStart() in class " + ReflectUtil.getPath(this.getClass()) + ", continuing...");
+			t.printStackTrace();
+		}
 		debug("Called onStart()");
 
 		this.registerEvents(this);
@@ -156,22 +162,34 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	 */
 	protected void onStop() {}
 
-	protected void registerEvents(@NonNull final Listener... listeners) {
-		for (@NonNull final Listener listener : listeners) {
+	protected void registerEvents(
+			@NonNull
+			final Listener... listeners) {
+		for (
+				@NonNull
+				final Listener listener : listeners) {
 			this.getServer().getPluginManager().registerEvents(listener, this);
 			debug("Registered listener " + ReflectUtil.getPath(listener.getClass()) + ".");
 		}
 	}
 
-	protected void registerCommands(@NonNull final Command... commands) {
-		for (@NonNull final Command command : commands) {
+	protected void registerCommands(
+			@NonNull
+			final Command... commands) {
+		for (
+				@NonNull
+				final Command command : commands) {
 			Spigot.registerCommand(command);
 			debug("Registered command " + ReflectUtil.getPath(command.getClass()) + ".");
 		}
 	}
 
-	protected void registerCommands(@NonNull final CommandBase... commands) {
-		for (@NonNull final CommandBase command : commands) {
+	protected void registerCommands(
+			@NonNull
+			final CommandBase... commands) {
+		for (
+				@NonNull
+				final CommandBase command : commands) {
 			command.register();
 			debug("Registered command " + ReflectUtil.getPath(command.getClass()) + ".");
 		}

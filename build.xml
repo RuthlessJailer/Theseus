@@ -7,8 +7,10 @@
 
     <target name="Build">
         <jar jarfile="${serverPath}/plugins/${ant.project.name}.jar" basedir="./target/classes/" includes="**/*">
+            <!--
             <zipgroupfileset dir="${user.home}/.m2/repository/com/ruthlessjailer/api/theseus/Theseus/1.2.0/"
                              includes="**/Theseus-1.2.0.jar"/>
+             -->
         </jar>
     </target>
 
