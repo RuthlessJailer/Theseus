@@ -22,11 +22,12 @@ public enum MinecraftVersion {
 	v1_10(10, "1.10", VersionType.LEGACY),
 	v1_9(9, "1.9", VersionType.LEGACY),
 	v1_8(8, "1.8", VersionType.LEGACY),
-	v1_7(7, "1.7", VersionType.LEGACY),
 	//Obsolete
+	v1_7(7, "1.7", VersionType.OBSOLETE),
 	v1_6(6, "1.6", VersionType.OBSOLETE),
 	v1_5(5, "1.5", VersionType.OBSOLETE),
 	v1_4(4, "1.4", VersionType.OBSOLETE),
+	//WAY too old
 	v1_3_OR_OLDER(3, "1.3 or older", VersionType.OBSOLETE);
 
 	public static final MinecraftVersion CURRENT_VERSION;
@@ -111,6 +112,12 @@ public enum MinecraftVersion {
 	public boolean isAfter(final MinecraftVersion version)   { return this.id > version.id; }
 
 	public boolean equals(final MinecraftVersion version)    { return this.id == version.id; }
+
+	public boolean isModern()                                { return this.type.equals(VersionType.MODERN); }
+
+	public boolean isLegacy()                                { return this.type.equals(VersionType.LEGACY) || this.isObsolete(); }
+
+	public boolean isObsolete()                              { return this.type.equals(VersionType.OBSOLETE); }
 
 	public String getXname()                                 { return this.name + ".x"; }
 

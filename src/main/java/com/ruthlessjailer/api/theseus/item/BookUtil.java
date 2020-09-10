@@ -91,7 +91,7 @@ public final class BookUtil {//TODO: use reflection to exclude version-dependent
 //		player.getInventory().setItem(slot, original);
 	}
 
-	public ItemBuilder.UnmadeItem build() {
+	public ItemBuilder.ItemStackCreator build() {
 		final ItemStack item = new ItemStack(this.material);
 		final BookMeta  meta = (BookMeta) item.getItemMeta();
 
@@ -102,7 +102,7 @@ public final class BookUtil {//TODO: use reflection to exclude version-dependent
 		meta.setLore(this.lore);
 
 		item.setItemMeta(meta);
-		return ItemBuilder.edit(item);
+		return ItemBuilder.of(item);
 	}
 
 	public ItemStack make() {

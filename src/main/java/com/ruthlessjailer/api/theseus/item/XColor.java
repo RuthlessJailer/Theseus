@@ -158,9 +158,6 @@ public enum XColor {
 	 * @param color the {@link XColor} for which conversion in needed
 	 * @param name  the white variant of the material, e.g. WHITE_WOOL (1.13+), or the name of the base material, e.g. WOOL (1.12-)
 	 *
-	 * @return the created {@link com.ruthlessjailer.api.theseus.item.ItemBuilder.ItemStackCreator} with the found material or {@link Material#WHITE_WOOL} or
-	 *        {@link Material#LEGACY_WOOL} (Material.WOOL)
-	 *
 	 * @see XColor#toMaterial(XColor, String) 1.13+ exclusive
 	 */
 	public static void applyTo(final ItemStack item, final XColor color, final String name) {
@@ -178,7 +175,8 @@ public enum XColor {
 
 		if (MinecraftVersion.atMost(MinecraftVersion.v1_12)) {
 			final Material material = ReflectUtil.getEnum(Material.class, name);
-			return material == null ? def : ItemBuilder.of(material);
+			item.setType(material == null ? def : material);
+			return;
 		}
 
 
