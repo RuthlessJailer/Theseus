@@ -1,5 +1,6 @@
 package com.ruthlessjailer.api.theseus.menu;
 
+import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
 import lombok.Getter;
@@ -11,7 +12,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +53,7 @@ public abstract class MenuBase implements Listener {
 	public MenuBase(final MenuBase parent, final int size, @NonNull final String title, @NonNull final InventoryType type) {
 		this.parent = parent;
 		this.size   = size;
-		this.title  = title;
+		this.title  = Chat.colorize(title);
 		this.type   = type;
 
 		Bukkit.getPluginManager().registerEvents(this, Checks.instanceCheck(String.format(
@@ -69,7 +69,7 @@ public abstract class MenuBase implements Listener {
 	public final void displayTo(@NonNull final Player player) {
 
 		if (this.view != null || this.holder != null) {
-			throw new UnsupportedOperationException("You can only display " + this.title + " to one player! Make a new instance to display to other players.");
+
 		}
 
 
@@ -86,23 +86,44 @@ public abstract class MenuBase implements Listener {
 		this.holder = new MenuHolder(player.getUniqueId());
 	}
 
+	@Override
+	public MenuBase clone() {
+		return MenuBuilder.of(this).build();
+	}
+
 	@EventHandler
 	public void onClick(final InventoryClickEvent event) {
-		final Inventory       inventory = event.getInventory();
-		final InventoryHolder holder    = inventory.getHolder();
+		if (!(event.getWhoClicked() instanceof Player)) {
+			return;
+		}
 
 		if (!event.getView().equals(this.view)) {
 			return;
 		}
 
-		if (!MenuHolder.equals(new MenuHolder(event.getWhoClicked().getUniqueId()), event.getInventory().getHolder())) {
+		if (!MenuHolder.equals(this.holder, event.getInventory().getHolder())) {
 			return;
 		}
+
+		//now we know it's the right menu
 
 		for (final Map.Entry<Integer, ButtonBase> entry : this.buttons.entrySet()) {
 			final Integer    slot   = entry.getKey();
 			final ButtonBase button = entry.getValue();
 
+			if (button.getItem().isSimilar(event.getCurrentItem())) {
+				switch (button.getType()) {
+					case INFO:
+						event.setCancelled(true);
+						break;
+					case TAKE:
+						event.setCancelled(false);
+						break;
+					case ACTION:
+						Checks.nullCheck(button.getAction(), "Button action cannot be null as its type is ACTION!");
+						button.getAction().onClick((Player) event.getWhoClicked(), event.getClick(), event.getCurrentItem());
+				}
+			}
 		}
 	}
 

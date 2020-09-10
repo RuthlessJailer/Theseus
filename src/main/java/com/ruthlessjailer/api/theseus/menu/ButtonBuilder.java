@@ -8,8 +8,8 @@ import org.bukkit.inventory.ItemStack;
 /**
  * @author Vadim Hagedorn
  */
-@Builder
-public final class Button {
+@Builder(builderClassName = "ButtonBaseCreator")
+public final class ButtonBuilder {
 
 	@Builder.Default
 	private final ItemStack item = new ItemStack(Material.STONE);
@@ -20,11 +20,14 @@ public final class Button {
 	@Builder.Default
 	private final ButtonAction action = (clicker, clickType, clickedWith) -> {};
 
-	public static ButtonBuilder of(@NonNull final ButtonBase button) {
+	public static ButtonBaseCreator of(@NonNull final ButtonBase button) {
 		return builder().type(button.getType()).item(button.getItem()).action(button.getAction());
 	}
 
-	public static class ButtonBuilder {
+	public static class ButtonBaseCreator {
+
+		protected ButtonBaseCreator() {}
+
 		public ButtonBase build() {
 			return new ButtonBase(this.item, this.type, this.action) {};
 		}

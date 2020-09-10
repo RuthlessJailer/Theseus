@@ -2,7 +2,6 @@ package com.ruthlessjailer.api.theseus;
 
 import lombok.NonNull;
 import org.apache.commons.lang.ClassUtils;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.block.Biome;
 
@@ -109,8 +108,6 @@ public final class ReflectUtil {
 	 * @param name     the name of the constant. Spaces will be replaced with underscores and it will be upper cased
 	 *
 	 * @return the found enum value or {@code null}
-	 *
-	 * @throws IllegalArgumentException if the value is not found
 	 */
 	public static <E extends Enum<E>> E getEnum(@NonNull final Class<E> enumType, @NonNull final String name) {
 		String parsed = name.toUpperCase().replaceAll(" ", "_");
@@ -144,13 +141,6 @@ public final class ReflectUtil {
 			result = getEnumSuppressed(enumType, parsed + (parsed.endsWith("S") ? "ES" : "S"));
 		}
 
-		if (result == null) {//throw error
-			throw new IllegalArgumentException(String.format("Constant %s not found in enum %s! Available values: %s.",
-															 parsed,
-															 enumType,
-															 StringUtils.join(enumType.getEnumConstants(), ", ")));
-		}
-
 		return result;
 	}
 
@@ -168,21 +158,13 @@ public final class ReflectUtil {
 	@NonNull
 	public static <E extends Enum<E>> E getEnum(@NonNull final Class<E> enumType, @NonNull final String name,
 												@NonNull final String... legacyNames) {
-		final String[] allNames = new String[legacyNames.length];
-		allNames[0] = name;
-
 		E result = getEnumSuppressed(enumType, name);
 
 		if (result != null) {
 			return result;
 		}
 
-		int i = 0;
-
 		for (final String legacyName : legacyNames) {
-			i++;
-			allNames[i] = legacyName;
-
 			result = getEnumSuppressed(enumType, legacyName);
 
 			if (result != null) {
@@ -190,10 +172,7 @@ public final class ReflectUtil {
 			}
 		}
 
-		throw new IllegalArgumentException(String.format("Constants %s not found in enum %s! Available values: %s.",
-														 StringUtils.join(allNames, ", "),
-														 enumType,
-														 StringUtils.join(enumType.getEnumConstants(), ", ")));
+		return null;
 	}
 
 	public static <E extends Enum<E>> E[] getEnumValues(@NonNull final Class<E> enumType) {
@@ -612,7 +591,7 @@ public final class ReflectUtil {
 			super(cause);
 		}
 
-		ReflectionException(final String message, final Exception exception) {
+		public ReflectionException(final String message, final Exception exception) {
 			super(message, exception);
 		}
 

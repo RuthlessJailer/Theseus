@@ -78,23 +78,19 @@ public enum MinecraftVersion {
 	private final VersionType type;
 
 	public static boolean atLeast(final MinecraftVersion version) {
-		return MinecraftVersion.CURRENT_VERSION.isAtLeast(
-				version);
+		return MinecraftVersion.CURRENT_VERSION.isAtLeast(version);
 	}
 
 	public static boolean atMost(final MinecraftVersion version) {
-		return MinecraftVersion.CURRENT_VERSION.isAtMost(
-				version);
+		return MinecraftVersion.CURRENT_VERSION.isAtMost(version);
 	}
 
 	public static boolean greaterThan(final MinecraftVersion version) {
-		return MinecraftVersion.CURRENT_VERSION.isAfter(
-				version);
+		return MinecraftVersion.CURRENT_VERSION.isAfter(version);
 	}
 
 	public static boolean lessThan(final MinecraftVersion version) {
-		return MinecraftVersion.CURRENT_VERSION.isBefore(
-				version);
+		return MinecraftVersion.CURRENT_VERSION.isBefore(version);
 	}
 
 	public static MinecraftVersion fromId(final int id) {
@@ -130,5 +126,27 @@ public enum MinecraftVersion {
 		OBSOLETE("Obsolete");
 
 		private final String name;
+	}
+
+	public static final class UnsupportedServerVersionException extends RuntimeException {
+
+		private static final long serialVersionUID = -4100099225681420337L;
+
+		public UnsupportedServerVersionException(final String message) {
+			super("Unsupported server version (" + CURRENT_VERSION.getXname() + ") encountered. " + message);
+		}
+
+		public UnsupportedServerVersionException(final String message, final Throwable cause) {
+			super(message, cause);
+		}
+
+		public UnsupportedServerVersionException(final Throwable cause) {
+			super(cause);
+		}
+
+		public UnsupportedServerVersionException(final String message, final Exception exception) {
+			super(message, exception);
+		}
+
 	}
 }

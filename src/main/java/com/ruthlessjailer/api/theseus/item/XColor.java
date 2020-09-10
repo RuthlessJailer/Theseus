@@ -1,18 +1,20 @@
 package com.ruthlessjailer.api.theseus.item;
 
+import com.ruthlessjailer.api.theseus.MinecraftVersion;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.ToString;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
 /**
+ * Multi-version {@link DyeColor} and {@link ChatColor} link.
+ *
  * @author Vadim Hagedorn
+ * @see ChatColor
+ * @see DyeColor
  */
-@ToString
-@AllArgsConstructor
 public enum XColor {
 
 
@@ -103,13 +105,25 @@ public enum XColor {
 	public static DyeColor toDyeColor(final ChatColor chatColor) { return fromChatColor(chatColor).dyeColor; }
 
 	/**
-	 * Converts to a material.
+	 * Converts to a material. 1.13 and above only.
 	 *
-	 * @param name the white variant of the material, e.g. WHITE_WOOL
+	 * @param color the {@link XColor} for which conversion in needed
+	 * @param name  the white variant of the material, e.g. WHITE_WOOL (1.13+)
 	 *
-	 * @return the found {@link Material}
+	 * @return the found {@link Material} or {@code null}
+	 *
+	 * @see XColor#toItem(XColor, String) for 1.12-
 	 */
 	public static Material toMaterial(final XColor color, final String name) {
+
+		if (color == null || name == null) {
+			return null;
+		}
+
+		if (MinecraftVersion.lessThan(MinecraftVersion.v1_13)) {
+			return null;
+		}
+
 		final String xname     = color.name();
 		final String dyeName   = color.dyeColor.name();
 		final String colorName = color.chatColor.name();
@@ -126,7 +140,7 @@ public enum XColor {
 			}
 		}
 
-		if (material == null) {//try chatColor name (last-ditch effort)
+		if (material == null) {//try chat color name (last-ditch effort)
 			materialName = parsed.replace("WHITE", colorName);
 			material     = Material.getMaterial(materialName);
 			if (material == null) {
@@ -134,12 +148,40 @@ public enum XColor {
 			}
 		}
 
-		if (material == null) {//throw error
-			throw new IllegalArgumentException(String.format("Unable to find colored material %s.", parsed.replace(
-					"WHITE", xname)));
+		return material;
+
+	}
+
+	/**
+	 * Converts to an {@link com.ruthlessjailer.api.theseus.item.ItemBuilder.ItemStackCreator}.
+	 *
+	 * @param color the {@link XColor} for which conversion in needed
+	 * @param name  the white variant of the material, e.g. WHITE_WOOL (1.13+), or the name of the base material, e.g. WOOL (1.12-)
+	 *
+	 * @return the created {@link com.ruthlessjailer.api.theseus.item.ItemBuilder.ItemStackCreator} with the found material or {@link Material#WHITE_WOOL} or
+	 *        {@link Material#LEGACY_WOOL} (Material.WOOL)
+	 *
+	 * @see XColor#toMaterial(XColor, String) 1.13+ exclusive
+	 */
+	public static void applyTo(final ItemStack item, final XColor color, final String name) {
+		final Material def = ReflectUtil.getEnum(Material.class, "WHITE_WOOL", "WOOL");
+
+		if (color == null || name == null || item == null || !item.hasItemMeta()) {
+			return;
 		}
 
-		return material;
+		if (MinecraftVersion.atLeast(MinecraftVersion.v1_13)) {
+			final Material material = toMaterial(color, name);
+			item.setType(material == null ? def : material);
+			return;
+		}
+
+		if (MinecraftVersion.atMost(MinecraftVersion.v1_12)) {
+			final Material material = ReflectUtil.getEnum(Material.class, name);
+			return material == null ? def : ItemBuilder.of(material);
+		}
+
+
 	}
 
 	public net.md_5.bungee.api.ChatColor getBungee() { return this.chatColor.asBungee(); }

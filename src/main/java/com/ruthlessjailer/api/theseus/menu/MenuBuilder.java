@@ -11,12 +11,8 @@ import java.util.Map;
 /**
  * @author Vadim Hagedorn
  */
-@Builder
-public final class Menu {
-
-	static {
-
-	}
+@Builder(builderClassName = "MenuBaseCreator")
+public final class MenuBuilder {
 
 	private final MenuBase                 parent;
 	@Builder.Default
@@ -28,24 +24,26 @@ public final class Menu {
 	@Singular
 	private final Map<Integer, ButtonBase> buttons;
 
-	public static MenuBuilder builder(@NonNull final String title) {
-		return new MenuBuilder().title(title);
+	public static MenuBaseCreator builder(@NonNull final String title) {
+		return new MenuBaseCreator().title(title);
 	}
 
-	public static MenuBuilder builder(@NonNull final String title, final int size) {
+	public static MenuBaseCreator builder(@NonNull final String title, final int size) {
 		return builder(title).size(size);
 	}
 
-	public static MenuBuilder builder(@NonNull final String title, final int size, @NonNull final InventoryType type) {
+	public static MenuBaseCreator builder(@NonNull final String title, final int size, @NonNull final InventoryType type) {
 		return builder(title, size).type(type);
 	}
 
-	public static MenuBuilder of(@NonNull final MenuBase menu) {
+	public static MenuBaseCreator of(@NonNull final MenuBase menu) {
 		return builder(menu.getTitle(), menu.getSize(), menu.getType()).parent(menu.getParent()).buttons(menu.getButtons());
 	}
 
-	public static class MenuBuilder {
+	public static class MenuBaseCreator {
 		protected final Map<Integer, ButtonBase> buttons = new HashMap<>();
+
+		protected MenuBaseCreator() {}
 
 		public MenuBase build() {
 			final MenuBase menu = new MenuBase(this.parent, this.size, this.title, this.type) {};
@@ -57,8 +55,16 @@ public final class Menu {
 			return menu;
 		}
 
+		public MenuBaseCreator addButton(final int slot, @NonNull final ButtonBase button) {
+			return this.button(slot, button);
+		}
 
-		public MenuBuilder size(final int size) {
+		public MenuBaseCreator addButtons(@NonNull final Map<Integer, ButtonBase> buttons) {
+			buttons.forEach(this::button);
+			return this;
+		}
+
+		public MenuBaseCreator size(final int size) {
 			if (size % 9 != 0) {
 				throw new IllegalArgumentException("Size must be a multiple of 9!");
 			}

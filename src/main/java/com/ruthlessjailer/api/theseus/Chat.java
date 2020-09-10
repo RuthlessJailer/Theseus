@@ -11,6 +11,8 @@ import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Vadim Hagedorn
@@ -79,8 +81,13 @@ public final class Chat {
 		return ChatColor.translateAlternateColorCodes('&', string);
 	}
 
-	public static String colorize(final String... strings) {
-		return colorize(StringUtils.join(strings, "\n"));
+	public static String[] colorize(final String... strings) {
+		return Arrays.stream(strings).map(Chat::colorize).collect(Collectors.toList()).toArray(new String[strings.length]);
+	}
+
+
+	public static List<String> colorize(final Collection<String> strings) {
+		return strings.stream().map(Chat::colorize).collect(Collectors.toList());
 	}
 
 	public static String stripColors(final String string) {

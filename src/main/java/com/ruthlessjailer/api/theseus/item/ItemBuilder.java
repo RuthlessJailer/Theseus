@@ -1,175 +1,132 @@
 package com.ruthlessjailer.api.theseus.item;
 
+import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
+import com.ruthlessjailer.api.theseus.MinecraftVersion;
 import javafx.util.Pair;
-import lombok.Getter;
-import org.bukkit.Bukkit;
+import lombok.Builder;
+import lombok.NonNull;
+import lombok.Singular;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Vadim Hagedorn
- * @see com.ruthlessjailer.api.theseus.ItemCreator
- * @deprecated see {@link com.ruthlessjailer.api.theseus.ItemCreator}
  */
-@Deprecated
-public final class ItemBuilder {
+@Builder(builderClassName = "ItemStackCreator", buildMethodName = "of")
+public class ItemBuilder {
 
-	public static final UUID BLANK_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+	private final Material                                 material;
+	private final String                                   name;
+	@Builder.Default
+	private final int                                      amount       = 1;
+	@Builder.Default
+	private final int                                      damage       = -1;
+	@Singular
+	private final List<String>                             lores;
+	@Singular
+	private final Map<Enchantment, Pair<Integer, Boolean>> enchantments;
+	@Singular
+	private final List<XItemFlag>                          flags;
+	private final XColor                                   color;
+	@Builder.Default
+	private final boolean                                  unbreakable  = false;
+	@Builder.Default
+	private final boolean                                  hideAllFlags = false;
+	private final List<Pair<String, Object>>               nbt;
 
-	@Deprecated
-	public static UnmadeItem create(final Material material) {
-		return new UnmadeItem(material);
+
+	public static ItemStackCreator of(@NonNull final ItemStack item) {
+		final ItemMeta meta = item.getItemMeta();
+		final ItemStackCreator builder = of(item.getType())
+				.addEnchantments(item.getEnchantments(), true)
+				.amount(item.getAmount())
+				.damage(item.getDurability());//for older versions
+		return item.hasItemMeta()
+			   ? builder
+					   .lores(Chat.colorize(meta.getLore()))
+					   .name(Chat.colorize(meta.getDisplayName()))
+					   .damage(meta instanceof Damageable ? ((Damageable) meta).getDamage() : -1)
+					   .addFlags(meta.getItemFlags())
+			   : builder;
 	}
 
-	@Deprecated
-	public static UnmadeItem edit(final ItemStack item) {
-		return new UnmadeItem(item);
+	public static ItemStackCreator of(@NonNull final Material material) {
+		return new ItemStackCreator().material(material);
 	}
 
-	@Deprecated
-	public static ConstructedItem view(final ItemStack item) {
-		return new ConstructedItem(item);
+	public static ItemStackCreator of(@NonNull final Material material, @NonNull final String name) {
+		return of(material).name(name);
 	}
 
+	public static ItemStackCreator of(@NonNull final Material material, @NonNull final String name, @NonNull final String... lore) {
+		return of(material, name).lores(Chat.colorize(Arrays.asList(lore)));
+	}
 
-	@Deprecated
-	public static final class UnmadeItem {
+	public static final class ItemStackCreator {
 
-		private final Material                                 material;
-		private final Map<Enchantment, Pair<Integer, Boolean>> enchantments = new HashMap<>();
-		private       int                                      amount;
-		private       String                                   name;
-		private       List<String>                             lore;
-		private       Set<ItemFlag>                            flags;
-		private       boolean                                  unbreakable;
-		private       UUID                                     skullOwner;
+		protected ItemStackCreator() {}
 
-		UnmadeItem(final Material material) {
-			this.material = material;
+		public ItemStackCreator addEnchantment(@NonNull final Enchantment enchantment, final int level, final boolean ignoreLevelRestriction) {
+			return this.enchantment(enchantment, new Pair<>(level, ignoreLevelRestriction));
 		}
 
-		UnmadeItem(final ItemStack item) {
-			final ItemMeta meta = item.getItemMeta();
-			this.material = item.getType();
-			this.amount   = item.getAmount();
-			this.name     = meta.getDisplayName();
-			this.lore     = meta.getLore();
-
-			for (final Map.Entry<Enchantment, Integer> entry : meta.getEnchants().entrySet()) {
-				final Enchantment            key      = entry.getKey();
-				final Integer                value    = entry.getValue();
-				final Pair<Integer, Boolean> newValue = new Pair<>(value, true);
-				this.enchantments.put(key, newValue);
-			}
-
-			this.flags = meta.getItemFlags();
+		public ItemStackCreator addEnchantments(@NonNull final Map<Enchantment, Integer> enchantments, final boolean ignoreLevelRestriction) {
+			enchantments.forEach((e, i) -> this.enchantment(e, new Pair<>(i, ignoreLevelRestriction)));
+			return this;
 		}
 
-		@Deprecated
-		public ItemStack make() {
+		public ItemStackCreator addFlag(@NonNull final ItemFlag flag) {
+			return this.flag(XItemFlag.fromItemFlag(flag));
+		}
 
-			final ItemStack item = new ItemStack(Checks.nullCheck(this.material, "Material must be set."));
+		public ItemStackCreator addFlags(@NonNull final Collection<ItemFlag> flags) {
+			flags.forEach(f -> this.flag(XItemFlag.fromItemFlag(f)));
+			return this;
+		}
+
+		public ItemStack build() {
+
+			Checks.nullCheck(this.material, "Material must be set!");
+
+			final ItemStack item = new ItemStack(this.material, this.amount);
 			final ItemMeta  meta = item.getItemMeta();
 
-			meta.setDisplayName(this.name == null
-								? Bukkit.getItemFactory().getItemMeta(this.material).getDisplayName()
-								: this.name);
-
-			if (this.lore != null) {
-				meta.setLore(this.lore);
+			if (XMaterial.isAir(this.material)) {//no meta
+				return item;
 			}
 
-			meta.setUnbreakable(this.unbreakable);
+			assert meta != null;//not air; all else has meta
 
-			for (final ItemFlag flag : this.flags) {
-				meta.addItemFlags(flag);
-			}
+			if (MinecraftVersion.atLeast(MinecraftVersion.v1_13)) {
 
-			for (final Map.Entry<Enchantment, Pair<Integer, Boolean>> entry : this.enchantments.entrySet()) {
-				final Enchantment            key   = entry.getKey();
-				final Pair<Integer, Boolean> value = entry.getValue();
-				meta.addEnchant(key, value.getKey(), value.getValue());
-			}
+				if (this.color != null && !this.material.name().startsWith("LEATHER") && XMaterial.isColorable(this.material)) {
+					final String color = this.color.getDyeColor().name();
 
-			item.setAmount(this.amount);
-			item.setItemMeta(meta);
-
-			return item;
-		}
-	}
-
-	@Getter
-	@Deprecated
-	public static final class ConstructedItem {
-
-		private final Material                                 material;
-		private final int                                      amount;
-		private final String                                   name;
-		private final List<String>                             lore;
-		private final Map<Enchantment, Pair<Integer, Boolean>> enchantments = new HashMap<>();
-		private final Set<ItemFlag>                            flags;
-		private final UUID                                     skullOwner;
-		private final boolean                                  unbreakable;
-
-		ConstructedItem(final ItemStack item) {
-			final ItemMeta meta = item.getItemMeta();
-
-			if (item.hasItemMeta()) {
-				assert meta != null;
-
-				this.name        = meta.getDisplayName();
-				this.lore        = meta.getLore();
-				this.flags       = meta.getItemFlags();
-				this.unbreakable = meta.isUnbreakable();
-
-				for (final Map.Entry<Enchantment, Integer> entry : meta.getEnchants().entrySet()) {
-					final Enchantment            key      = entry.getKey();
-					final Integer                value    = entry.getValue();
-					final Pair<Integer, Boolean> newValue = new Pair<>(value, true);
-					this.enchantments.put(key, newValue);
-				}
-
-				if (meta instanceof SkullMeta) {
-					final SkullMeta skullMeta = (SkullMeta) meta;
-					if (skullMeta.hasOwner()) {
-						this.skullOwner = skullMeta.getOwningPlayer().getUniqueId();
-					} else {
-						this.skullOwner = ItemBuilder.BLANK_UUID;
+					for (final String colorable : XMaterial.COLORABLE) {
+						if (this.material.name().endsWith("_".concat(colorable))) {
+							item.setType(Material.getMaterial(color + "_".concat(colorable)));
+						}
 					}
-				} else {
-					this.skullOwner = ItemBuilder.BLANK_UUID;
+
 				}
-			} else {
-				this.name        = null;
-				this.lore        = new ArrayList<>();
-				this.flags       = new HashSet<>();
-				this.unbreakable = false;
-				this.skullOwner  = ItemBuilder.BLANK_UUID;
+
+
+			} else {//legacy
+
 			}
 
-			this.amount   = item.getAmount();
-			this.material = item.getType();
 
-		}
-
-		@Deprecated
-		public boolean hasEnchantment(final Enchantment enchantment) {
-			return this.enchantments.containsKey(
-					enchantment);
-		}
-
-		@Deprecated
-		public Integer getEnchantmentLevel(final Enchantment enchantment) {
-			return this.enchantments.get(enchantment) != null
-				   ? this.enchantments.get(enchantment).getKey()
-				   : 0;
+			return null;
 		}
 
 	}
