@@ -25,6 +25,7 @@ import static com.ruthlessjailer.api.theseus.ReflectUtil.getEnum;
 @Getter
 public enum XMaterial {
 
+	//<editor-fold desc="Materials">
 	ACACIA_BOAT(v1_9, "BOAT_ACACIA", "BOAT"),//acacia added in 1.7
 	ACACIA_BUTTON(v1_13, "WOOD_BUTTON"),
 	ACACIA_DOOR(v1_8, "ACACIA_DOOR", "ACACIA_DOOR_ITEM", "WOOD_DOOR", "WOODEN_DOOR"),
@@ -51,7 +52,7 @@ public enum XMaterial {
 	AIR(v1_3_OR_OLDER),
 	ALLIUM(v1_7, 2, "RED_ROSE"),
 	ANCIENT_DEBRIS(v1_16, "QUARTZ_ORE", "NETHERRACK"),
-	ANDESITE(v1_8, 5, "STONE"),
+	ANDESITE(v1_8, 5),
 	ANDESITE_SLAB(v1_14, 5, "STEP", "DOUBLE_STEP", "COBBLESTONE_SLAB"),
 	ANDESITE_STAIRS(v1_14, "COBBLESTONE_STAIRS"),
 	ANDESITE_WALL(v1_14, "COBBLESTONE_WALL"),
@@ -72,7 +73,7 @@ public enum XMaterial {
 	BEACON(v1_4, "GLASS"),
 	BEDROCK(v1_3_OR_OLDER),
 	BEEF(v1_3_OR_OLDER, "RAW_BEEF"),
-	BEEHIVE(v1_15),
+	BEEHIVE(v1_15, 4, "YELLOW_TERRACOTTA", "STAINED_CLAY", "HARD_CLAY", "YELLOW_WOOL", "WOOL"),//yellow terracotta or wool
 	/**
 	 * The block variant.
 	 *
@@ -87,7 +88,7 @@ public enum XMaterial {
 	BEETROOTS(v1_9, "BEETROOT"),//TODO: unsure
 	BEETROOT_SEEDS(v1_9, "SEEDS", "WHEAT_SEEDS"),
 	BEETROOT_SOUP(v1_9, "MUSHROOM_STEW"),
-	BEE_NEST(v1_15),
+	BEE_NEST(v1_15, 4, "YELLOW_WOOL", "WOOL"),//yellow wool
 	BEE_SPAWN_EGG(v1_15, "SPAWN_EGG"),
 	BELL(v1_14),
 	BIRCH_BOAT(v1_9, 2, "BOAT_BIRCH", "BOAT"),
@@ -110,7 +111,16 @@ public enum XMaterial {
 	BLACKSTONE_SLAB(v1_16, "STEP", "DOUBLE_STEP", "COBBLESTONE_SLAB"),
 	BLACKSTONE_STAIRS(v1_16, "COBBLESTONE_STAIRS"),
 	BLACKSTONE_WALL(v1_16, "COBBLESTONE_WALL", "COBBLE_WALL"),
-
+	BLACK_BANNER(v1_8, 0, "STANDING_BANNER", "BANNER"),//banners added in 1.8
+	BLACK_BED(v1_12, 15, "BED_BLOCK", "BED"),//dyed beds added in 1.12, beds added very long ago
+	BLACK_CARPET(v1_6, 15, "CARPET"),
+	BLACK_CONCRETE(v1_12, 15, "CONCRETE", "BLACK_TERRACOTTA", "HARD_CLAY", "STAINED_CLAY", "WOOL"),
+	BLACK_CONCRETE_POWDER(v1_12, 15, "CONCRETE_POWDER", "SAND"),
+	BLACK_DYE(v1_14, "INK_SAC", "INK_SACK"),
+	BLACK_GLAZED_TERRACOTTA(v1_12, 15, "STAINED_CLAY", "HARD_CLAY", "BLACK_TERRACOTTA"),//TODO: implement cross-referencing (legacy name sharing)?
+	BLACK_SHULKER_BOX(v1_11, "CHEST"),
+	BLACK_STAINED_GLASS(v1_7, 15, "STAINED_GLASS", "GLASS"),
+	BLACK_STAINED_GLASS_PANE(v1_7, 15, "STAINED_GLASS_PANE", "THIN_GLASS"),
 
 	//-----
 
@@ -119,29 +129,59 @@ public enum XMaterial {
 	 */
 	@Deprecated
 	BANNER(v1_16),
-
 	CAVE_AIR(v1_13),
 	VOID_AIR(v1_13);
+	//</editor-fold>
 
 	public static final List<String> COLORABLE = Collections.unmodifiableList(Arrays.asList(
 			"BANNER", "BED", "CARPET", "CONCRETE", "GLAZED_TERRACOTTA", "SHULKER_BOX",
 			"STAINED_GLASS", "STAINED_GLASS_PANE", "TERRACOTTA", "WALL_BANNER", "WOOL"));
 
 	private final String[]         legacyNames;
-	//	private final MaterialType     attributes; TODO
 	private final byte             data;
 	private final MinecraftVersion added;
 
+	//<editor-fold desc="MaterialType Constructors (not implemented)">
+	/*XMaterial(@NonNull final MinecraftVersion added, @NonNull final MaterialType... attributes) {
+		this(added, "STONE", attributes);
+	}
 
+	XMaterial(@NonNull final MinecraftVersion added, @NonNull final String legacyName, @NonNull final MaterialType... attributes) {
+		this(added, 0, legacyName, attributes);
+	}
+
+	XMaterial(@NonNull final MinecraftVersion added, final int data, @NonNull final String legacyName, @NonNull final MaterialType... attributes) {
+		this(added, data, Common.asArray(legacyName), attributes);
+	}
+
+	XMaterial(@NonNull final MinecraftVersion added, @NonNull final String[] legacyNames, @NonNull final MaterialType... attributes) {
+		this(added, 0, legacyNames, attributes);
+	}
+
+	XMaterial(@NonNull final MinecraftVersion added, final int data, @NonNull final String[] legacyNames, @NonNull final MaterialType... attributes) {
+		//last legacy name is always STONE
+		this.added       = added;
+		this.data        = (byte) data;
+		this.legacyNames = legacyNames == null || legacyNames.length == 0 ? Common.asArray("STONE") : Common.append(legacyNames, "STONE");
+		this.attributes  = attributes;
+	}*/
+	//</editor-fold>
+
+	//	private final       MaterialType[]   attributes;
+
+	//<editor-fold desc="Constructors">
 	XMaterial(@NonNull final MinecraftVersion added, @NonNull final String... legacyNames) {
 		this(added, 0, legacyNames);
 	}
 
-	XMaterial(@NonNull final MinecraftVersion added, final int data, @NonNull final String... legacyNames) {//last legacy name is always STONE
+	XMaterial(@NonNull final MinecraftVersion added, final int data, @NonNull final String... legacyNames) {
 		this.added       = added;
 		this.data        = (byte) data;
 		this.legacyNames = legacyNames == null || legacyNames.length == 0 ? Common.asArray("STONE") : Common.append(legacyNames, "STONE");
 	}
+	//</editor-fold>
+
+	//<editor-fold desc="Static Methods">
 
 	/**
 	 * Returns {@code true} if the material is air, i.e. it does not have {@link org.bukkit.inventory.meta.ItemMeta}, or {@code false} if it isn't.
@@ -169,7 +209,9 @@ public enum XMaterial {
 		}
 		return false;
 	}
+	//</editor-fold>
 
+	//<editor-fold desc="Getters">
 	public String getFallback() {
 		return this.legacyNames[0];
 	}
@@ -177,7 +219,9 @@ public enum XMaterial {
 	public Material toMaterial() {
 		return getEnum(Material.class, this.name(), this.legacyNames);
 	}
+	//</editor-fold>
 
+	//<editor-fold desc="MaterialType">
 	public enum MaterialType {//TODO unsure whether to implement this or not...
 
 		/**
@@ -231,6 +275,12 @@ public enum XMaterial {
 		PLACEABLE,
 
 		/**
+		 * Items that are expendable, and when placed yield a different block or entity than the item used, such as
+		 * buckets, armor stands, spawn eggs, and end crystals.
+		 */
+		USABLE,
+
+		/**
 		 * Unobtainable in survival mode.
 		 */
 		SURVIVAL_UNOBTAINABLE,
@@ -242,18 +292,30 @@ public enum XMaterial {
 
 		/**
 		 * Unobtainable through vanilla gameplay, creative mode, or commands.
+		 *
+		 * @see MaterialType#ITEM_EXCLUSIVE
+		 * @see MaterialType#BLOCK_EXCLUSIVE
+		 * @see MaterialType#VANILLA_UNOBTAINABLE
+		 * @see MaterialType#CREATIVE_UNOBTAINABLE
+		 * @see MaterialType#SURVIVAL_UNOBTAINABLE
+		 * @see MaterialType#UNOBTAINABLE
 		 */
 		VANILLA_UNOBTAINABLE,//TODO: unsure if this should exist
 
 		/**
 		 * Unobtainable through vanilla gameplay, creative mode, commands, or plugins.
 		 *
+		 * @see MaterialType#ITEM_EXCLUSIVE
 		 * @see MaterialType#BLOCK_EXCLUSIVE
 		 * @see MaterialType#VANILLA_UNOBTAINABLE
+		 * @see MaterialType#CREATIVE_UNOBTAINABLE
+		 * @see MaterialType#SURVIVAL_UNOBTAINABLE
+		 * @see MaterialType#UNOBTAINABLE
 		 */
 		UNOBTAINABLE,//TODO: unsure if this should exist
 
 
 	}
+	//</editor-fold>
 
 }

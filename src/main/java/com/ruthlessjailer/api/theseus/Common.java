@@ -353,11 +353,30 @@ public final class Common {
 	 */
 	@SafeVarargs
 	public static <T> T[] append(@NonNull final T[] array, @NonNull final T... objects) {
-		final T[] copied = Arrays.copyOf(array, array.length + objects.length);
 
-		if (copied.length - array.length - 1 >= 0) {
-			System.arraycopy(objects, array.length - 1, copied, array.length - 1, copied.length - array.length - 1);
+		T[] copied = Arrays.copyOf(array, array.length);//clone
+
+		for (final T object : objects) {//fill
+			copied = append(copied, object);//add an element
 		}
+
+		return copied;
+	}
+
+	/**
+	 * Appends given object to given array.
+	 *
+	 * @param array  the array to append to
+	 * @param object the object to appended to the array
+	 *
+	 * @return the array with appended value
+	 */
+	public static <T> T[] append(@NonNull final T[] array, @NonNull final T object) {
+		final T[] copied = Arrays.copyOf(array, array.length + 1);
+
+		copied[array.length] = object;
+
+		System.arraycopy(array, 0, copied, 0, array.length);
 
 		return copied;
 	}
@@ -365,16 +384,38 @@ public final class Common {
 	/**
 	 * Prepends given objects to given array.
 	 *
-	 * @param array   the array to append to
+	 * @param array   the array to prepend to
 	 * @param objects the objects to prepended to the array
 	 *
 	 * @return the array with prepended values
 	 */
 	@SafeVarargs
 	public static <T> T[] prepend(@NonNull final T[] array, @NonNull final T... objects) {
-		final T[] copied = Arrays.copyOf(array, array.length + objects.length);
 
-		System.arraycopy(objects, 0, copied, 0, array.length);
+		T[] copied = Arrays.copyOf(array, array.length);//clone
+
+		for (int i = objects.length - 1; i >= 0; i--) {//reverse fill so it's in order
+			copied = prepend(copied, objects[i]);//add an element
+		}
+
+		return copied;
+	}
+
+	/**
+	 * Prepends given object to given array.
+	 *
+	 * @param array  the array to prepend to
+	 * @param object the object to prepended to the array
+	 *
+	 * @return the array with the prepended value
+	 */
+	public static <T> T[] prepend(@NonNull final T[] array, @NonNull final T object) {
+
+		final T[] copied = Arrays.copyOf(array, array.length + 1);
+
+		copied[0] = object;
+
+		System.arraycopy(array, 0, copied, 1, array.length);
 
 		return copied;
 	}
