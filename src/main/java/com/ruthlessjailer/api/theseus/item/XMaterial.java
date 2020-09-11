@@ -25,29 +25,28 @@ import static com.ruthlessjailer.api.theseus.ReflectUtil.getEnum;
 @Getter
 public enum XMaterial {
 
-	//acacia added in 1.7
-	ACACIA_BOAT(v1_9, "BOAT_ACACIA", "BOAT"),
+	ACACIA_BOAT(v1_9, "BOAT_ACACIA", "BOAT"),//acacia added in 1.7
 	ACACIA_BUTTON(v1_13, "WOOD_BUTTON"),
 	ACACIA_DOOR(v1_8, "ACACIA_DOOR", "ACACIA_DOOR_ITEM", "WOOD_DOOR", "WOODEN_DOOR"),
-	ACACIA_FENCE(v1_8, "FENCE"),
+	ACACIA_FENCE(v1_8, "FENCE"),//fence variants added in 1.8
 	ACACIA_FENCE_GATE(v1_8, "FENCE_GATE"),
 	ACACIA_LEAVES(v1_7, "LEAVES_2", "LEAVES"),
 	ACACIA_LOG(v1_7, "LOG_2", "LOG"),
 	ACACIA_PLANKS(v1_7, 4, "WOOD"),
-	ACACIA_PRESSURE_PLATE(v1_7, 4, "WOOD_PLATE"),
+	ACACIA_PRESSURE_PLATE(v1_13, "WOOD_PLATE"),
 	ACACIA_SAPLING(v1_7, 4, "SAPLING"),
 	ACACIA_SIGN(v1_14, "SIGN_POST", "SIGN", "STANDING_SIGN"),
 	ACACIA_SLAB(v1_7, 4, "WOOD_STEP", "WOODEN_SLAB", "WOOD_DOUBLE_STEP"),
 	ACACIA_STAIRS(v1_7, "WOOD_STAIRS"),
-	ACACIA_TRAPDOOR(v1_7, "TRAP_DOOR"),
+	ACACIA_TRAPDOOR(v1_13, "TRAP_DOOR"),//trapdoor types added in 1.13
 	ACACIA_WALL_SIGN(v1_7, 4, "WALL_SIGN"),
 	ACACIA_WOOD(v1_7, "LOG_2", "LOG"),
 	ACTIVATOR_RAIL(v1_5, "RAIL"),
 	/**
 	 * https://minecraft.gamepedia.com/Air
 	 *
-	 * @see #CAVE_AIR
-	 * @see #VOID_AIR
+	 * @see XMaterial#CAVE_AIR
+	 * @see XMaterial#VOID_AIR
 	 */
 	AIR(v1_3_OR_OLDER),
 	ALLIUM(v1_7, 2, "RED_ROSE"),
@@ -97,20 +96,43 @@ public enum XMaterial {
 	BIRCH_FENCE(v1_8, "FENCE"),
 	BIRCH_FENCE_GATE(v1_8, "FENCE_GATE"),
 	BIRCH_LEAVES(v1_3_OR_OLDER, 2, "LEAVES"),
+	BIRCH_LOG(v1_3_OR_OLDER, 2, "LOG"),//birch added very early
+	BIRCH_PLANKS(v1_3_OR_OLDER, 2, "WOOD"),
+	BIRCH_PRESSURE_PLATE(v1_13, "WOOD_PLATE"),//pressure plate types added in 1.13
+	BIRCH_SAPLING(v1_5, 2, "SAPLING"),
+	BIRCH_SIGN(v1_14, "SIGN_POST", "SIGN"),
+	BIRCH_SLAB(v1_3_OR_OLDER, 2, "WOOD_STEP", "WOODEN_SLAB", "WOOD_DOUBLE_STEP"),
+	BIRCH_STAIRS(v1_3_OR_OLDER, "BIRCH_WOOD_STAIRS"),
+	BIRCH_TRAPDOOR(v1_13, "TRAP_DOOR"),
+	BIRCH_WALL_SIGN(v1_13, "WALL_SIGN"),
+	BIRCH_WOOD(v1_3_OR_OLDER, 2, "LOG"),
+	BLACKSTONE(v1_16),
+	BLACKSTONE_SLAB(v1_16, "STEP", "DOUBLE_STEP", "COBBLESTONE_SLAB"),
+	BLACKSTONE_STAIRS(v1_16, "COBBLESTONE_STAIRS"),
+	BLACKSTONE_WALL(v1_16, "COBBLESTONE_WALL", "COBBLE_WALL"),
 
 
 	//-----
 
+	/**
+	 * @deprecated here solely for purpose of categorizing; has no functionality
+	 */
+	@Deprecated
+	BANNER(v1_16),
+
 	CAVE_AIR(v1_13),
 	VOID_AIR(v1_13);
 
-	public static final List<String>     COLORABLE = Collections.unmodifiableList(Arrays.asList(
+	public static final List<String> COLORABLE = Collections.unmodifiableList(Arrays.asList(
 			"BANNER", "BED", "CARPET", "CONCRETE", "GLAZED_TERRACOTTA", "SHULKER_BOX",
 			"STAINED_GLASS", "STAINED_GLASS_PANE", "TERRACOTTA", "WALL_BANNER", "WOOL"));
-	private final       String[]         legacyNames;
+
+	public static final List<XMaterial> COLORABLES = Collections.unmodifiableList(Arrays.asList(BANNER));
+
+	private final String[]         legacyNames;
 	//TODO: add all materials.............
-	private final       byte             data;
-	private final       MinecraftVersion added;
+	private final byte             data;
+	private final MinecraftVersion added;
 
 
 	XMaterial(@NonNull final MinecraftVersion added, @NonNull final String... legacyNames) {
@@ -156,6 +178,23 @@ public enum XMaterial {
 
 	public Material toMaterial() {
 		return getEnum(Material.class, this.name(), this.legacyNames);
+	}
+
+	public enum MaterialType {
+
+		EDIBLE,//can eat
+		DURABLE,//has durability
+		COLORABLE,//banners, concrete, terracotta, leather, etc
+		ENCHANTABLE,//inside enchantment table (shield, shears, and flint, don't count)
+		WEARABLE,//armor
+		DRINKABLE,//potionss
+		SPLASHABLE,//splash potions, lingering potions
+		ITEM_EXCLUSIVE,//no block form, eg water bucket
+		BLOCK_EXCLUSIVE,//no item form, eg water
+		PLACEABLE,//blocks
+		UNOBTAINABLE,//cannot have in inventory (water, lava, etc)
+		VANILLA_UNOBTAINABLE,//can't get in survival but exists
+
 	}
 
 }
