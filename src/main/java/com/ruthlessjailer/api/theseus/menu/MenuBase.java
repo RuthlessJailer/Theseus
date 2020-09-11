@@ -68,6 +68,7 @@ public abstract class MenuBase implements Listener {
 
 	public final void displayTo(@NonNull final Player player) {
 
+
 		if (this.view != null || this.holder != null) {
 
 		}

@@ -344,6 +344,43 @@ public final class Common {
 	}
 
 	/**
+	 * Appends given objects to given array.
+	 *
+	 * @param array   the array to append to
+	 * @param objects the objects to appended to the array
+	 *
+	 * @return the array with appended values
+	 */
+	@SafeVarargs
+	public static <T> T[] append(@NonNull final T[] array, @NonNull final T... objects) {
+		final T[] copied = Arrays.copyOf(array, array.length + objects.length);
+
+		if (copied.length - array.length - 1 >= 0) {
+			System.arraycopy(objects, array.length - 1, copied, array.length - 1, copied.length - array.length - 1);
+		}
+
+		return copied;
+	}
+
+	/**
+	 * Prepends given objects to given array.
+	 *
+	 * @param array   the array to append to
+	 * @param objects the objects to prepended to the array
+	 *
+	 * @return the array with prepended values
+	 */
+	@SafeVarargs
+	public static <T> T[] prepend(@NonNull final T[] array, @NonNull final T... objects) {
+		final T[] copied = Arrays.copyOf(array, array.length + objects.length);
+
+		System.arraycopy(objects, 0, copied, 0, array.length);
+
+		return copied;
+	}
+
+
+	/**
 	 * Throws an exception, regardless of its constructor visibility.
 	 *
 	 * @param exception the class to instantiate a new instance of and throw

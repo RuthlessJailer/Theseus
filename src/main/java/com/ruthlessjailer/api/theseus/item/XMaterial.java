@@ -44,6 +44,8 @@ public enum XMaterial {
 	ACACIA_WOOD(v1_7, "LOG_2", "LOG"),
 	ACTIVATOR_RAIL(v1_5, "RAIL"),
 	/**
+	 * https://minecraft.gamepedia.com/Air
+	 *
 	 * @see #CAVE_AIR
 	 * @see #VOID_AIR
 	 */
@@ -66,6 +68,35 @@ public enum XMaterial {
 	BAMBOO_SAPLING(v1_14, "SUGAR_CANE"),
 	BARREL(v1_14, "CHEST"),
 	BARRIER(v1_8, "GLASS"),
+	BASALT(v1_16, "COBBLESTONE"),
+	BAT_SPAWN_EGG(v1_4, 65, "MONSTER_EGG"),
+	BEACON(v1_4, "GLASS"),
+	BEDROCK(v1_3_OR_OLDER),
+	BEEF(v1_3_OR_OLDER, "RAW_BEEF"),
+	BEEHIVE(v1_15),
+	/**
+	 * The block variant.
+	 *
+	 * @see #BEETROOTS for item variant
+	 */
+	BEETROOT(v1_9, "BEETROOT_BLOCK"),//TODO: unsure
+	/**
+	 * The item variant.
+	 *
+	 * @see #BEETROOT for block variant
+	 */
+	BEETROOTS(v1_9, "BEETROOT"),//TODO: unsure
+	BEETROOT_SEEDS(v1_9, "SEEDS", "WHEAT_SEEDS"),
+	BEETROOT_SOUP(v1_9, "MUSHROOM_STEW"),
+	BEE_NEST(v1_15),
+	BEE_SPAWN_EGG(v1_15, "SPAWN_EGG"),
+	BELL(v1_14),
+	BIRCH_BOAT(v1_9, 2, "BOAT_BIRCH", "BOAT"),
+	BIRCH_BUTTON(v1_13, "WOOD_BUTTON"),
+	BIRCH_DOOR(v1_8, "BIRCH_DOOR", "BIRCH_DOOR_ITEM", "WOOD_DOOR", "WOODEN_DOOR"),
+	BIRCH_FENCE(v1_8, "FENCE"),
+	BIRCH_FENCE_GATE(v1_8, "FENCE_GATE"),
+	BIRCH_LEAVES(v1_3_OR_OLDER, 2, "LEAVES"),
 
 
 	//-----
@@ -73,25 +104,23 @@ public enum XMaterial {
 	CAVE_AIR(v1_13),
 	VOID_AIR(v1_13);
 
-
-	public static final List<String> COLORABLE = Collections.unmodifiableList(Arrays.asList(
+	public static final List<String>     COLORABLE = Collections.unmodifiableList(Arrays.asList(
 			"BANNER", "BED", "CARPET", "CONCRETE", "GLAZED_TERRACOTTA", "SHULKER_BOX",
 			"STAINED_GLASS", "STAINED_GLASS_PANE", "TERRACOTTA", "WALL_BANNER", "WOOL"));
-
-	private final String[]         legacyNames;
+	private final       String[]         legacyNames;
 	//TODO: add all materials.............
-	private final byte             data;
-	private final MinecraftVersion added;
+	private final       byte             data;
+	private final       MinecraftVersion added;
 
 
 	XMaterial(@NonNull final MinecraftVersion added, @NonNull final String... legacyNames) {
 		this(added, 0, legacyNames);
 	}
 
-	XMaterial(@NonNull final MinecraftVersion added, final int data, @NonNull final String... legacyNames) {
+	XMaterial(@NonNull final MinecraftVersion added, final int data, @NonNull final String... legacyNames) {//last legacy name is always STONE
 		this.added       = added;
 		this.data        = (byte) data;
-		this.legacyNames = legacyNames == null || legacyNames.length == 0 ? Common.asArray("STONE") : legacyNames;
+		this.legacyNames = legacyNames == null || legacyNames.length == 0 ? Common.asArray("STONE") : Common.append(legacyNames, "STONE");
 	}
 
 	/**

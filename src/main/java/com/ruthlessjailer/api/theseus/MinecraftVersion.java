@@ -113,11 +113,11 @@ public enum MinecraftVersion {
 
 	public boolean equals(final MinecraftVersion version)    { return this.id == version.id; }
 
-	public boolean isModern()                                { return this.type.equals(VersionType.MODERN); }
+	public boolean isModern()                                { return this.type == VersionType.MODERN; }
 
-	public boolean isLegacy()                                { return this.type.equals(VersionType.LEGACY) || this.isObsolete(); }
+	public boolean isLegacy()                                { return this.type == VersionType.LEGACY || this.isObsolete(); }
 
-	public boolean isObsolete()                              { return this.type.equals(VersionType.OBSOLETE); }
+	public boolean isObsolete()                              { return this.type == VersionType.OBSOLETE; }
 
 	public String getXname()                                 { return this.name + ".x"; }
 
