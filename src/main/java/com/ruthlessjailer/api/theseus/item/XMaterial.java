@@ -127,10 +127,8 @@ public enum XMaterial {
 			"BANNER", "BED", "CARPET", "CONCRETE", "GLAZED_TERRACOTTA", "SHULKER_BOX",
 			"STAINED_GLASS", "STAINED_GLASS_PANE", "TERRACOTTA", "WALL_BANNER", "WOOL"));
 
-	public static final List<XMaterial> COLORABLES = Collections.unmodifiableList(Arrays.asList(BANNER));
-
 	private final String[]         legacyNames;
-	//TODO: add all materials.............
+	//	private final MaterialType     attributes; TODO
 	private final byte             data;
 	private final MinecraftVersion added;
 
@@ -180,20 +178,81 @@ public enum XMaterial {
 		return getEnum(Material.class, this.name(), this.legacyNames);
 	}
 
-	public enum MaterialType {
+	public enum MaterialType {//TODO unsure whether to implement this or not...
 
-		EDIBLE,//can eat
-		DURABLE,//has durability
-		COLORABLE,//banners, concrete, terracotta, leather, etc
-		ENCHANTABLE,//inside enchantment table (shield, shears, and flint, don't count)
-		WEARABLE,//armor
-		DRINKABLE,//potionss
-		SPLASHABLE,//splash potions, lingering potions
-		ITEM_EXCLUSIVE,//no block form, eg water bucket
-		BLOCK_EXCLUSIVE,//no item form, eg water
-		PLACEABLE,//blocks
-		UNOBTAINABLE,//cannot have in inventory (water, lava, etc)
-		VANILLA_UNOBTAINABLE,//can't get in survival but exists
+		/**
+		 * Items that you can eat.
+		 */
+		EDIBLE,
+
+		/**
+		 * Items that have durability.
+		 */
+		DURABLE,
+
+		/**
+		 * Items that have colored variants such as banners, wool, terracotta, and leather.
+		 */
+		COLORABLE,
+
+		/**
+		 * Items that can be enchanted with an enchanting table.
+		 */
+		ENCHANTABLE,
+
+		/**
+		 * Items that can be worn on the player, such as armor, skulls, elytra, and sheared pumpkins.
+		 */
+		WEARABLE,
+
+		/**
+		 * Items that can be drunk, such as milk or potions.
+		 */
+		DRINKABLE,
+
+		/**
+		 * Items that can be thrown, such as splash potions and snowballs.
+		 */
+		THROWABLE,
+
+		/**
+		 * Items that have no block form, such as buckets.
+		 */
+		ITEM_EXCLUSIVE,
+
+		/**
+		 * Blocks that have no item form, such as water and lava.
+		 */
+		BLOCK_EXCLUSIVE,
+
+		/**
+		 * Blocks that can be placed, such as stone. Usable items such as lava buckets do not count.
+		 */
+		PLACEABLE,
+
+		/**
+		 * Unobtainable in survival mode.
+		 */
+		SURVIVAL_UNOBTAINABLE,
+
+		/**
+		 * Unobtainable in the creative inventory.
+		 */
+		CREATIVE_UNOBTAINABLE,
+
+		/**
+		 * Unobtainable through vanilla gameplay, creative mode, or commands.
+		 */
+		VANILLA_UNOBTAINABLE,//TODO: unsure if this should exist
+
+		/**
+		 * Unobtainable through vanilla gameplay, creative mode, commands, or plugins.
+		 *
+		 * @see MaterialType#BLOCK_EXCLUSIVE
+		 * @see MaterialType#VANILLA_UNOBTAINABLE
+		 */
+		UNOBTAINABLE,//TODO: unsure if this should exist
+
 
 	}
 
