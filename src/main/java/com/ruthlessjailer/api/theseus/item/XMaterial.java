@@ -25,7 +25,7 @@ import static com.ruthlessjailer.api.theseus.ReflectUtil.getEnum;
 @Getter
 public enum XMaterial {
 
-	//<editor-fold desc="Materials">
+	//<editor-fold desc="Materials" defaultstate="collapsed">
 	ACACIA_BOAT(v1_9, "BOAT_ACACIA", "BOAT"),//acacia added in 1.7
 	ACACIA_BUTTON(v1_13, "WOOD_BUTTON"),
 	ACACIA_DOOR(v1_8, "ACACIA_DOOR", "ACACIA_DOOR_ITEM", "WOOD_DOOR", "WOODEN_DOOR"),
@@ -111,18 +111,30 @@ public enum XMaterial {
 	BLACKSTONE_SLAB(v1_16, "STEP", "DOUBLE_STEP", "COBBLESTONE_SLAB"),
 	BLACKSTONE_STAIRS(v1_16, "COBBLESTONE_STAIRS"),
 	BLACKSTONE_WALL(v1_16, "COBBLESTONE_WALL", "COBBLE_WALL"),
-	BLACK_BANNER(v1_8, 0, "STANDING_BANNER", "BANNER"),//banners added in 1.8
+	BLACK_BANNER(v1_8, 0, "STANDING_BANNER", "BANNER"),//banners added in 1.8, 0 is black for banners
 	BLACK_BED(v1_12, 15, "BED_BLOCK", "BED"),//dyed beds added in 1.12, beds added very long ago
 	BLACK_CARPET(v1_6, 15, "CARPET"),
-	BLACK_CONCRETE(v1_12, 15, "CONCRETE", "BLACK_TERRACOTTA", "HARD_CLAY", "STAINED_CLAY", "WOOL"),
+	BLACK_CONCRETE(v1_12, 15, "CONCRETE"),
 	BLACK_CONCRETE_POWDER(v1_12, 15, "CONCRETE_POWDER", "SAND"),
 	BLACK_DYE(v1_14, "INK_SAC", "INK_SACK"),
 	BLACK_GLAZED_TERRACOTTA(v1_12, 15, "STAINED_CLAY", "HARD_CLAY", "BLACK_TERRACOTTA"),//TODO: implement cross-referencing (legacy name sharing)?
 	BLACK_SHULKER_BOX(v1_11, "CHEST"),
 	BLACK_STAINED_GLASS(v1_7, 15, "STAINED_GLASS", "GLASS"),
 	BLACK_STAINED_GLASS_PANE(v1_7, 15, "STAINED_GLASS_PANE", "THIN_GLASS"),
-
-	//-----
+	BLACK_TERRACOTTA(v1_12, 15, "HARD_CLAY", "STAINED_CLAY"),
+	BLACK_WALL_BANNER(v1_8, 0, "WALL_BANNER"),
+	BLACK_WOOL(v1_3_OR_OLDER, 15, "WOOL"),
+	BLAST_FURNACE(v1_14, "FURNACE"),
+	BLAZE_POWDER(v1_3_OR_OLDER),
+	BLAZE_ROD(v1_3_OR_OLDER, "STICK"),
+	BLAZE_SPAWN_EGG(v1_3_OR_OLDER, 61, "SPAWN_EGG", "MONSTER_EGG"),
+	BLUE_BANNER(v1_8, 4, "STANDING_BANNER", "BANNER"),
+	BLUE_BED(v1_12, 11, "BED_BLOCK", "BED"),
+	BLUE_CARPET(v1_6, 11, "CARPET"),
+	BLUE_CONCRETE(v1_12, 11, "CONCRETE"),
+	BLUE_CONCRETE_POWDER(v1_12, 11, "CONCRETE_POWDER", "SAND"),
+	BLUE_DYE(v1_13, 4, "INK_SACK", "INK_SAC"),
+	BLUE_GLAZED_TERRACOTTA(v1_12, 11, "HARD_CLAY", "STAINED_CLAY", "BLUE_TERRACOTTA"),
 
 	/**
 	 * @deprecated here solely for purpose of categorizing; has no functionality
@@ -131,14 +143,15 @@ public enum XMaterial {
 	BANNER(v1_16),
 	CAVE_AIR(v1_13),
 	VOID_AIR(v1_13);
-	//</editor-fold>
 
 	public static final List<String> COLORABLE = Collections.unmodifiableList(Arrays.asList(
 			"BANNER", "BED", "CARPET", "CONCRETE", "GLAZED_TERRACOTTA", "SHULKER_BOX",
 			"STAINED_GLASS", "STAINED_GLASS_PANE", "TERRACOTTA", "WALL_BANNER", "WOOL"));
 
+
 	private final String[]         legacyNames;
 	private final byte             data;
+	//</editor-fold>
 	private final MinecraftVersion added;
 
 	//<editor-fold desc="MaterialType Constructors (not implemented)">
@@ -169,7 +182,7 @@ public enum XMaterial {
 
 	//	private final       MaterialType[]   attributes;
 
-	//<editor-fold desc="Constructors">
+	//<editor-fold desc="Constructors" defaultstate="collapsed">
 	XMaterial(@NonNull final MinecraftVersion added, @NonNull final String... legacyNames) {
 		this(added, 0, legacyNames);
 	}
@@ -181,7 +194,7 @@ public enum XMaterial {
 	}
 	//</editor-fold>
 
-	//<editor-fold desc="Static Methods">
+	//<editor-fold desc="Static Methods" defaultstate="collapsed">
 
 	/**
 	 * Returns {@code true} if the material is air, i.e. it does not have {@link org.bukkit.inventory.meta.ItemMeta}, or {@code false} if it isn't.
@@ -211,7 +224,7 @@ public enum XMaterial {
 	}
 	//</editor-fold>
 
-	//<editor-fold desc="Getters">
+	//<editor-fold desc="Getters" defaultstate="collapsed">
 	public String getFallback() {
 		return this.legacyNames[0];
 	}
@@ -221,7 +234,7 @@ public enum XMaterial {
 	}
 	//</editor-fold>
 
-	//<editor-fold desc="MaterialType">
+	//<editor-fold desc="MaterialType" defaultstate="collapsed">
 	public enum MaterialType {//TODO unsure whether to implement this or not...
 
 		/**

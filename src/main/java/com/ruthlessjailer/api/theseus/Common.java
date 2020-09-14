@@ -468,18 +468,19 @@ public final class Common {
 	/**
 	 * Converts an array into a different type.
 	 *
-	 * @param array     the array to convert
-	 * @param result    an empty array of the desired type
-	 * @param converter the {@link TypeConverter} used to convert
+	 * @param array       the array to convert
+	 * @param destination the destination array; if it is of bigger size it will be used, otherwise a new array of the same class type will be returned
+	 * @param converter   the {@link TypeConverter} used to convert
 	 *
 	 * @return the converted array
 	 */
-	public static <O, N> N[] convert(@NonNull final O[] array,
-									 @NonNull final N[] result,
-									 @NonNull final TypeConverter<O, N> converter) {
+	public static <O, N> N[] convert(@NonNull final O[] array, @NonNull final N[] destination, @NonNull final TypeConverter<O, N> converter) {
 
-		Checks.verify(array.length == result.length,
-					  "Arrays are not the same length!");
+		N[] result = destination;
+
+		if (destination.length < array.length) {//create new array with needed size
+			result = Arrays.copyOf(destination, array.length);
+		}
 
 		int i = 0;
 		for (final O old : array) {
