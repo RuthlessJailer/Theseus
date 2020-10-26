@@ -1,3 +1,4 @@
+/*
 package com.ruthlessjailer.api.theseus.menu;
 
 import lombok.Builder;
@@ -5,9 +6,11 @@ import lombok.NonNull;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+*/
 /**
  * @author Vadim Hagedorn
- */
+ *//*
+
 @Builder(builderClassName = "ButtonBaseCreator")
 public final class ButtonBuilder {
 
@@ -34,3 +37,4 @@ public final class ButtonBuilder {
 	}
 
 }
+*/

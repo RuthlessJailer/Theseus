@@ -1,8 +1,8 @@
 package com.ruthlessjailer.api.theseus;
 
-import com.ruthlessjailer.api.theseus.example.TestCommand;
-import com.ruthlessjailer.api.theseus.example.TestListener;
-import com.ruthlessjailer.api.theseus.menu.MenuBase;
+import com.ruthlessjailer.api.theseus.item.XMaterial;
+import org.bukkit.Bukkit;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * For testing purposes only.<p>
@@ -18,10 +18,14 @@ public final class Theseus extends PluginBase {
 
 	@Override
 	protected void onStart() {
-		System.out.println("Starting.");
+		System.out.println("Starting on "+MinecraftVersion.SERVER_VERSION+".");
 
-		this.registerCommands(new TestCommand());
-		this.registerEvents(new TestListener());
-		new MenuBase() {};
+		final ItemStack concrete = XMaterial.BLACK_CONCRETE.toItemStack();
+		final ItemStack ice      = XMaterial.BLUE_ICE.toItemStack();
+
+		Common.runTimer(() -> {
+			Bukkit.getOnlinePlayers().forEach((p) -> p.getInventory().addItem(concrete, ice));
+		}, 20*5);
+
 	}
 }

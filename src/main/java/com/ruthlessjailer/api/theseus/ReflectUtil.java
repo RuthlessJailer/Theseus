@@ -153,7 +153,6 @@ public final class ReflectUtil {
 	 *
 	 * @return the found enum value or {@code null}
 	 *
-	 * @throws IllegalArgumentException if the value is not found
 	 */
 	@NonNull
 	public static <E extends Enum<E>> E getEnum(@NonNull final Class<E> enumType, @NonNull final String name,

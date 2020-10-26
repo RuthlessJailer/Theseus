@@ -1,3 +1,4 @@
+/*
 package com.ruthlessjailer.api.theseus.menu;
 
 import lombok.Builder;
@@ -8,9 +9,11 @@ import org.bukkit.event.inventory.InventoryType;
 import java.util.HashMap;
 import java.util.Map;
 
+*/
 /**
  * @author Vadim Hagedorn
- */
+ *//*
+
 @Builder(builderClassName = "MenuBaseCreator")
 public final class MenuBuilder {
 
@@ -78,3 +81,4 @@ public final class MenuBuilder {
 		}
 	}
 }
+*/

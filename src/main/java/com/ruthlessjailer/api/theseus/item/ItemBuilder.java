@@ -1,3 +1,4 @@
+/*
 package com.ruthlessjailer.api.theseus.item;
 
 import com.ruthlessjailer.api.theseus.Chat;
@@ -19,9 +20,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+*/
 /**
  * @author Vadim Hagedorn
- */
+ *//*
+
 @Builder(builderClassName = "ItemStackCreator", buildMethodName = "of")
 public class ItemBuilder {
 
@@ -132,3 +135,4 @@ public class ItemBuilder {
 	}
 
 }
+*/

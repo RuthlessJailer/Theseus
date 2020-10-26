@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 
@@ -70,9 +71,8 @@ public abstract class MenuBase implements Listener {
 
 
 		if (this.view != null || this.holder != null) {
-
+			copy().displayTo(player);//one instance per player
 		}
-
 
 		final Inventory inventory = Bukkit.createInventory(new MenuHolder(player.getUniqueId()), this.size);
 
@@ -87,9 +87,17 @@ public abstract class MenuBase implements Listener {
 		this.holder = new MenuHolder(player.getUniqueId());
 	}
 
-	@Override
-	public MenuBase clone() {
-		return MenuBuilder.of(this).build();
+	public MenuBase copy(){
+//		return MenuBuilder.of(this);
+		return this;//TODO
+	}
+
+	@EventHandler
+	public void onClose(final InventoryCloseEvent event){
+		if(event.getView().equals(this.getView())){//clear for
+			this.view = null;
+			this.holder = null;
+		}
 	}
 
 	@EventHandler

@@ -3,7 +3,6 @@ package com.ruthlessjailer.api.theseus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -94,8 +93,8 @@ public final class Chat {
 		return Common.getString(string).replaceAll("([&" + ChatColor.COLOR_CHAR + "])([0-9a-fk-or])", "");
 	}
 
-	public static String stripColors(final String... strings) {
-		return stripColors(StringUtils.join(strings, "\n"));
+	public static String[] stripColors(final String... strings) {
+		return Arrays.stream(strings).map(Chat::stripColors).collect(Collectors.toList()).toArray(new String[strings.length]);
 	}
 
 	/**
@@ -183,16 +182,16 @@ public final class Chat {
 		return ConsoleColor.translateAlternateColorCodes('&', string);
 	}
 
-	public static String consoleColorize(final String... strings) {
-		return consoleColorize(StringUtils.join(strings, "\n"));
+	public static String[] consoleColorize(final String... strings) {
+		return Arrays.stream(strings).map(Chat::consoleColorize).collect(Collectors.toList()).toArray(new String[strings.length]);
 	}
 
 	public static String bungeeColorize(final String string) {
 		return net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&', string);
 	}
 
-	public static String bungeeColorize(final String... string) {
-		return bungeeColorize(StringUtils.join(string, "\n"));
+	public static String[] bungeeColorize(final String... strings) {
+		return Arrays.stream(strings).map(Chat::bungeeColorize).collect(Collectors.toList()).toArray(new String[strings.length]);
 	}
 
 	@AllArgsConstructor

@@ -1,4 +1,3 @@
 name: Theseus
 version: ${project.version}
 main: com.ruthlessjailer.api.theseus.Theseus
-api-version: 1.13
