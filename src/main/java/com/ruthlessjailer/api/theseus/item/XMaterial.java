@@ -4,6 +4,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.MinecraftVersion;
+import com.ruthlessjailer.api.theseus.ReflectUtil;
 import lombok.Getter;
 import lombok.NonNull;
 import org.bukkit.Material;
@@ -75,7 +76,7 @@ public enum XMaterial {
 	BEACON(v1_4, "GLASS"),
 	BEDROCK(v1_3_OR_OLDER),
 	BEEF(v1_3_OR_OLDER, "RAW_BEEF"),
-	BEEHIVE(v1_15, 4, "YELLOW_TERRACOTTA", "STAINED_CLAY", "HARD_CLAY", "YELLOW_WOOL", "WOOL"),//yellow terracotta or wool
+	BEEHIVE(v1_15),
 	/**
 	 * The block variant.
 	 *
@@ -117,7 +118,7 @@ public enum XMaterial {
 	BLACK_BED(v1_12, 15, "BED_BLOCK", "BED"),//dyed beds added in 1.12, beds added very long ago
 	BLACK_CARPET(v1_6, 15, "CARPET"),
 	BLACK_CONCRETE(v1_12, 15, "CONCRETE"),
-	BLACK_CONCRETE_POWDER(v1_12, 15, "CONCRETE_POWDER", "SAND"),
+	BLACK_CONCRETE_POWDER(v1_12, 15, "CONCRETE_POWDER"),
 	BLACK_DYE(v1_14, "INK_SAC", "INK_SACK"),
 	BLACK_GLAZED_TERRACOTTA(v1_12, 15, "STAINED_CLAY", "HARD_CLAY", "BLACK_TERRACOTTA"),//TODO: implement cross-referencing (legacy name sharing)?
 	BLACK_SHULKER_BOX(v1_11, "CHEST"),
@@ -134,10 +135,10 @@ public enum XMaterial {
 	BLUE_BED(v1_12, 11, "BED_BLOCK", "BED"),
 	BLUE_CARPET(v1_6, 11, "CARPET"),
 	BLUE_CONCRETE(v1_12, 11, "CONCRETE"),
-	BLUE_CONCRETE_POWDER(v1_12, 11, "CONCRETE_POWDER", "SAND"),
+	BLUE_CONCRETE_POWDER(v1_12, 11, "CONCRETE_POWDER"),
 	BLUE_DYE(v1_13, 4, "INK_SACK", "INK_SAC"),
 	BLUE_GLAZED_TERRACOTTA(v1_12, 11, "HARD_CLAY", "STAINED_CLAY", "BLUE_TERRACOTTA"),
-	BLUE_ICE(v1_13, 0, "ICE"),
+	BLUE_ICE(v1_13, 0, "PACKED_ICE", "ICE"),
 
 	/**
 	 * @deprecated here solely for purpose of categorizing; has no functionality
@@ -150,6 +151,8 @@ public enum XMaterial {
 
 	private static final Cache<String, XMaterial> NAME_CACHE = CacheBuilder.newBuilder().build();
 	private static final Cache<XMaterial, Material> MATERIAL_CACHE = CacheBuilder.newBuilder().build();
+
+	private static final boolean ISFLAT = MinecraftVersion.atLeast(v1_13);
 
 	static {//populate name cache
 		for(final XMaterial xMaterial : values()){ NAME_CACHE.put(xMaterial.name(),xMaterial); }
@@ -215,14 +218,7 @@ public enum XMaterial {
 		Material cached = MATERIAL_CACHE.getIfPresent(this);
 
 		if(cached == null){//first call; populate
-			cached = Material.getMaterial(this.name());
-
-			if(cached == null){//old version; try legacy names
-				for(final String legacyName : legacyNames){
-					cached = Material.getMaterial(legacyName);
-					if(cached != null){ break; }
-				}
-			}
+			cached = ReflectUtil.getEnum(Material.class, this.name(), this.legacyNames);
 
 			MATERIAL_CACHE.put(this, cached);//save found material
 		}
@@ -232,7 +228,9 @@ public enum XMaterial {
 
 	public ItemStack toItemStack(){
 		final Material material = toMaterial();
-		return new ItemStack(material, 1, this.data > material.getMaxDurability() ? 0 : this.data);//todo fix getMaxDur not working
+		return ISFLAT
+			   ? new ItemStack(material)
+			   : new ItemStack(material, 1, this.data);
 	}
 
 	public static XMaterial getXMaterial(@NonNull final String name){

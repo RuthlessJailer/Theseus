@@ -79,19 +79,19 @@ public enum MinecraftVersion {
 	private final VersionType type;
 
 	public static boolean atLeast(final MinecraftVersion version) {
-		return MinecraftVersion.CURRENT_VERSION.isAtLeast(version);
+		return CURRENT_VERSION.isAtLeast(version);
 	}
 
 	public static boolean atMost(final MinecraftVersion version) {
-		return MinecraftVersion.CURRENT_VERSION.isAtMost(version);
+		return CURRENT_VERSION.isAtMost(version);
 	}
 
 	public static boolean greaterThan(final MinecraftVersion version) {
-		return MinecraftVersion.CURRENT_VERSION.isAfter(version);
+		return CURRENT_VERSION.isAfter(version);
 	}
 
 	public static boolean lessThan(final MinecraftVersion version) {
-		return MinecraftVersion.CURRENT_VERSION.isBefore(version);
+		return CURRENT_VERSION.isBefore(version);
 	}
 
 	public static MinecraftVersion fromId(final int id) {

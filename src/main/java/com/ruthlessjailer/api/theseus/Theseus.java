@@ -23,6 +23,9 @@ public final class Theseus extends PluginBase {
 		final ItemStack concrete = XMaterial.BLACK_CONCRETE.toItemStack();
 		final ItemStack ice      = XMaterial.BLUE_ICE.toItemStack();
 
+		System.out.println(concrete.getItemMeta().getDisplayName());
+		System.out.println(ice.getItemMeta().getDisplayName());
+
 		Common.runTimer(() -> {
 			Bukkit.getOnlinePlayers().forEach((p) -> p.getInventory().addItem(concrete, ice));
 		}, 20*5);
