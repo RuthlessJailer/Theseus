@@ -52,7 +52,7 @@ import java.lang.annotation.Target;
  * }
  * }</pre>
  *
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  * @see CommandBase
  * @see SuperiorCommand
  */

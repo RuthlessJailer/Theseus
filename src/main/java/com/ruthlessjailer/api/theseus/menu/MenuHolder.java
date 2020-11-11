@@ -8,7 +8,7 @@ import org.bukkit.inventory.InventoryHolder;
 import java.util.UUID;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 @AllArgsConstructor
 @Getter

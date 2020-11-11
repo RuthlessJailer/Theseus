@@ -19,9 +19,9 @@ import java.util.Map;
 
 /**
  * Only ONE player per instance.
- * If {@link MenuBase#displayTo(Player)} is called twice, an {@link UnsupportedOperationException} will be thrown.
+ * If {@link MenuBase#displayTo(Player)} is called twice, a new instance will be created and returned will be thrown.
  *
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 @Getter
 public abstract class MenuBase implements Listener {
@@ -67,11 +67,11 @@ public abstract class MenuBase implements Listener {
 	}
 
 
-	public final void displayTo(@NonNull final Player player) {
+	public final MenuBase displayTo(@NonNull final Player player) {
 
 
 		if (this.view != null || this.holder != null) {
-			copy().displayTo(player);//one instance per player
+			return copy().displayTo(player);//one instance per player
 		}
 
 		final Inventory inventory = Bukkit.createInventory(new MenuHolder(player.getUniqueId()), this.size);
@@ -85,17 +85,19 @@ public abstract class MenuBase implements Listener {
 
 		this.view   = new MenuView(inventory, player.getInventory(), this.title, player);
 		this.holder = new MenuHolder(player.getUniqueId());
+
+		return this;
 	}
 
-	public MenuBase copy(){
+	public MenuBase copy() {
 //		return MenuBuilder.of(this);
 		return this;//TODO
 	}
 
 	@EventHandler
-	public void onClose(final InventoryCloseEvent event){
-		if(event.getView().equals(this.getView())){//clear for
-			this.view = null;
+	public void onClose(final InventoryCloseEvent event) {
+		if (event.getView().equals(this.getView())) {//clear for
+			this.view   = null;
 			this.holder = null;
 		}
 	}

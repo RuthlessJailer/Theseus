@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  * @see ItemFlag
  */
 public enum XItemFlag {

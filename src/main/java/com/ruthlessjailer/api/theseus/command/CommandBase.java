@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public abstract class CommandBase extends Command {
 

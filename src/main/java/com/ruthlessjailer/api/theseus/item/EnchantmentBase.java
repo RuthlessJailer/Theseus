@@ -6,7 +6,7 @@ import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public abstract class EnchantmentBase extends Enchantment {
 	public EnchantmentBase(final NamespacedKey key) {

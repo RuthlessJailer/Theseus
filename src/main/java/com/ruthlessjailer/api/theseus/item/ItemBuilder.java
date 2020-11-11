@@ -22,7 +22,7 @@ import java.util.Map;
 
 */
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  *//*
 
 @Builder(builderClassName = "ItemStackCreator", buildMethodName = "of")

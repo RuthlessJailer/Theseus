@@ -5,7 +5,7 @@ import lombok.Getter;
 import net.md_5.bungee.api.chat.BaseComponent;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 @AllArgsConstructor
 @Getter

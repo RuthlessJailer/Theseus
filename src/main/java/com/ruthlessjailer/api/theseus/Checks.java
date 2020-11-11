@@ -3,7 +3,7 @@ package com.ruthlessjailer.api.theseus;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public final class Checks {
 

@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
 public final class TypeAdapterRegistry<I, O> {

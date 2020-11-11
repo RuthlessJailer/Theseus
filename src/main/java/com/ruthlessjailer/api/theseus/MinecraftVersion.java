@@ -5,7 +5,7 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 @AllArgsConstructor
 @Getter

@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 /**
  * Multi-version {@link DyeColor} and {@link ChatColor} link.
  *
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  * @see ChatColor
  * @see DyeColor
  */

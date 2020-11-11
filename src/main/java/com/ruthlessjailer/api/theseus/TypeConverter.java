@@ -3,7 +3,7 @@ package com.ruthlessjailer.api.theseus;
 /**
  * Interface for converting types.
  *
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  * @see Common#convert(Iterable, TypeConverter)
  * @see Common#convert(Object[], Object[], TypeConverter)
  */

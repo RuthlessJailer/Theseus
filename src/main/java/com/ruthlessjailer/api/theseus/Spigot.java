@@ -14,7 +14,7 @@ import java.util.Map;
 import static com.ruthlessjailer.api.theseus.ReflectUtil.*;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public final class Spigot {
 

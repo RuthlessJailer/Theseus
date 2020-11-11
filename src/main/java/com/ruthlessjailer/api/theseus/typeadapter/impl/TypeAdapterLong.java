@@ -5,7 +5,7 @@ import com.ruthlessjailer.api.theseus.typeadapter.TypeAdapterRegistry;
 import lombok.NonNull;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public class TypeAdapterLong<I> extends TypeAdapter<I, Long> {
 

@@ -6,7 +6,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public interface ButtonAction {
 

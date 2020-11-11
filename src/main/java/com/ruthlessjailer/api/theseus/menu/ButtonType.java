@@ -1,7 +1,7 @@
 package com.ruthlessjailer.api.theseus.menu;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public enum ButtonType {
 

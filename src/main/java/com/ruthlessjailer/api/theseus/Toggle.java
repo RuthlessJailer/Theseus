@@ -5,7 +5,7 @@ import lombok.NonNull;
 import java.util.*;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public final class Toggle<T> {
 

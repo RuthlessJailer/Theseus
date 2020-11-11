@@ -8,7 +8,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 @Getter
 @AllArgsConstructor

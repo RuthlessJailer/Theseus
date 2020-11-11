@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack;
  * For testing purposes only.<p>
  * Will be removed in releases.
  *
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public final class Theseus extends PluginBase {
 
@@ -18,7 +18,7 @@ public final class Theseus extends PluginBase {
 
 	@Override
 	protected void onStart() {
-		System.out.println("Starting on "+MinecraftVersion.SERVER_VERSION+".");
+		System.out.println("Starting on " + MinecraftVersion.SERVER_VERSION + ".");
 
 		final ItemStack concrete = XMaterial.BLACK_CONCRETE.toItemStack();
 		final ItemStack ice      = XMaterial.BLUE_ICE.toItemStack();
@@ -28,7 +28,7 @@ public final class Theseus extends PluginBase {
 
 		Common.runTimer(() -> {
 			Bukkit.getOnlinePlayers().forEach((p) -> p.getInventory().addItem(concrete, ice));
-		}, 20*5);
+		}, 20 * 5);
 
 	}
 }

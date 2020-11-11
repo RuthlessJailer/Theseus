@@ -11,7 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public final class ReflectUtil {
 
@@ -152,7 +152,6 @@ public final class ReflectUtil {
 	 * @param legacyNames the others names to try
 	 *
 	 * @return the found enum value or {@code null}
-	 *
 	 */
 	@NonNull
 	public static <E extends Enum<E>> E getEnum(@NonNull final Class<E> enumType, @NonNull final String name,

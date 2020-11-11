@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.lang.reflect.Method;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 @AllArgsConstructor
 @Getter

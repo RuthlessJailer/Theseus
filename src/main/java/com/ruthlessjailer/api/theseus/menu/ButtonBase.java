@@ -5,7 +5,7 @@ import lombok.Getter;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 @AllArgsConstructor
 @Getter

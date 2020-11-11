@@ -1,7 +1,7 @@
 package com.ruthlessjailer.api.theseus;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public final class PromptUtil {
 	//idk if this will ever be finished

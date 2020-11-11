@@ -4,7 +4,7 @@ import com.ruthlessjailer.api.theseus.typeadapter.TypeAdapter;
 import lombok.NonNull;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public final class TypeAdapterDouble<I> extends TypeAdapter<I, Double> {
 	public TypeAdapterDouble() {

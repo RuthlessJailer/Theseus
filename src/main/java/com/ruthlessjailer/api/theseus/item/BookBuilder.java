@@ -12,7 +12,7 @@ import org.bukkit.inventory.meta.BookMeta;
 import java.util.List;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 @Builder(builderClassName = "BookBuilderCreator")
 public final class BookBuilder {//TODO: use reflection to exclude version-dependent imports

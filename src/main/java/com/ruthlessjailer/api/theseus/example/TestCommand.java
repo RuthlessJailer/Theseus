@@ -10,7 +10,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public class TestCommand extends CommandBase implements SuperiorCommand {
 

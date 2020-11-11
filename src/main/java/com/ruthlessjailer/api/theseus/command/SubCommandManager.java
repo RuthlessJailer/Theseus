@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SubCommandManager {

@@ -23,7 +23,7 @@ import static com.ruthlessjailer.api.theseus.MinecraftVersion.*;
  * Minecraft Wiki was of significant help:
  * https://minecraft.gamepedia.com/
  *
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 @Getter
 public enum XMaterial {
@@ -149,19 +149,16 @@ public enum XMaterial {
 	VOID_AIR(v1_13);
 	//</editor-fold>
 
-	private static final Cache<String, XMaterial> NAME_CACHE = CacheBuilder.newBuilder().build();
+	public static final List<String> COLORABLE = Collections.unmodifiableList(Arrays.asList(//TODO lame fix pls
+																							"BANNER", "BED", "CARPET", "CONCRETE", "GLAZED_TERRACOTTA", "SHULKER_BOX",
+																							"STAINED_GLASS", "STAINED_GLASS_PANE", "TERRACOTTA", "WALL_BANNER", "WOOL"));
+	private static final Cache<String, XMaterial>   NAME_CACHE     = CacheBuilder.newBuilder().build();
 	private static final Cache<XMaterial, Material> MATERIAL_CACHE = CacheBuilder.newBuilder().build();
-
 	private static final boolean ISFLAT = MinecraftVersion.atLeast(v1_13);
 
 	static {//populate name cache
-		for(final XMaterial xMaterial : values()){ NAME_CACHE.put(xMaterial.name(),xMaterial); }
+		for (final XMaterial xMaterial : values()) { NAME_CACHE.put(xMaterial.name(), xMaterial); }
 	}
-
-	public static final List<String> COLORABLE = Collections.unmodifiableList(Arrays.asList(//TODO lame fix pls
-			"BANNER", "BED", "CARPET", "CONCRETE", "GLAZED_TERRACOTTA", "SHULKER_BOX",
-			"STAINED_GLASS", "STAINED_GLASS_PANE", "TERRACOTTA", "WALL_BANNER", "WOOL"));
-
 
 	private final String[]         legacyNames;
 	private final byte             data;
@@ -209,6 +206,10 @@ public enum XMaterial {
 	}
 	//</editor-fold>
 
+	public static XMaterial getXMaterial(@NonNull final String name) {
+		return NAME_CACHE.getIfPresent(name);
+	}
+
 	//<editor-fold desc="Getters" defaultstate="collapsed">
 	public String getFallback() {
 		return this.legacyNames[0];
@@ -217,7 +218,7 @@ public enum XMaterial {
 	public Material toMaterial() {
 		Material cached = MATERIAL_CACHE.getIfPresent(this);
 
-		if(cached == null){//first call; populate
+		if (cached == null) {//first call; populate
 			cached = ReflectUtil.getEnum(Material.class, this.name(), this.legacyNames);
 
 			MATERIAL_CACHE.put(this, cached);//save found material
@@ -226,15 +227,11 @@ public enum XMaterial {
 		return cached;
 	}
 
-	public ItemStack toItemStack(){
+	public ItemStack toItemStack() {
 		final Material material = toMaterial();
 		return ISFLAT
 			   ? new ItemStack(material)
 			   : new ItemStack(material, 1, this.data);
-	}
-
-	public static XMaterial getXMaterial(@NonNull final String name){
-		return NAME_CACHE.getIfPresent(name);
 	}
 	//</editor-fold>
 

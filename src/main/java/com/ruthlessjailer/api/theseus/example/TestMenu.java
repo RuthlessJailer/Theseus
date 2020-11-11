@@ -3,7 +3,7 @@ package com.ruthlessjailer.api.theseus.example;
 import com.ruthlessjailer.api.theseus.menu.MenuBase;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public final class TestMenu extends MenuBase {
 

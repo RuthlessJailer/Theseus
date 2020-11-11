@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack;
 
 */
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  *//*
 
 @Builder(builderClassName = "ButtonBaseCreator")

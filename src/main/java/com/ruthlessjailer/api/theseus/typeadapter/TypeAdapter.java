@@ -4,7 +4,7 @@ import lombok.NonNull;
 import org.apache.commons.lang.ClassUtils;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public abstract class TypeAdapter<I, O> {
 

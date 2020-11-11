@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public final class Chat {
 

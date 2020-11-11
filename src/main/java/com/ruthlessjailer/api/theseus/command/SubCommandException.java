@@ -1,7 +1,7 @@
 package com.ruthlessjailer.api.theseus.command;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public final class SubCommandException extends RuntimeException {
 

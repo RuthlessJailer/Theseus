@@ -6,7 +6,7 @@ import lombok.ToString;
 
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 @Getter
 @ToString

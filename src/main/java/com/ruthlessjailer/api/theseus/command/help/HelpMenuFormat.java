@@ -10,7 +10,7 @@ import lombok.Getter;
  * <p>
  * See {@link HelpMenuFormat#DEFAULT_FORMAT} for a shallow example of usage.
  *
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 @Getter
 @AllArgsConstructor

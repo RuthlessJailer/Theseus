@@ -11,7 +11,7 @@ import java.io.File;
 import java.util.logging.Logger;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public abstract class PluginBase extends JavaPlugin implements Listener {
 
@@ -76,8 +76,7 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	 * Shortcut for {@link Chat#debug(String, String...)}.
 	 */
 	protected static final void debug(
-			@NonNull
-			final String... messages) { Chat.debug("Plugin", messages); }
+			@NonNull final String... messages) { Chat.debug("Plugin", messages); }
 
 	@Override
 	public final void onLoad() {
@@ -163,33 +162,27 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	protected void onStop() {}
 
 	protected void registerEvents(
-			@NonNull
-			final Listener... listeners) {
+			@NonNull final Listener... listeners) {
 		for (
-				@NonNull
-				final Listener listener : listeners) {
+				@NonNull final Listener listener : listeners) {
 			this.getServer().getPluginManager().registerEvents(listener, this);
 			debug("Registered listener " + ReflectUtil.getPath(listener.getClass()) + ".");
 		}
 	}
 
 	protected void registerCommands(
-			@NonNull
-			final Command... commands) {
+			@NonNull final Command... commands) {
 		for (
-				@NonNull
-				final Command command : commands) {
+				@NonNull final Command command : commands) {
 			Spigot.registerCommand(command);
 			debug("Registered command " + ReflectUtil.getPath(command.getClass()) + ".");
 		}
 	}
 
 	protected void registerCommands(
-			@NonNull
-			final CommandBase... commands) {
+			@NonNull final CommandBase... commands) {
 		for (
-				@NonNull
-				final CommandBase command : commands) {
+				@NonNull final CommandBase command : commands) {
 			command.register();
 			debug("Registered command " + ReflectUtil.getPath(command.getClass()) + ".");
 		}

@@ -5,7 +5,7 @@ import lombok.NonNull;
 import java.io.File;
 
 /**
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  */
 public final class FileUtil {
 
