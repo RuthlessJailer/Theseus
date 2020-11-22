@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
  *
  * @author RuthlessJailer
  */
+
 public final class Theseus extends PluginBase {
 
 	static {

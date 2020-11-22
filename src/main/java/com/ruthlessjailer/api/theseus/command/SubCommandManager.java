@@ -15,7 +15,6 @@ import lombok.NonNull;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.hover.content.Text;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -271,9 +270,9 @@ public final class SubCommandManager {
 
 					new ComponentBuilder(Chat.colorize(fullCommand.toString()))
 							.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-												  new Text(new ComponentBuilder(Chat.colorize(format.getSuggest().replace(
+												  new ComponentBuilder(Chat.colorize(format.getSuggest().replace(
 														  HelpMenuFormat.Placeholder.COMMAND,
-														  fullCommand.toString()))).create())))
+														  fullCommand.toString()))).create()))
 							.event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
 												  Chat.stripColors(fullCommand.toString())))
 							.create());
@@ -284,7 +283,7 @@ public final class SubCommandManager {
 
 				//header stuff start
 
-				final ComponentBuilder headerBuilder    = new ComponentBuilder();//header builder
+				final ComponentBuilder headerBuilder    = new ComponentBuilder("");//header builder
 				final StringBuilder    rawHeaderBuilder = new StringBuilder();
 
 				final String header   = format.getHeader();//header
