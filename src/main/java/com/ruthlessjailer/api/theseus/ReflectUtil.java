@@ -228,7 +228,7 @@ public final class ReflectUtil {
 	 * @throws ReflectionException if the field is not found or cannot be modified
 	 */
 	public static <T> void setField(@NonNull final String pkg, @NonNull final String name, final Object instance,
-									@NonNull final T value) {
+									final T value) {
 		setField(getField(pkg, name), instance, value);
 	}
 
@@ -243,7 +243,7 @@ public final class ReflectUtil {
 	 * @throws ReflectionException if the field is not found or cannot be modified
 	 */
 	public static <T> void setField(@NonNull final Class<?> clazz, @NonNull final String name, final Object instance,
-									@NonNull final T value) {
+									final T value) {
 		setField(getField(clazz, name), instance, value);
 	}
 
@@ -256,13 +256,13 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if the field cannot be modified
 	 */
-	public static <T> void setField(@NonNull final Field field, final Object instance, @NonNull final T value) {
+	public static <T> void setField(@NonNull final Field field, final Object instance, final T value) {
 		try {
 			field.setAccessible(true);
 			field.set(instance, value);
 		} catch (final IllegalAccessException e) {
 			throw new ReflectionException(String.format("Error setting field %s in class %s.", field.getName(),
-														getPath(instance.getClass())), e);
+														getPath(field.getDeclaringClass())), e);
 		}
 	}
 
@@ -311,7 +311,7 @@ public final class ReflectUtil {
 			return (T) field.get(instance);
 		} catch (final IllegalAccessException | ClassCastException e) {
 			throw new ReflectionException(String.format("Error getting field %s in class %s.", field.getName(),
-														getPath(instance.getClass())), e);
+														getPath(field.getDeclaringClass())), e);
 		}
 	}
 
@@ -453,7 +453,7 @@ public final class ReflectUtil {
 			return (T) method.invoke(instance, parameters);
 		} catch (final IllegalAccessException | InvocationTargetException | ClassCastException e) {
 			throw new ReflectionException(String.format("Error invoking method %s in class %s.", method.getName(),
-														getPath(instance.getClass())), e);
+														getPath(method.getDeclaringClass())), e);
 		}
 	}
 

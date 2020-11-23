@@ -24,6 +24,8 @@ public final class TypeAdapterRegistry<I, O> {
 		new TypeAdapterLong<>();
 		new TypeAdapterFloat<>();
 		new TypeAdapterDouble<>();
+		new TypeAdapterBoolean<>();
+		new TypeAdapterString<>();
 	}
 
 	private final Map<Class<O>, TypeAdapter<I, O>> adapters = new HashMap<>();

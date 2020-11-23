@@ -63,14 +63,14 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	 *
 	 * @return the {@link File} representing the JAR file of the plugin
 	 */
-	public static final File getJar() { return getInstance().getFile(); }
+	public static final File getJar() { return Checks.instanceCheck().getFile(); }
 
 	/**
 	 * Shortcut for {@link JavaPlugin#getDataFolder()} ()}.
 	 *
 	 * @return the {@link File} representing the plugin folder
 	 */
-	public static final File getFolder() { return getInstance().getDataFolder(); }
+	public static final File getFolder() { return Checks.instanceCheck().getDataFolder(); }
 
 	/**
 	 * Shortcut for {@link Chat#debug(String, String...)}.

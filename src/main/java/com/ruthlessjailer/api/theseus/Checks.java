@@ -32,10 +32,7 @@ public final class Checks {
 	 * @throws IllegalStateException if the instance is null
 	 */
 	public static PluginBase instanceCheck() {
-		if (PluginBase.getInstance() == null) {
-			throw new IllegalStateException("Plugin instance is null!");
-		}
-		return PluginBase.getInstance();
+		return instanceCheck("Plugin instance is null!");
 	}
 
 	/**
