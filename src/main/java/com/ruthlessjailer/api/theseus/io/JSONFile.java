@@ -1,18 +1,14 @@
 package com.ruthlessjailer.api.theseus.io;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.ruthlessjailer.api.theseus.Chat;
+import com.google.gson.*;
 import com.ruthlessjailer.api.theseus.PluginBase;
-import com.ruthlessjailer.api.theseus.ReflectUtil;
-import com.ruthlessjailer.api.theseus.typeadapter.TypeAdapterRegistry;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import org.apache.commons.io.IOUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -22,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,55 +49,80 @@ public abstract class JSONFile implements IFile {
 				this.file.mkdirs();
 			}
 
+//			try {
 			this.file.createNewFile();
+//			} catch (final IOException e) {
+//				e.printStackTrace();
+//			}
 
-			final URL resource = getClass().getClassLoader().getResource(this.path.substring(1));
+			final URL resource = getClass().getClassLoader().getResource(getResourcePath());
 
 			if (resource != null) {//copy over default file from src/main/resources
-				Files.copy(resource.openStream(), this.file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+//				try {
+//					final InputStream in = resource.openStream();
+				Files.copy(resource.openStream(), this.file.toPath(), StandardCopyOption.REPLACE_EXISTING);//why this doesn't work is beyond me
+//					final FileOutputStream out = new FileOutputStream(this.file);
+//					final byte[]           buf = new byte[8192];
+//					int                    n;
+//					while ((n = in.read(buf)) > 0) {
+//						out.write(buf, 0, n);
+//					}
+//					out.close();
+//					in.close();
+//				} catch (final IOException e) {
+//					e.printStackTrace();
+//				}
 			}
 		}
 	}
 
 	/**
-	 * Sets all constants to what is currently stored at their lowercase value in the file. Constants should be in UPPER_SNAKE_CASE, and file value names must
-	 * correspond to their constant fields' names except in lower_snake_case. The reason for this is because when fetching the values field names will be
-	 * lowercased.</p>
-	 * Remember constant expressions:
-	 * <pre>
-	 *     {@code
-	 *     public static final Integer SOME_INT = null;//IMPOSSIBLE to set
-	 *
-	 *     ...
-	 *
-	 *     public static final Integer SOME_INT;//CAN be set later so no JSON parsing is needed
-	 *
-	 *     static{
-	 * 			SOME_INT = null;//to get rid of errors
-	 *     }
-	 *
-	 *     }
-	 * </pre>
-	 * Call this method from your constructor to auto-fill all these constant values.
+	 * Checks the config file to make sure that it has all the values that the class contains. Only {@code public static final} fields will be checked.
+	 * Case will be ignored.<p>
+	 * If a value is missing, the default value will be written to the file.
 	 *
 	 * @param file the {@link JSONFile} config instance to modify.
 	 */
-	@SuppressWarnings("unchecked")
-	public static <E extends Enum<E>> void setConstants(@NonNull final JSONFile file) {
+	@SneakyThrows
+	public static void checkConfig(@NonNull final JSONFile file) {
 		final List<Field> fields = Arrays.stream(file.getClass().getFields()).filter(field ->
 																							 Modifier.isPublic(field.getModifiers()) &&
 																							 Modifier.isStatic(field.getModifiers()) &&
 																							 Modifier.isFinal(field.getModifiers()))
 										 .collect(Collectors.toList());
 
-		final Map<String, String> map     = new HashMap<>();
-		final JsonElement         element = new JsonParser().parse(file.read());
+		final JsonElement element = new JsonParser().parse(file.read());
 
 		for (final Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
-			map.put(entry.getKey(), entry.getValue().getAsString());
+			Field match = null;
+			for (final Field field : fields) {
+				if (field.getName().equalsIgnoreCase(entry.getKey())) {//it's a match
+					match = field;
+					break;
+				}
+			}
+			fields.remove(match);
 		}
 
-		for (final Field field : fields) {
+		if (fields.isEmpty()) {//all values were present
+			return;
+		}
+
+		//some values are missing
+		final URL resource = file.getClass().getClassLoader().getResource(file.getResourcePath());
+
+		if (resource == null) {//it's not a resource; we can't do anything
+			return;
+		}
+
+		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+		IOUtils.copy(resource.openStream(), out);
+
+		final JsonObject object = new JsonParser().parse(new String(out.toByteArray())).getAsJsonObject();
+
+
+		/*for (final Field field : fields) {
+			System.out.println("FIELD VALUE: " + ReflectUtil.getFieldValue(field, null));
 			final Object converted;
 			if (field.getType().isEnum()) {
 				converted = ReflectUtil.getEnum((Class<E>) field.getType(), map.get(field.getName().toLowerCase()));
@@ -112,10 +132,24 @@ public abstract class JSONFile implements IFile {
 			Chat.debug("JSON Config", "Setting field " + field.getName() + " to " + converted + " which is type " + converted.getClass());
 
 			ReflectUtil.setField(Field.class, "modifiers", field, field.getModifiers() & ~Modifier.FINAL);//make it non-final
-			ReflectUtil.setField(field, null, converted);//set it
-			ReflectUtil.setField(Field.class, "modifiers", field, field.getModifiers() | Modifier.FINAL);//make it final again
-		}
+			System.out.println("IS FIELD FINAL? " + Modifier.isFinal(field.getModifiers()));
 
+			ReflectUtil.setField(field, null, converted);//set it
+			System.out.println("FIELD VALUE: " + ReflectUtil.getFieldValue(field, null));
+
+			ReflectUtil.setField(Field.class, "modifiers", field, field.getModifiers() | Modifier.FINAL);//make it final again
+			System.out.println("IS FIELD FINAL? " + Modifier.isFinal(field.getModifiers()));
+		}*///removed due to lack of implementation possibilities
+
+	}
+
+	/**
+	 * Returns the path without a directory separator at the beginning. Useful if getting as a resource.
+	 *
+	 * @return the path substringed 1
+	 */
+	public String getResourcePath() {
+		return this.path.substring(1);
 	}
 
 	@Override

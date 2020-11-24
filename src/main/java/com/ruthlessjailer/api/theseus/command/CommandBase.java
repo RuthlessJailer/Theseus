@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.*;
+import org.bukkit.permissions.Permissible;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,39 +19,32 @@ import java.util.List;
  */
 public abstract class CommandBase extends Command {
 
-	protected static final String DEFAULT_PERMISSION_MESSAGE =
+	protected static final String         DEFAULT_PERMISSION_MESSAGE =
 			"&cYou do not the permission &3${permission}&c needed to run this command!";
-	protected static final String DEFAULT_PERMISSION_SYNTAX  = "${plugin.name}.command.${command.label}";
-
-	private final boolean isSuperior = this instanceof SuperiorCommand;
-
-	protected String        label;
-	protected String[]      args;
-	protected CommandSender sender;
-
-	protected boolean registered = false;
-
+	protected static final String         DEFAULT_PERMISSION_SYNTAX  = "${plugin.name}.command.${command.label}";
 	@Getter
-	private String customPermissionSyntax = this.getDefaultPermissionSyntax();
-
+	private static         String         starPermissionSyntax       = getDefaultStarPermissionSyntax();
+	private final          boolean        isSuperior                 = this instanceof SuperiorCommand;
+	protected              String         label;
+	protected              String[]       args;
+	protected              CommandSender  sender;
+	protected              boolean        registered                 = false;
 	@Getter
-	private String customPermissionMessage = this.getDefaultPermissionMessage();
-
+	private                String         customPermissionSyntax     = getDefaultPermissionSyntax();
+	@Getter
+	private                String         customPermissionMessage    = getDefaultPermissionMessage();//bukkit's name is same that's why custom
 	@Setter
 	@Getter
-	private int minArgs = 0;
-
+	private                int            minArgs                    = 0;
 	@Setter
 	@Getter
-	private boolean tabCompleteSubCommands = true;
-
+	private                boolean        tabCompleteSubCommands     = true;
 	@Getter
 	@Setter
-	private boolean autoGenerateHelpMenu = true;
-
+	private                boolean        autoGenerateHelpMenu       = true;
 	@Getter
 	@Setter
-	private HelpMenuFormat helpMenuFormatOverride = HelpMenuFormat.DEFAULT_FORMAT;
+	private                HelpMenuFormat helpMenuFormatOverride     = HelpMenuFormat.DEFAULT_FORMAT;
 
 	public CommandBase(@NonNull final String label) {
 		this(CommandBase.parseLabel(label), CommandBase.parseAliases(label));
@@ -66,6 +60,18 @@ public abstract class CommandBase extends Command {
 
 		this.label = label;
 		this.setCustomPermissionMessage(this.getCustomPermissionMessage());
+	}
+
+	protected static String getDefaultStarPermissionSyntax() {
+		return CommandBase.DEFAULT_PERMISSION_SYNTAX
+				.replace("${plugin.name}",
+						 PluginBase.getCurrentName())
+				.replace("${command.label}",
+						 "*");
+	}
+
+	protected static void setCustomStarPermissionSyntax(@NonNull final String customStarPermissionSyntax) {
+		starPermissionSyntax = customStarPermissionSyntax;
 	}
 
 	private static String parseLabel(final String label) {
@@ -144,7 +150,7 @@ public abstract class CommandBase extends Command {
 			Chat.warning("Async call to command /" + label + " (" + ReflectUtil.getPath(this.getClass()) + ").");
 		}
 
-		if (!sender.hasPermission(this.getCustomPermissionSyntax())) {
+		if (!sender.hasPermission(getStarPermissionSyntax()) || !sender.hasPermission(this.getCustomPermissionSyntax())) {
 			sender.sendMessage(this.getCustomPermissionMessage());
 			return false;
 		}
@@ -174,6 +180,27 @@ public abstract class CommandBase extends Command {
 		return this.tabCompleteSubCommands && this.isSuperior
 			   ? SubCommandManager.tabCompleteFor(this, sender, args)
 			   : this.onTabComplete(sender, alias, args, location);
+	}
+
+	/**
+	 * Checks if given {@link Permissible} {@link Permissible#isOp() is op}, has the {@link CommandBase#getStarPermissionSyntax() star permission}, or has the given
+	 * permission.
+	 *
+	 * @param permissible the {@link Permissible} to check
+	 * @param permission  the permission to check (last resort)
+	 *
+	 * @return true if the {@link Permissible} {@link Permissible#isOp() is op}, has the {@link CommandBase#getStarPermissionSyntax() star permission}, or has the
+	 * 		given permission; false if either argument is null or the given requirements are not met
+	 */
+	public boolean hasPermission(final Permissible permissible, final String permission) {
+		if (permissible == null || permission == null) {
+			return false;
+		}
+
+		return permissible.isOp() ||
+			   permissible.hasPermission(getStarPermissionSyntax()) ||
+			   permissible.hasPermission(getCustomPermissionSyntax()) ||
+			   permissible.hasPermission(permission);
 	}
 
 	protected abstract void runCommand(@NonNull final CommandSender sender, final String[] args, @NonNull final String label);

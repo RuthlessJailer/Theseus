@@ -17,8 +17,8 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -85,7 +85,7 @@ public final class SubCommandManager {
 					final String   arg      = args[i];
 					final Argument argument = wrapper.getArguments()[i];
 
-					if (argument.getType().equals(Player.class)) {
+					if (argument.getType().equals(OfflinePlayer.class)) {
 						argument.updatePossibilities(Common.getPlayerNames().toArray(new String[0]));
 					}
 
@@ -153,7 +153,7 @@ public final class SubCommandManager {
 			}
 
 			for (final Argument argument : wrapper.getArguments()) {//check constant arguments & parse variable placeholders
-				if (argument.getType().equals(Player.class)) {
+				if (argument.getType().equals(OfflinePlayer.class)) {
 					argument.updatePossibilities(Common.getPlayerNames().toArray(new String[0]));
 				}
 
@@ -175,7 +175,7 @@ public final class SubCommandManager {
 
 					if (declaredType.isEnum()) {//get enum value
 						parameters[p] = ReflectUtil.getEnum((Class<E>) declaredType, args[i]);
-					} else {//Integer, Double, Boolean
+					} else {//Integer, Double, Boolean, String, OfflinePlayer
 						if (declaredType.equals(Integer.class) || declaredType.equals(Double.class) || declaredType.equals(Boolean.class)) {
 							try {
 								parameters[p] = ReflectUtil.invokeMethod(declaredType, "valueOf", null, args[i]);
@@ -186,11 +186,11 @@ public final class SubCommandManager {
 							}
 						} else if (declaredType.equals(String.class)) {
 							parameters[p] = args[i];
-						} else if (declaredType.equals(Player.class)) {
+						} else if (declaredType.equals(OfflinePlayer.class)) {
 							//final int finalP = p;
 							parameters[p] = Bukkit.getPlayer(args[i]);
 							if (parameters[p] == null) {
-								parameters[p] = Bukkit.getOfflinePlayer(args[i]).getPlayer();//this method is run async anyway
+								parameters[p] = Bukkit.getOfflinePlayer(args[i]);//this method is run async anyway
 							}
 						}
 						p++;
@@ -198,7 +198,6 @@ public final class SubCommandManager {
 				}
 				i++;
 			}
-
 
 			Chat.debug("SubCommands", String.format("Invoking method %s in class %s for args '%s'.",
 													wrapper.getMethod().getName(), command.getClass(), StringUtils.join(args, " ")));
@@ -275,7 +274,8 @@ public final class SubCommandManager {
 														  fullCommand.toString()))).create()))
 							.event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
 												  Chat.stripColors(fullCommand.toString())))
-							.create());
+							.create(),
+					command.getCustomPermissionSyntax());
 
 			if (l % format.getPageSize() == 0 || wrappers.isEmpty()) {//new page
 
@@ -322,7 +322,8 @@ public final class SubCommandManager {
 				lines[0] = new HelpLine(//header with buttons
 										Chat.stripColors(rawHeaderBuilder.toString()),
 										Chat.colorize(rawHeaderBuilder.toString()),
-										headerBuilder.create());
+										headerBuilder.create(),
+										"");
 
 				//header stuff end
 
@@ -337,7 +338,8 @@ public final class SubCommandManager {
 				lines[format.getPageSize() + 1] = new HelpLine(//footer
 															   Chat.stripColors(footer.toString()),
 															   Chat.colorize(footer.toString()),
-															   new ComponentBuilder(Chat.colorize(footer.toString())).create());
+															   new ComponentBuilder(Chat.colorize(footer.toString())).create(),
+															   "");
 
 				//footer stuff end
 
@@ -372,7 +374,12 @@ public final class SubCommandManager {
 
 		for (final HelpLine line : menu.getPages()[page].getLines()) {
 			if (line != null) {//line can be null if there aren't enough elements to populate the page
-				Common.runTask(() -> sender.spigot().sendMessage(line.getFormatted()));
+				if (sender.isOp() ||
+					sender.hasPermission(CommandBase.getStarPermissionSyntax()) ||
+					sender.hasPermission(line.getPermission())) {//if they don't have the permission don't send them the command\
+
+					Common.runTask(() -> sender.spigot().sendMessage(line.getFormatted()));
+				}
 			}
 		}
 
@@ -560,9 +567,9 @@ public final class SubCommandManager {
 
 					case "%p"://player
 
-						types[i] = Player.class;
-						declaredTypes[t] = Player.class;
-						arguments[i] = new Argument(Common.getPlayerNames().toArray(new String[0]), Player.class, true, description);
+						types[i] = OfflinePlayer.class;
+						declaredTypes[t] = OfflinePlayer.class;
+						arguments[i] = new Argument(Common.getPlayerNames().toArray(new String[0]), OfflinePlayer.class, true, description);
 
 						break;
 					default://none; it's a choice argument
