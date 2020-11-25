@@ -1,6 +1,7 @@
 package com.ruthlessjailer.api.theseus.io;
 
 import com.google.gson.*;
+import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.PluginBase;
 import lombok.Getter;
 import lombok.NonNull;
@@ -10,14 +11,15 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -49,18 +51,12 @@ public abstract class JSONFile implements IFile {
 				this.file.mkdirs();
 			}
 
-//			try {
 			this.file.createNewFile();
-//			} catch (final IOException e) {
-//				e.printStackTrace();
-//			}
 
-			final URL resource = getClass().getClassLoader().getResource(getResourcePath());
+			final InputStream in = PluginBase.getPluginResource(getResourcePath());
 
-			if (resource != null) {//copy over default file from src/main/resources
-//				try {
-//					final InputStream in = resource.openStream();
-				Files.copy(resource.openStream(), this.file.toPath(), StandardCopyOption.REPLACE_EXISTING);//why this doesn't work is beyond me
+			if (in != null) {//copy over default file from src/main/resources
+				Files.copy(in, this.file.toPath(), StandardCopyOption.REPLACE_EXISTING);
 //					final FileOutputStream out = new FileOutputStream(this.file);
 //					final byte[]           buf = new byte[8192];
 //					int                    n;
@@ -69,9 +65,6 @@ public abstract class JSONFile implements IFile {
 //					}
 //					out.close();
 //					in.close();
-//				} catch (final IOException e) {
-//					e.printStackTrace();
-//				}
 			}
 		}
 	}
@@ -79,24 +72,33 @@ public abstract class JSONFile implements IFile {
 	/**
 	 * Checks the config file to make sure that it has all the values that the class contains. Only {@code public static final} fields will be checked.
 	 * Case will be ignored.<p>
-	 * If a value is missing, the default value will be written to the file.
+	 * If a value is missing or null the default value will be written to the file.<p>
+	 * Call this method before reading the file.
 	 *
 	 * @param file the {@link JSONFile} config instance to modify.
 	 */
 	@SneakyThrows
-	public static void checkConfig(@NonNull final JSONFile file) {
+	public static void fixConfig(@NonNull final JSONFile file) {
+		final String contents = Common.getString(file.read());
+
 		final List<Field> fields = Arrays.stream(file.getClass().getFields()).filter(field ->
 																							 Modifier.isPublic(field.getModifiers()) &&
 																							 Modifier.isStatic(field.getModifiers()) &&
 																							 Modifier.isFinal(field.getModifiers()))
 										 .collect(Collectors.toList());
 
-		final JsonElement element = new JsonParser().parse(file.read());
+		final JsonElement element = new JsonParser().parse(contents);
+
+		final Map<String, JsonElement> content = new HashMap<>();
 
 		for (final Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
+			content.put(entry.getKey(), entry.getValue());//fill the content map
+			if (entry.getValue().isJsonNull()) {//it's null; this one needs to be fixed
+				continue;
+			}
 			Field match = null;
 			for (final Field field : fields) {
-				if (field.getName().equalsIgnoreCase(entry.getKey())) {//it's a match
+				if (field.getName().equalsIgnoreCase(entry.getKey())) {//this one's fine
 					match = field;
 					break;
 				}
@@ -108,18 +110,33 @@ public abstract class JSONFile implements IFile {
 			return;
 		}
 
-		//some values are missing
-		final URL resource = file.getClass().getClassLoader().getResource(file.getResourcePath());
+		//some (or all) values are missing
+		final InputStream in = PluginBase.getPluginResource(file.getResourcePath());
 
-		if (resource == null) {//it's not a resource; we can't do anything
+		if (in == null) {//it's not a resource; we can't do anything
 			return;
 		}
 
+		System.out.println("Content before fixing: " + content.toString());
+
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		IOUtils.copy(resource.openStream(), out);
+		IOUtils.copy(in, out);//get it to a byte array
+		out.close();
 
+		//loop through the default resource and replace all values in the file that are null or missing
 		final JsonObject object = new JsonParser().parse(new String(out.toByteArray())).getAsJsonObject();
+		for (final Map.Entry<String, JsonElement> entry : object.entrySet()) {
+			for (final Field field : fields) {
+				if (entry.getKey().equalsIgnoreCase(field.getName())) {//yay we found one that needs fixing
+					content.put(entry.getKey(), entry.getValue());//add it to or replace it in the map so we can write it back to the config file
+					break;
+				}
+			}
+		}
 
+		System.out.println("Content after fixing: " + content.toString());
+
+		file.write(file.getGSON().toJson(content));//fill the config with all the repaired values
 
 		/*for (final Field field : fields) {
 			System.out.println("FIELD VALUE: " + ReflectUtil.getFieldValue(field, null));

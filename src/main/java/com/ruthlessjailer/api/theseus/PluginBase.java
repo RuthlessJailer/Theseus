@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.logging.Logger;
 
 /**
@@ -66,11 +67,20 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	public static final File getJar() { return Checks.instanceCheck().getFile(); }
 
 	/**
-	 * Shortcut for {@link JavaPlugin#getDataFolder()} ()}.
+	 * Shortcut for {@link JavaPlugin#getDataFolder()}.
 	 *
 	 * @return the {@link File} representing the plugin folder
 	 */
 	public static final File getFolder() { return Checks.instanceCheck().getDataFolder(); }
+
+	/**
+	 * Shortcut for {@link JavaPlugin#getResource(String)}.
+	 *
+	 * @param file the name of the file
+	 *
+	 * @return the {@link InputStream} for the resource or null
+	 */
+	public static final InputStream getPluginResource(@NonNull final String file) { return Checks.instanceCheck().getResource(file); }
 
 	/**
 	 * Shortcut for {@link Chat#debug(String, String...)}.

@@ -32,7 +32,7 @@ public interface IFile {
 
 
 	/**
-	 * Appends the given string to the end of the file. If the string is null, nothing will be appended.
+	 * Appends the given string to the end of the file. If the string is null nothing will be appended.
 	 *
 	 * @param string the string to append
 	 */
@@ -41,7 +41,7 @@ public interface IFile {
 	}
 
 	/**
-	 * Writes a given string to the file, optionally appending. If the string is null, nothing will be appended, or the file will be cleared.
+	 * Writes a given string to the file, optionally appending. If the string is null nothing will be appended or the file will be cleared.
 	 *
 	 * @param string the string to write
 	 * @param append whether to append to or overwrite the file's contents

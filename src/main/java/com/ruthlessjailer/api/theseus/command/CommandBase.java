@@ -19,32 +19,32 @@ import java.util.List;
  */
 public abstract class CommandBase extends Command {
 
-	protected static final String         DEFAULT_PERMISSION_MESSAGE =
+	public static final String         DEFAULT_PERMISSION_MESSAGE =
 			"&cYou do not the permission &3${permission}&c needed to run this command!";
-	protected static final String         DEFAULT_PERMISSION_SYNTAX  = "${plugin.name}.command.${command.label}";
+	public static final String         DEFAULT_PERMISSION_SYNTAX  = "${plugin.name}.command.${command.label}";
 	@Getter
-	private static         String         starPermissionSyntax       = getDefaultStarPermissionSyntax();
-	private final          boolean        isSuperior                 = this instanceof SuperiorCommand;
-	protected              String         label;
-	protected              String[]       args;
-	protected              CommandSender  sender;
-	protected              boolean        registered                 = false;
+	private static      String         starPermissionSyntax       = getDefaultStarPermissionSyntax();
+	private final       boolean        isSuperior                 = this instanceof SuperiorCommand;
+	protected           String         label;
+	protected           String[]       args;
+	protected           CommandSender  sender;
+	protected           boolean        registered                 = false;
 	@Getter
-	private                String         customPermissionSyntax     = getDefaultPermissionSyntax();
+	private             String         customPermissionSyntax     = getDefaultPermissionSyntax();
 	@Getter
-	private                String         customPermissionMessage    = getDefaultPermissionMessage();//bukkit's name is same that's why custom
+	private             String         customPermissionMessage    = getDefaultPermissionMessage();//bukkit's name is same that's why custom
 	@Setter
 	@Getter
-	private                int            minArgs                    = 0;
+	private             int            minArgs                    = 0;
 	@Setter
 	@Getter
-	private                boolean        tabCompleteSubCommands     = true;
+	private             boolean        tabCompleteSubCommands     = true;
 	@Getter
 	@Setter
-	private                boolean        autoGenerateHelpMenu       = true;
+	private             boolean        autoGenerateHelpMenu       = true;
 	@Getter
 	@Setter
-	private                HelpMenuFormat helpMenuFormatOverride     = HelpMenuFormat.DEFAULT_FORMAT;
+	private             HelpMenuFormat helpMenuFormatOverride     = HelpMenuFormat.DEFAULT_FORMAT;
 
 	public CommandBase(@NonNull final String label) {
 		this(CommandBase.parseLabel(label), CommandBase.parseAliases(label));
@@ -55,11 +55,11 @@ public abstract class CommandBase extends Command {
 
 		Checks.verify(!(this instanceof CommandExecutor) || !(this instanceof TabCompleter),
 					  String.format("Do not implement org.bukkit.CommandExecutor org.bukkit.TabCompleter in " +
-									"command class %s.", this.getClass().getPackage()),
+									"command class %s.", getClass().getPackage()),
 					  CommandException.class);
 
 		this.label = label;
-		this.setCustomPermissionMessage(this.getCustomPermissionMessage());
+		this.setCustomPermissionMessage(getCustomPermissionMessage());
 	}
 
 	protected static String getDefaultStarPermissionSyntax() {
@@ -86,17 +86,17 @@ public abstract class CommandBase extends Command {
 	public final void register() {
 		Checks.verify(!this.registered, "Command is already registered", CommandException.class);
 
-		final PluginCommand currentCommand = Bukkit.getPluginCommand(this.getLabel());
+		final PluginCommand currentCommand = Bukkit.getPluginCommand(getLabel());
 
 		if (currentCommand != null) {
 			final String plugin = currentCommand.getPlugin().getName();
 
 			if (!plugin.equals(PluginBase.getCurrentName())) {
-				Chat.warning(String.format("Plugin %s is already using command %s! Stealing...", plugin, this.getLabel()));
+				Chat.warning(String.format("Plugin %s is already using command %s! Stealing...", plugin, getLabel()));
 			}
-			Spigot.unregisterCommand(this.getLabel());
+			Spigot.unregisterCommand(getLabel());
 
-			Chat.info(String.format("Muahahahaha! Stole command %s from plugin %s!", this.getLabel(), plugin));
+			Chat.info(String.format("Muahahahaha! Stole command %s from plugin %s!", getLabel(), plugin));
 		}
 
 		Spigot.registerCommand(this);
@@ -112,7 +112,7 @@ public abstract class CommandBase extends Command {
 	public final void unregister() {
 		Checks.verify(this.registered, "Already unregistered.", CommandException.class);
 
-		Spigot.unregisterCommand(this.getLabel());
+		Spigot.unregisterCommand(getLabel());
 
 		this.registered = false;
 	}
@@ -122,23 +122,23 @@ public abstract class CommandBase extends Command {
 				.replace("${plugin.name}",
 						 PluginBase.getCurrentName())
 				.replace("${command.label}",
-						 this.getLabel());
+						 getLabel());
 	}
 
 	public final String getDefaultPermissionMessage() {
 		return Chat.colorize(
-				CommandBase.DEFAULT_PERMISSION_MESSAGE.replace("${permission}", this.getDefaultPermissionSyntax()));
+				CommandBase.DEFAULT_PERMISSION_MESSAGE.replace("${permission}", getDefaultPermissionSyntax()));
 	}
 
 	protected final void setCustomPermissionSyntax(@NonNull final String syntax) {
 		this.customPermissionSyntax = syntax.replace("${plugin.name}", PluginBase.getCurrentName())
 											.replace("${command.label}",
-													 this.getLabel());
+													 getLabel());
 	}
 
 	protected final void setCustomPermissionMessage(@NonNull final String message) {
 		this.customPermissionMessage = message.replace("${permission}",
-													   this.getCustomPermissionSyntax());
+													   getCustomPermissionSyntax());
 	}
 
 	@Override
@@ -147,11 +147,11 @@ public abstract class CommandBase extends Command {
 		Chat.debug("Commands", "Command /" + label + " with args " + Arrays.toString(args) + " executed by " + sender.getName() + ".");
 
 		if (!Bukkit.isPrimaryThread()) {
-			Chat.warning("Async call to command /" + label + " (" + ReflectUtil.getPath(this.getClass()) + ").");
+			Chat.warning("Async call to command /" + label + " (" + ReflectUtil.getPath(getClass()) + ").");
 		}
 
-		if (!sender.hasPermission(getStarPermissionSyntax()) || !sender.hasPermission(this.getCustomPermissionSyntax())) {
-			sender.sendMessage(this.getCustomPermissionMessage());
+		if (!sender.hasPermission(getStarPermissionSyntax()) || !sender.hasPermission(getCustomPermissionSyntax())) {
+			sender.sendMessage(getCustomPermissionMessage());
 			return false;
 		}
 
@@ -183,14 +183,17 @@ public abstract class CommandBase extends Command {
 	}
 
 	/**
-	 * Checks if given {@link Permissible} {@link Permissible#isOp() is op}, has the {@link CommandBase#getStarPermissionSyntax() star permission}, or has the given
-	 * permission.
+	 * Checks if given {@link Permissible} {@link Permissible#isOp() is op}, has the {@link CommandBase#getStarPermissionSyntax() star permission}, has the
+	 * {@link CommandBase#getCustomPermissionSyntax() command's permission}, or has the given permission.
 	 *
 	 * @param permissible the {@link Permissible} to check
 	 * @param permission  the permission to check (last resort)
 	 *
-	 * @return true if the {@link Permissible} {@link Permissible#isOp() is op}, has the {@link CommandBase#getStarPermissionSyntax() star permission}, or has the
-	 * 		given permission; false if either argument is null or the given requirements are not met
+	 * @return {@code true} if the {@link Permissible} {@link Permissible#isOp() is op}, has the {@link CommandBase#getStarPermissionSyntax() star permission},
+	 * 		has the {@link CommandBase#getCustomPermissionSyntax() command's permission}, or has the given permission; {@code false} if either argument is null or the
+	 * 		given requirements are not met.
+	 *
+	 * @see Common#hasPermission(Permissible, String)
 	 */
 	public boolean hasPermission(final Permissible permissible, final String permission) {
 		if (permissible == null || permission == null) {

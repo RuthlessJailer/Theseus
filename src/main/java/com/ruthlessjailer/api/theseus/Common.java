@@ -1,9 +1,11 @@
 package com.ruthlessjailer.api.theseus;
 
+import com.ruthlessjailer.api.theseus.command.CommandBase;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permissible;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -527,6 +529,27 @@ public final class Common {
 	 */
 	public static List<String> getPlayerDisplayNames() {
 		return convert(Bukkit.getOnlinePlayers(), Player::getDisplayName);
+	}
+
+	/**
+	 * Checks if given {@link Permissible} {@link Permissible#isOp() is op}, has the {@link CommandBase#getStarPermissionSyntax() star permission}, or has the given
+	 * permission.
+	 *
+	 * @param permissible the {@link Permissible} to check
+	 * @param permission  the permission to check (last resort)
+	 *
+	 * @return {@code true} if the {@link Permissible} {@link Permissible#isOp() is op}, has the {@link CommandBase#getStarPermissionSyntax() star permission}, or
+	 * 		has the
+	 * 		given permission; {@code false} if either argument is null or the given requirements are not met
+	 */
+	public static boolean hasPermission(final Permissible permissible, final String permission) {
+		if (permissible == null || permission == null) {
+			return false;
+		}
+
+		return permissible.isOp() ||
+			   permissible.hasPermission(CommandBase.getStarPermissionSyntax()) ||
+			   permissible.hasPermission(permission);
 	}
 
 }
