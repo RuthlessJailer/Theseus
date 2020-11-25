@@ -1,8 +1,12 @@
 package com.ruthlessjailer.api.theseus.io;
 
+import com.google.common.annotations.Beta;
 import com.google.gson.*;
+import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.PluginBase;
+import com.ruthlessjailer.api.theseus.ReflectUtil;
+import com.ruthlessjailer.api.theseus.typeadapter.TypeAdapterRegistry;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -117,8 +121,6 @@ public abstract class JSONFile implements IFile {
 			return;
 		}
 
-		System.out.println("Content before fixing: " + content.toString());
-
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		IOUtils.copy(in, out);//get it to a byte array
 		out.close();
@@ -134,17 +136,40 @@ public abstract class JSONFile implements IFile {
 			}
 		}
 
-		System.out.println("Content after fixing: " + content.toString());
-
 		file.write(file.getGSON().toJson(content));//fill the config with all the repaired values
 
-		/*for (final Field field : fields) {
+	}
+
+	/**
+	 * Attempts to load the (user-modified) file and reset all the constants.
+	 *
+	 * @param file the {@link JSONFile} config instance to modify.
+	 */
+	@Beta
+	public static <E extends Enum<E>> void reloadConfig(@NonNull final JSONFile file) {
+		final String contents = Common.getString(file.read());
+
+		final List<Field> fields = Arrays.stream(file.getClass().getFields()).filter(field ->
+																							 Modifier.isPublic(field.getModifiers()) &&
+																							 Modifier.isStatic(field.getModifiers()) &&
+																							 Modifier.isFinal(field.getModifiers()))
+										 .collect(Collectors.toList());
+
+		final JsonElement element = new JsonParser().parse(contents);
+
+		final Map<String, JsonElement> content = new HashMap<>();
+
+		for (final Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
+			content.put(entry.getKey(), entry.getValue());//fill the content map
+		}
+
+		for (final Field field : fields) {
 			System.out.println("FIELD VALUE: " + ReflectUtil.getFieldValue(field, null));
 			final Object converted;
 			if (field.getType().isEnum()) {
-				converted = ReflectUtil.getEnum((Class<E>) field.getType(), map.get(field.getName().toLowerCase()));
+				converted = ReflectUtil.getEnum((Class<E>) field.getType(), content.get(field.getName().toLowerCase()).getAsString());
 			} else {
-				converted = TypeAdapterRegistry.get(field.getType()).convert(map.get(field.getName().toLowerCase()));
+				converted = TypeAdapterRegistry.get(field.getType()).convert(content.get(field.getName().toLowerCase()).getAsString());
 			}
 			Chat.debug("JSON Config", "Setting field " + field.getName() + " to " + converted + " which is type " + converted.getClass());
 
@@ -156,8 +181,7 @@ public abstract class JSONFile implements IFile {
 
 			ReflectUtil.setField(Field.class, "modifiers", field, field.getModifiers() | Modifier.FINAL);//make it final again
 			System.out.println("IS FIELD FINAL? " + Modifier.isFinal(field.getModifiers()));
-		}*///removed due to lack of implementation possibilities
-
+		}
 	}
 
 	/**
