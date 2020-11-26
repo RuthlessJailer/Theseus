@@ -18,6 +18,7 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 
 import java.lang.annotation.Annotation;
@@ -205,6 +206,9 @@ public final class SubCommandManager {
 			try {
 				ReflectUtil.invokeMethod(wrapper.getMethod(), command, parameters);
 			} catch (final ReflectUtil.ReflectionException e) {
+				if (e.getCause().getCause() instanceof CommandException) {
+					return;//no need to print stacktrace of deliberately-thrown CommandException
+				}
 				e.getCause().getCause().printStackTrace();//ReflectionException -> InvocationTargetException -> whatever caused it
 			}
 

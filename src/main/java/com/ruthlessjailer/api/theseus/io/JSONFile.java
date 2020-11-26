@@ -1,6 +1,5 @@
 package com.ruthlessjailer.api.theseus.io;
 
-import com.google.common.annotations.Beta;
 import com.google.gson.*;
 import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Common;
@@ -141,12 +140,11 @@ public abstract class JSONFile implements IFile {
 	}
 
 	/**
-	 * Attempts to load the (user-modified) file and reset all the constants.
+	 * Loads the file and fills all {@code public static} fields.
 	 *
 	 * @param file the {@link JSONFile} config instance to modify.
 	 */
-	@Beta
-	public static <E extends Enum<E>> void reloadConfig(@NonNull final JSONFile file) {
+	public static <E extends Enum<E>> void loadConfig(@NonNull final JSONFile file) {
 		final String contents = Common.getString(file.read());
 
 		final List<Field> fields = Arrays.stream(file.getClass().getFields()).filter(field ->
@@ -160,11 +158,10 @@ public abstract class JSONFile implements IFile {
 		final Map<String, JsonElement> content = new HashMap<>();
 
 		for (final Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
-			content.put(entry.getKey(), entry.getValue());//fill the content map
+			content.put(entry.getKey().toLowerCase(), entry.getValue());//fill the content map
 		}
 
 		for (final Field field : fields) {
-			System.out.println("FIELD VALUE: " + ReflectUtil.getFieldValue(field, null));
 			final Object converted;
 			if (field.getType().isEnum()) {
 				converted = ReflectUtil.getEnum((Class<E>) field.getType(), content.get(field.getName().toLowerCase()).getAsString());
@@ -173,15 +170,32 @@ public abstract class JSONFile implements IFile {
 			}
 			Chat.debug("JSON Config", "Setting field " + field.getName() + " to " + converted + " which is type " + converted.getClass());
 
-			ReflectUtil.setField(Field.class, "modifiers", field, field.getModifiers() & ~Modifier.FINAL);//make it non-final
-			System.out.println("IS FIELD FINAL? " + Modifier.isFinal(field.getModifiers()));
-
-			ReflectUtil.setField(field, null, converted);//set it
-			System.out.println("FIELD VALUE: " + ReflectUtil.getFieldValue(field, null));
-
-			ReflectUtil.setField(Field.class, "modifiers", field, field.getModifiers() | Modifier.FINAL);//make it final again
-			System.out.println("IS FIELD FINAL? " + Modifier.isFinal(field.getModifiers()));
+			try {
+				ReflectUtil.setField(field, null, converted);//set it
+			} catch (final ReflectUtil.ReflectionException e) {
+				if (e.getCause() instanceof IllegalAccessException) {//it's final
+					continue;
+				}
+				e.getCause().getCause().printStackTrace();//ReflectionException -> InvocationTargetException -> whatever caused it
+			}
 		}
+	}
+
+	/**
+	 * Reads the file and returns the {@link JsonObject} representation of it.
+	 *
+	 * @return the {@link JsonObject} of the file
+	 *
+	 * @throws IllegalStateException if the file could not be read or is empty
+	 */
+	protected JsonObject readFile() {
+		final JsonElement element = new JsonParser().parse(read());
+
+		if (element.isJsonNull()) {
+			throw new IllegalStateException("Unable to load config.");
+		}
+
+		return element.getAsJsonObject();
 	}
 
 	/**
