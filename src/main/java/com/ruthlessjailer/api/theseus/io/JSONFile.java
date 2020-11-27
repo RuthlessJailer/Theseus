@@ -1,11 +1,8 @@
 package com.ruthlessjailer.api.theseus.io;
 
 import com.google.gson.*;
-import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.PluginBase;
-import com.ruthlessjailer.api.theseus.ReflectUtil;
-import com.ruthlessjailer.api.theseus.typeadapter.TypeAdapterRegistry;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -33,11 +30,12 @@ import java.util.stream.Collectors;
 @Getter
 public abstract class JSONFile implements IFile {
 
-	protected final Gson    GSON;
-	protected final String  path;
-	protected final File    file;
+	protected final Gson   GSON;
+	protected final String path;
+	protected final File   file;
+
 	@Setter
-	private         Charset charset = StandardCharsets.UTF_8;
+	private Charset charset = StandardCharsets.UTF_8;
 
 	public JSONFile(final String path) {
 		this(new GsonBuilder().setPrettyPrinting().create(), path);
@@ -73,7 +71,7 @@ public abstract class JSONFile implements IFile {
 	}
 
 	/**
-	 * Checks the config file to make sure that it has all the values that the class contains. Only {@code public static final} fields will be checked.
+	 * Checks the config file to make sure that it has all the values that the class contains. Only {@code public final} fields will be checked.
 	 * Case will be ignored.<p>
 	 * If a value is missing or null the default value will be written to the file.<p>
 	 * Call this method before reading the file.
@@ -81,43 +79,47 @@ public abstract class JSONFile implements IFile {
 	 * @param file the {@link JSONFile} config instance to modify.
 	 */
 	@SneakyThrows
-	public static void fixConfig(@NonNull final JSONFile file) {
+	protected static void fixConfig(@NonNull final JSONFile file) {
 		final String contents = Common.getString(file.read());
 
 		final List<Field> fields = Arrays.stream(file.getClass().getFields()).filter(field ->
 																							 Modifier.isPublic(field.getModifiers()) &&
-																							 Modifier.isStatic(field.getModifiers()) &&
 																							 Modifier.isFinal(field.getModifiers()))
 										 .collect(Collectors.toList());
 
-		final JsonElement element = new JsonParser().parse(contents);
+		JsonElement element = null;
+		try {
+			element = new JsonParser().parse(contents);
+		} catch (final JsonParseException ignored) {}//malformed json
 
 		final Map<String, JsonElement> content = new HashMap<>();
 
-		for (final Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
-			content.put(entry.getKey(), entry.getValue());//fill the content map
-			if (entry.getValue().isJsonNull()) {//it's null; this one needs to be fixed
-				continue;
-			}
-			Field match = null;
-			for (final Field field : fields) {
-				if (field.getName().equalsIgnoreCase(entry.getKey())) {//this one's fine
-					match = field;
-					break;
+		if (element != null && !element.isJsonNull()) {
+			for (final Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
+				content.put(entry.getKey(), entry.getValue());//fill the content map
+				if (entry.getValue().isJsonNull()) {//it's null; this one needs to be fixed
+					continue;
 				}
+				Field match = null;
+				for (final Field field : fields) {
+					if (field.getName().equalsIgnoreCase(entry.getKey())) {//this one's fine
+						match = field;
+						break;
+					}
+				}
+				fields.remove(match);
 			}
-			fields.remove(match);
 		}
 
 		if (fields.isEmpty()) {//all values were present
 			return;
 		}
 
-		//some (or all) values are missing
+		//some values are missing
 		final InputStream in = PluginBase.getPluginResource(file.getResourcePath());
 
 		if (in == null) {//it's not a resource; we can't do anything
-			return;
+			throw new UnsupportedOperationException("No resource found for file " + file.getPath());
 		}
 
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -137,48 +139,6 @@ public abstract class JSONFile implements IFile {
 
 		file.write(file.getGSON().toJson(content));//fill the config with all the repaired values
 
-	}
-
-	/**
-	 * Loads the file and fills all {@code public static} fields.
-	 *
-	 * @param file the {@link JSONFile} config instance to modify.
-	 */
-	public static <E extends Enum<E>> void loadConfig(@NonNull final JSONFile file) {
-		final String contents = Common.getString(file.read());
-
-		final List<Field> fields = Arrays.stream(file.getClass().getFields()).filter(field ->
-																							 Modifier.isPublic(field.getModifiers()) &&
-																							 Modifier.isStatic(field.getModifiers()) &&
-																							 Modifier.isFinal(field.getModifiers()))
-										 .collect(Collectors.toList());
-
-		final JsonElement element = new JsonParser().parse(contents);
-
-		final Map<String, JsonElement> content = new HashMap<>();
-
-		for (final Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
-			content.put(entry.getKey().toLowerCase(), entry.getValue());//fill the content map
-		}
-
-		for (final Field field : fields) {
-			final Object converted;
-			if (field.getType().isEnum()) {
-				converted = ReflectUtil.getEnum((Class<E>) field.getType(), content.get(field.getName().toLowerCase()).getAsString());
-			} else {
-				converted = TypeAdapterRegistry.get(field.getType()).convert(content.get(field.getName().toLowerCase()).getAsString());
-			}
-			Chat.debug("JSON Config", "Setting field " + field.getName() + " to " + converted + " which is type " + converted.getClass());
-
-			try {
-				ReflectUtil.setField(field, null, converted);//set it
-			} catch (final ReflectUtil.ReflectionException e) {
-				if (e.getCause() instanceof IllegalAccessException) {//it's final
-					continue;
-				}
-				e.getCause().getCause().printStackTrace();//ReflectionException -> InvocationTargetException -> whatever caused it
-			}
-		}
 	}
 
 	/**

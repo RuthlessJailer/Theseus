@@ -1,5 +1,7 @@
 package com.ruthlessjailer.api.theseus.menu;
 
+import com.google.common.annotations.Beta;
+
 /**
  * @author RuthlessJailer
  */
@@ -22,8 +24,9 @@ public enum ButtonType {
 
 	/**
 	 * Receives an item when clicked.
-	 * NOT DONE: DO NOT USE.
+	 * NOT IMPLEMENTED: DO NOT USE.
 	 */
+	@Beta
 	PLACE
 
 

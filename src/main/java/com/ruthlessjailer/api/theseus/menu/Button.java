@@ -9,7 +9,7 @@ import org.bukkit.inventory.ItemStack;
  */
 @AllArgsConstructor
 @Getter
-public abstract class ButtonBase {
+public final class Button {
 
 	private final ItemStack    item;
 	private final ButtonType   type;

@@ -13,6 +13,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,34 +27,38 @@ import java.util.Map;
 @Getter
 public abstract class MenuBase implements Listener {
 
-	private final Map<Integer, ButtonBase> buttons = new HashMap<>();
+	public static final String NBT_CURRENT_MENU  = "THESEUS_CURRENT_MENU";
+	public static final String NBT_PREVIOUS_MENU = "THESEUS_PREVIOUS_MENU";
+
+	protected final Map<Integer, Button> buttons = new HashMap<>();
 
 	private final MenuBase      parent;
 	private final String        title;
 	private final int           size;
 	private final InventoryType type;
-	private       MenuView      view;
-	private       MenuHolder    holder;
 
-	public MenuBase() {
-		this(9 * 3, "Menu");
+	public MenuBase(@NonNull final InventoryType type, @NonNull final String title) {
+		this(null, type, title);
 	}
 
 	public MenuBase(final int size, @NonNull final String title) {
-		this(size, title, InventoryType.CHEST);
-	}
-
-	public MenuBase(final int size, @NonNull final String title, @NonNull final InventoryType type) {
-		this(null, size, title, InventoryType.CHEST);
+		this(null, size, title);
 	}
 
 	public MenuBase(final MenuBase parent, final int size, @NonNull final String title) {
-		this(null, size, title, InventoryType.CHEST);
-	}
-
-	public MenuBase(final MenuBase parent, final int size, @NonNull final String title, @NonNull final InventoryType type) {
 		this.parent = parent;
 		this.size   = size;
+		this.title  = Chat.colorize(title);
+		this.type   = null;
+
+		Bukkit.getPluginManager().registerEvents(this, Checks.instanceCheck(String.format(
+				"Plugin instance cannot be null when initializing menu listener %s.",
+				ReflectUtil.getPath(this.getClass()))));
+	}
+
+	public MenuBase(final MenuBase parent, @NonNull final InventoryType type, @NonNull final String title) {
+		this.parent = parent;
+		this.size   = 0;
 		this.title  = Chat.colorize(title);
 		this.type   = type;
 
@@ -62,79 +67,108 @@ public abstract class MenuBase implements Listener {
 				ReflectUtil.getPath(this.getClass()))));
 	}
 
-	protected final void addButton(final int slot, @NonNull final ButtonBase button) {
+	public static MenuBase getCurrentMenu(@NonNull final Player player) {
+		return getMenu(player, NBT_CURRENT_MENU);
+	}
+
+	public static MenuBase getPreviousMenu(@NonNull final Player player) {
+		return getMenu(player, NBT_PREVIOUS_MENU);
+	}
+
+	private static MenuBase getMenu(@NonNull final Player player, @NonNull final String tag) {
+		if (!player.hasMetadata(tag)) {
+			return null;
+		}
+
+		final MenuBase menu = (MenuBase) player.getMetadata(tag).get(0).value();
+		Checks.nullCheck(menu, "Player " + player.getName() + " is missing metadata tag value " + tag + "; cannot retrieve the menu.");
+		return menu;
+	}
+
+	protected final void addButton(final int slot, @NonNull final Button button) {
 		this.buttons.put(slot, button);
 	}
 
-
 	public final MenuBase displayTo(@NonNull final Player player) {
+		final Inventory inventory = Bukkit.createInventory(null, this.size, this.title);
 
-
-		if (this.view != null || this.holder != null) {
-			return copy().displayTo(player);//one instance per player
-		}
-
-		final Inventory inventory = Bukkit.createInventory(new MenuHolder(player.getUniqueId()), this.size);
-
-		for (final Map.Entry<Integer, ButtonBase> entry : this.buttons.entrySet()) {
-			final Integer    slot   = entry.getKey();
-			final ButtonBase button = entry.getValue();
+		for (final Map.Entry<Integer, Button> entry : this.buttons.entrySet()) {
+			final Integer slot   = entry.getKey();
+			final Button  button = entry.getValue();
 
 			inventory.setItem(slot, button.getItem());
 		}
 
-		this.view   = new MenuView(inventory, player.getInventory(), this.title, player);
-		this.holder = new MenuHolder(player.getUniqueId());
+//		player.openInventory(view);
 
 		return this;
 	}
 
-	public MenuBase copy() {
-//		return MenuBuilder.of(this);
-		return this;//TODO
-	}
+	protected void onOpen(@NonNull final Player player, final MenuBase previous) {}
+
+	protected void onClose(@NonNull final InventoryCloseEvent event)             {}
+
+	protected void onGenericClick(@NonNull final InventoryClickEvent event)      {}
 
 	@EventHandler
-	public void onClose(final InventoryCloseEvent event) {
-		if (event.getView().equals(this.getView())) {//clear for
-			this.view   = null;
-			this.holder = null;
+	public void onCloseEvent(@NonNull final InventoryCloseEvent event) {
+		if (!(event.getPlayer() instanceof Player)) {
+			return;
 		}
+
+		final Player player = (Player) event.getPlayer();
+
+		final MenuBase current = getCurrentMenu(player);
+
+		if (current == null) {
+			return;
+		}
+
+		player.removeMetadata(NBT_CURRENT_MENU, Checks.instanceCheck());
+		player.setMetadata(NBT_PREVIOUS_MENU, new FixedMetadataValue(Checks.instanceCheck(), this));
 	}
 
 	@EventHandler
-	public void onClick(final InventoryClickEvent event) {
+	public void onClick(@NonNull final InventoryClickEvent event) {
 		if (!(event.getWhoClicked() instanceof Player)) {
 			return;
 		}
 
-		if (!event.getView().equals(this.view)) {
-			return;
-		}
+		final Player player = (Player) event.getWhoClicked();
 
-		if (!MenuHolder.equals(this.holder, event.getInventory().getHolder())) {
+		final MenuBase current = getCurrentMenu(player);
+
+		if (current == null) {
 			return;
 		}
 
 		//now we know it's the right menu
 
-		for (final Map.Entry<Integer, ButtonBase> entry : this.buttons.entrySet()) {
-			final Integer    slot   = entry.getKey();
-			final ButtonBase button = entry.getValue();
+		onGenericClick(event);
 
-			if (button.getItem().isSimilar(event.getCurrentItem())) {
-				switch (button.getType()) {
-					case INFO:
-						event.setCancelled(true);
-						break;
-					case TAKE:
-						event.setCancelled(false);
-						break;
-					case ACTION:
-						Checks.nullCheck(button.getAction(), "Button action cannot be null as its type is ACTION!");
-						button.getAction().onClick((Player) event.getWhoClicked(), event.getClick(), event.getCurrentItem());
-				}
-			}
+		final Button clicked = this.buttons.get(event.getSlot());
+
+		if (clicked == null) {
+			return;
+		}
+
+		if (!clicked.getItem().isSimilar(event.getCurrentItem())) {
+			return;
+		}
+
+		//it's the right item
+
+		switch (clicked.getType()) {
+			case INFO:
+				event.setCancelled(true);
+				event.setCurrentItem(null);
+				break;
+			case TAKE:
+				event.setCancelled(false);
+				break;
+			case ACTION:
+				Checks.nullCheck(clicked.getAction(), "ButtonAction cannot be null as its type is ACTION!");
+				clicked.getAction().onClick(event, (Player) event.getWhoClicked(), event.getClick(), event.getCurrentItem());
 		}
 	}
 

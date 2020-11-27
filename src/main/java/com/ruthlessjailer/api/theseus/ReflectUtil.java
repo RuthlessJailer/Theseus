@@ -36,6 +36,21 @@ public final class ReflectUtil {
 	}
 
 	/**
+	 * Wrapper for {@link Class#forName(String)}
+	 *
+	 * @param pkg the full path to the class
+	 *
+	 * @return the found class or {@code null}
+	 */
+	public static Class<?> getClassSuppressed(@NonNull final String pkg) {
+		try {
+			return Class.forName(pkg);
+		} catch (final ClassNotFoundException e) {
+			return null;
+		}
+	}
+
+	/**
 	 * Wrapper for {@link Class#forName(String)} but adds {@value OBC} to the beginning
 	 *
 	 * @param pkg the path to the class
@@ -467,7 +482,7 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if no constructor is present
 	 */
-	public static Constructor<?> getConstructor(@NonNull final String pkg, final Class<?> parameters) {
+	public static Constructor<?> getConstructor(@NonNull final String pkg, final Class<?>... parameters) {
 		return getConstructor(getClass(pkg), parameters);
 	}
 
@@ -481,7 +496,7 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if no constructor is present
 	 */
-	public static Constructor<?> getConstructor(@NonNull final Class<?> clazz, final Class<?> parameters) {
+	public static Constructor<?> getConstructor(@NonNull final Class<?> clazz, final Class<?>... parameters) {
 		try {
 			final Constructor<?> constructor = clazz.getConstructor(parameters);
 			constructor.setAccessible(true);
