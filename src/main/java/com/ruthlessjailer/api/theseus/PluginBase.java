@@ -3,6 +3,7 @@ package com.ruthlessjailer.api.theseus;
 import com.ruthlessjailer.api.theseus.command.CommandBase;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import org.bukkit.command.Command;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -117,6 +118,7 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 		this.onStop();
 	}
 
+	@SneakyThrows
 	@Override
 	public final void onEnable() {
 		debug("Entering onEnable()");

@@ -158,8 +158,8 @@ public final class SubCommandManager {
 					argument.updatePossibilities(Common.getPlayerNames().toArray(new String[0]));
 				}
 
-				boolean match = false;
 				if (!argument.isInfinite()) {
+					boolean match = false;
 					for (final String possibility : argument.getPossibilities()) {
 						if (possibility.equalsIgnoreCase(args[i])) {
 							match = true;
@@ -191,7 +191,7 @@ public final class SubCommandManager {
 							//final int finalP = p;
 							parameters[p] = Bukkit.getPlayer(args[i]);
 							if (parameters[p] == null) {
-								parameters[p] = Bukkit.getOfflinePlayer(args[i]);//this method is run async anyway
+								parameters[p] = Bukkit.getOfflinePlayer(args[i]);
 							}
 						}
 						p++;
@@ -542,7 +542,7 @@ public final class SubCommandManager {
 
 						types[i] = declaredType;
 						declaredTypes[t] = declaredType;
-						arguments[i] = new Argument(this.getEnumValueNames((Class<E>) declaredType), (Class<E>) declaredType, true, description);
+						arguments[i] = new Argument(getEnumValueNames((Class<E>) declaredType), (Class<E>) declaredType, true, description);
 
 						break;
 

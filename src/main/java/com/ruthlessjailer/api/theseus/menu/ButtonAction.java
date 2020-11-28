@@ -1,16 +1,17 @@
 package com.ruthlessjailer.api.theseus.menu;
 
-import lombok.NonNull;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.ItemStack;
+
+import java.io.Serializable;
 
 /**
  * @author RuthlessJailer
  */
-public interface ButtonAction {
+public interface ButtonAction extends Serializable {
 
-	void onClick(@NonNull final InventoryClickEvent event, @NonNull final Player clicker, @NonNull final ClickType clickType, final ItemStack clicked);
+	ButtonAction EMPTY_ACTION = (event, clicker, click) -> {};
+
+	void onClick(final InventoryClickEvent event, final Player clicker, final Click click);
 
 }
