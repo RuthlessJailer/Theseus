@@ -1,10 +1,14 @@
 package com.ruthlessjailer.api.theseus;
 
 import com.ruthlessjailer.api.theseus.command.CommandBase;
+import com.ruthlessjailer.api.theseus.menu.MenuBase;
+import com.ruthlessjailer.api.theseus.menu.MenuListener;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -115,6 +119,15 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 		instance = null;
 		log      = null;
 
+		for (final Player player : Bukkit.getOnlinePlayers()) {//clear menu metadata to eliminate classloader issues with reloads
+			final MenuBase current = MenuBase.getCurrentMenu(player);
+			if (current != null) {
+				player.closeInventory();
+			}
+
+			MenuBase.clearMetadata(player);
+		}
+
 		this.onStop();
 	}
 
@@ -134,12 +147,15 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 			}
 		}
 
+		Bukkit.getPluginManager().registerEvents(new MenuListener(), this);
+
 		debug("Calling onStart()");
 		try {
 			this.onStart();
 		} catch (final Throwable t) {
-			Chat.severe("Fatal error in onStart() in class " + ReflectUtil.getPath(this.getClass()) + ", continuing...");
+			Chat.severe("Fatal error in onStart() in class " + ReflectUtil.getPath(this.getClass()) + ", exiting...");
 			t.printStackTrace();
+			setEnabled(false);
 		}
 		debug("Called onStart()");
 

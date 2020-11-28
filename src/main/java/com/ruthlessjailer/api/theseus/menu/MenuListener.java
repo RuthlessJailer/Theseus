@@ -1,10 +1,8 @@
 package com.ruthlessjailer.api.theseus.menu;
 
 import com.ruthlessjailer.api.theseus.Checks;
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -16,22 +14,14 @@ import org.bukkit.metadata.FixedMetadataValue;
 /**
  * @author RuthlessJailer
  */
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor
 public final class MenuListener implements Listener {
-
-	private static final MenuListener instance = new MenuListener();
-
-	static {
-		Bukkit.getPluginManager().registerEvents(instance, Checks.instanceCheck("Unable to register MenuListener."));
-	}
 
 	@EventHandler
 	public void onClick(@NonNull final InventoryClickEvent event) {
 		if (!(event.getWhoClicked() instanceof Player)) {
 			return;
 		}
-
-		System.out.println("iClick Player");
 
 		final Player player = (Player) event.getWhoClicked();
 
@@ -41,7 +31,9 @@ public final class MenuListener implements Listener {
 			return;
 		}
 
-		System.out.println("MenuClick");
+		if (!menu.getInventory().equals(event.getClickedInventory())) {
+			return;
+		}
 
 		//now we know it's the right menu
 
@@ -53,18 +45,15 @@ public final class MenuListener implements Listener {
 			return;
 		}
 
-		System.out.println("ButtonClick");
-
 		if (!clicked.getItem().isSimilar(event.getCurrentItem())) {
 			return;
 		}
 
-		System.out.println("Success");
-
 		//it's the right item
 
 		event.setResult(Event.Result.DENY);
-		clicked.getAction().onClick(event, (Player) event.getWhoClicked(), new Click(event.getClick()));
+		event.setCancelled(true);
+		clicked.getAction().onClick(event, (Player) event.getWhoClicked(), clicked);
 
 	}
 

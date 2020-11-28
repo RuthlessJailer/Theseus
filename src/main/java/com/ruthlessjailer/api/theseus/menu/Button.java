@@ -2,16 +2,18 @@ package com.ruthlessjailer.api.theseus.menu;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import org.bukkit.inventory.ItemStack;
 
 /**
  * @author RuthlessJailer
  */
 @Getter
+@Setter
 public final class Button {
 
-	private final ItemStack    item;
-	private final ButtonAction action;
+	private ItemStack    item;
+	private ButtonAction action;
 
 	public Button(@NonNull final ItemStack item, final ButtonAction action) {
 		this.item   = item;
