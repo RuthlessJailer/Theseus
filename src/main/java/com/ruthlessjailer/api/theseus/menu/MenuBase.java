@@ -4,15 +4,19 @@ import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
 import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 
@@ -33,6 +37,8 @@ public abstract class MenuBase implements Listener {
 	private final       String               title;
 	private final       int                  size;
 	private final       InventoryType        type;
+	@Setter(AccessLevel.PROTECTED)
+	private             boolean              enableBackButton  = true;
 	private             Inventory            inventory;
 
 	public MenuBase(@NonNull final InventoryType type, @NonNull final String title) {
@@ -131,6 +137,14 @@ public abstract class MenuBase implements Listener {
 		generateInventory();
 
 		this.inventory.clear();
+
+		if (this.enableBackButton) {
+			if (this.parent != null) {
+				setButton(0, new Button(new ItemStack(Material.ARROW), ((event, clicker, clicked) -> {
+					this.parent.displayTo(clicker);
+				})));
+			}
+		}
 
 		for (final Map.Entry<Integer, Button> entry : this.buttons.entrySet()) {
 			final Integer slot   = entry.getKey();

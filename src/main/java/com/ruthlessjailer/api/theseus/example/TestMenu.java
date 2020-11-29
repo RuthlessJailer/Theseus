@@ -33,7 +33,7 @@ public class TestMenu extends MenuBase {
 		}));
 
 		setButton(8, new Button(new ItemStack(Material.SAND), (event, clicker, clicked) -> {
-			clicker.getInventory().addItem(new ItemStack(Material.HOPPER));
+			new YeetMenu().displayTo(clicker);
 		}));
 
 		setButton(4, new Button(new ItemStack(Material.GOLD_BLOCK), (event, clicker, clicked) -> {
@@ -45,6 +45,25 @@ public class TestMenu extends MenuBase {
 			updateInventory();
 		}));
 
+	}
+
+	public class YeetMenu extends MenuBase {
+
+		public YeetMenu() {
+			super(TestMenu.this, 9 * 1, "&6Yeet Menu");
+
+			setButton(8, new Button(new ItemStack(Material.GLASS), (event, clicker, clicked) -> {
+				new XDMenu().displayTo(clicker);
+			}));
+		}
+
+		public class XDMenu extends MenuBase {
+
+			public XDMenu() {
+				super(YeetMenu.this, 9 * 1, "&cXD Menu");
+			}
+
+		}
 	}
 
 }

@@ -149,12 +149,12 @@ public enum XMaterial {
 	VOID_AIR(v1_13);
 	//</editor-fold>
 
-	public static final List<String> COLORABLE = Collections.unmodifiableList(Arrays.asList(//TODO lame fix pls
-																							"BANNER", "BED", "CARPET", "CONCRETE", "GLAZED_TERRACOTTA", "SHULKER_BOX",
-																							"STAINED_GLASS", "STAINED_GLASS_PANE", "TERRACOTTA", "WALL_BANNER", "WOOL"));
+	public static final  List<String>               COLORABLE      = Collections.unmodifiableList(Arrays.asList(//TODO lame fix pls
+																												"BANNER", "BED", "CARPET", "CONCRETE", "GLAZED_TERRACOTTA", "SHULKER_BOX",
+																												"STAINED_GLASS", "STAINED_GLASS_PANE", "TERRACOTTA", "WALL_BANNER", "WOOL"));
 	private static final Cache<String, XMaterial>   NAME_CACHE     = CacheBuilder.newBuilder().build();
 	private static final Cache<XMaterial, Material> MATERIAL_CACHE = CacheBuilder.newBuilder().build();
-	private static final boolean ISFLAT = MinecraftVersion.atLeast(v1_13);
+	private static final boolean                    ISFLAT         = MinecraftVersion.atLeast(v1_13);
 
 	static {//populate name cache
 		for (final XMaterial xMaterial : values()) { NAME_CACHE.put(xMaterial.name(), xMaterial); }
@@ -183,7 +183,7 @@ public enum XMaterial {
 	 *
 	 * @param material the material to check
 	 *
-	 * @return true if the material is one of the following (as of 1.16): AIR, CAVE_AIR, VOID_AIR, LEGACY_AIR
+	 * @return true if the material is one of the following: AIR, CAVE_AIR, VOID_AIR, LEGACY_AIR
 	 */
 	public static boolean isAir(@NonNull final Material material) {
 		return material.name().equals("AIR") || material.name().endsWith("_AIR");

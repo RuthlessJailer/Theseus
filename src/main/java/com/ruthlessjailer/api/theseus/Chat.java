@@ -2,6 +2,7 @@ package com.ruthlessjailer.api.theseus;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -10,6 +11,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,52 +24,52 @@ public final class Chat {
 	@Setter
 	private static boolean debugMode = false;
 
-	public static void send(final CommandSender who, final String... what) {
+	public static void send(@NonNull final CommandSender who, @NonNull final String... what) {
 		for (final String s : what) {
 			who.sendMessage(colorize(s));
 		}
 	}
 
-	public static void send(final CommandSender who, final Collection<String> what) {
+	public static void send(@NonNull final CommandSender who, @NonNull final Collection<String> what) {
 		for (final String s : what) {
 			who.sendMessage(colorize(s));
 		}
 	}
 
-	public static void send(final String what, final CommandSender... who) {
+	public static void send(@NonNull final String what, @NonNull final CommandSender... who) {
 		for (final CommandSender sender : who) {
 			send(sender, what);
 		}
 	}
 
-	public static void send(final Collection<String> what, final CommandSender... who) {
+	public static void send(@NonNull final Collection<String> what, @NonNull final CommandSender... who) {
 		for (final CommandSender sender : who) {
 			send(sender, what);
 		}
 	}
 
-	public static void send(final String what, final Collection<CommandSender> who) {
+	public static void send(@NonNull final String what, @NonNull final Collection<CommandSender> who) {
 		for (final CommandSender sender : who) {
 			send(sender, what);
 		}
 	}
 
-	public static void send(final Collection<String> what, final Collection<CommandSender> who) {
+	public static void send(@NonNull final Collection<String> what, @NonNull final Collection<CommandSender> who) {
 		for (final CommandSender sender : who) {
 			send(sender, what);
 		}
 	}
 
-	public static void broadcast(final String... announcement) {
-		for (final Player player : Bukkit.getOnlinePlayers()) {
-			for (final String s : announcement) {
+	public static void broadcast(@NonNull final String... announcement) {
+		for (final String s : announcement) {
+			for (final Player player : Bukkit.getOnlinePlayers()) {
 				player.sendMessage(Chat.colorize(s));
-				Bukkit.getConsoleSender().sendMessage(s);
+				Bukkit.getConsoleSender().sendMessage(Chat.colorize(announcement));
 			}
 		}
 	}
 
-	public static void broadcast(final Collection<String> announcement) {
+	public static void broadcast(@NonNull final Collection<String> announcement) {
 		for (final Player player : Bukkit.getOnlinePlayers()) {
 			for (final String s : announcement) {
 				player.sendMessage(Chat.colorize(s));
@@ -77,15 +79,17 @@ public final class Chat {
 	}
 
 	public static String colorize(final String string) {
-		return ChatColor.translateAlternateColorCodes('&', string);
+		return ChatColor.translateAlternateColorCodes('&', Common.getString(string));
 	}
 
 	public static String[] colorize(final String... strings) {
+		if (strings == null) { return new String[]{}; }
 		return Arrays.stream(strings).map(Chat::colorize).collect(Collectors.toList()).toArray(new String[strings.length]);
 	}
 
 
 	public static List<String> colorize(final Collection<String> strings) {
+		if (strings == null) { return Collections.emptyList(); }
 		return strings.stream().map(Chat::colorize).collect(Collectors.toList());
 	}
 
@@ -94,6 +98,7 @@ public final class Chat {
 	}
 
 	public static String[] stripColors(final String... strings) {
+		if (strings == null) { return new String[]{}; }
 		return Arrays.stream(strings).map(Chat::stripColors).collect(Collectors.toList()).toArray(new String[strings.length]);
 	}
 
@@ -104,7 +109,7 @@ public final class Chat {
 	 * Format: {@code "[00:00:00 INFO]: [DEBUG] [PREFIX] message"}
 	 * If prefix is null or empty: {@code "[00:00:00 INFO]: [DEBUG] [|] message"}
 	 */
-	public static void debug(final String prefix, final String... messages) {
+	public static void debug(@NonNull final String prefix, @NonNull final String... messages) {
 		final String parsed = Common.getString(prefix);
 		if (debugMode) {
 			for (final String message : messages) {
@@ -126,7 +131,7 @@ public final class Chat {
 	 * Format: {@code "[00:00:00 INFO]: [DEBUG] [PREFIX] message"}
 	 * If prefix is null or empty: {@code "[00:00:00 INFO]: [DEBUG] [|] message"}
 	 */
-	public static void debug(final String prefix, final Object... objects) {
+	public static void debug(@NonNull final String prefix, @NonNull final Object... objects) {
 		final String parsed = Common.getString(prefix);
 		if (debugMode) {
 			for (final String message : Common.convert(
@@ -148,7 +153,7 @@ public final class Chat {
 		}
 	}
 
-	public static void info(final String... messages) {
+	public static void info(@NonNull final String... messages) {
 		for (final String message : messages) {
 			if (PluginBase.hasLog()) {
 				PluginBase.getLog().info(message);
@@ -158,7 +163,7 @@ public final class Chat {
 		}
 	}
 
-	public static void warning(final String... messages) {
+	public static void warning(@NonNull final String... messages) {
 		for (final String message : messages) {
 			if (PluginBase.hasLog()) {
 				PluginBase.getLog().warning(message);
@@ -168,7 +173,7 @@ public final class Chat {
 		}
 	}
 
-	public static void severe(final String... messages) {
+	public static void severe(@NonNull final String... messages) {
 		for (final String message : messages) {
 			if (PluginBase.hasLog()) {
 				PluginBase.getLog().warning(message);
@@ -179,18 +184,20 @@ public final class Chat {
 	}
 
 	private static String consoleColorize(final String string) {
-		return ConsoleColor.translateAlternateColorCodes('&', string);
+		return ConsoleColor.translateAlternateColorCodes('&', Common.getString(string));
 	}
 
 	public static String[] consoleColorize(final String... strings) {
+		if (strings == null) { return new String[]{}; }
 		return Arrays.stream(strings).map(Chat::consoleColorize).collect(Collectors.toList()).toArray(new String[strings.length]);
 	}
 
 	public static String bungeeColorize(final String string) {
-		return net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&', string);
+		return net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&', Common.getString(string));
 	}
 
 	public static String[] bungeeColorize(final String... strings) {
+		if (strings == null) { return new String[]{}; }
 		return Arrays.stream(strings).map(Chat::bungeeColorize).collect(Collectors.toList()).toArray(new String[strings.length]);
 	}
 

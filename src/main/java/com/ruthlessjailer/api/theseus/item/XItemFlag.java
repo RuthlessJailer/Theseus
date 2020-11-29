@@ -25,17 +25,15 @@ public enum XItemFlag {
 
 	public ItemFlag getItemFlag()                                      { return ReflectUtil.getEnum(ItemFlag.class, this.toString()); }
 
-	public ItemStack applyToItem(@NonNull final ItemStack item) {
-
+	public void applyToItem(@NonNull final ItemStack item) {
 		if (!item.hasItemMeta()) {
-			return item;
+			return;
 		}
 
 		try {
 			final ItemMeta meta = item.getItemMeta();
 			meta.addItemFlags(ReflectUtil.getEnum(ItemFlag.class, this.toString()));
 			item.setItemMeta(meta);
-			return item;
 		} catch (final Throwable t) {
 			throw new MinecraftVersion.UnsupportedServerVersionException("Cannot set ItemFlag " + this.toString() + " to item " + item.toString() + ".", t);
 		}
