@@ -19,47 +19,60 @@ import java.util.List;
  */
 public abstract class CommandBase extends Command {
 
-	public static final String         DEFAULT_PERMISSION_MESSAGE =
-			"&cYou do not the permission &3${permission}&c needed to run this command!";
-	public static final String         DEFAULT_PERMISSION_SYNTAX  = "${plugin.name}.command.${command.label}";
+	public static final String DEFAULT_PERMISSION_MESSAGE            = "&cYou do not the permission &3${permission}&c needed to run this command!";
+	public static final String DEFAULT_PERMISSION_SYNTAX             = "${plugin.name}.command.${command.label}";
+	public static final String DEFAULT_SUB_COMMAND_PERMISSION_SYNTAX = "${permission}.${sub.command}";
+
 	@Getter
-	private static      String         starPermissionSyntax       = getDefaultStarPermissionSyntax();
-	private final       boolean        isSuperior                 = this instanceof SuperiorCommand;
-	protected           String         label;
-	protected           String[]       args;
-	protected           CommandSender  sender;
-	protected           boolean        registered                 = false;
+	private static String        starPermissionSyntax = getDefaultStarPermissionSyntax();
+	private final  boolean       isSuperior           = this instanceof SuperiorCommand;
+	protected      String        label;
+	protected      String[]      args;
+	protected      CommandSender sender;
+	protected      boolean       registered           = false;
+
 	@Getter
-	private             String         customPermissionSyntax     = getDefaultPermissionSyntax();
+	private String customPermissionSyntax = getDefaultPermissionSyntax();
+
+	private String customSubCommandPermissionSyntax = getDefaultSubCommandPermissionSyntax();//custom getter and chain getter
+
 	@Getter
-	private             String         customPermissionMessage    = getDefaultPermissionMessage();//bukkit's name is same that's why custom
+	private String customPermissionMessage = getDefaultPermissionMessage();//bukkit's name is same that's why custom
+
 	@Setter
 	@Getter
-	private             int            minArgs                    = 0;
+	private int minArgs = 0;
+
 	@Setter
 	@Getter
-	private             boolean        tabCompleteSubCommands     = true;
+	private boolean tabCompleteSubCommands = true;
+
 	@Getter
 	@Setter
-	private             boolean        autoGenerateHelpMenu       = true;
+	private boolean autoGenerateHelpMenu = true;
+
 	@Getter
 	@Setter
-	private             HelpMenuFormat helpMenuFormatOverride     = HelpMenuFormat.DEFAULT_FORMAT;
+	private HelpMenuFormat helpMenuFormatOverride = HelpMenuFormat.DEFAULT_FORMAT;
 
 	public CommandBase(@NonNull final String label) {
 		this(CommandBase.parseLabel(label), CommandBase.parseAliases(label));
 	}
 
 	private CommandBase(@NonNull final String label, final List<String> aliases) {
-		super(label, "description", "usageMessage", aliases);
+		super(label, "description", DEFAULT_PERMISSION_MESSAGE
+					  .replace("${permission}", DEFAULT_PERMISSION_SYNTAX
+							  .replace("${plugin.name}", PluginBase.getCurrentName())
+							  .replace("${command.label}", label))//default permission message for bukkit (unused)
+				, aliases);
 
 		Checks.verify(!(this instanceof CommandExecutor) || !(this instanceof TabCompleter),
-					  String.format("Do not implement org.bukkit.CommandExecutor org.bukkit.TabCompleter in " +
-									"command class %s.", getClass().getPackage()),
+					  String.format("Do not implement org.bukkit.CommandExecutor org.bukkit.TabCompleter in command class %s.",
+									ReflectUtil.getPath(getClass())),
 					  CommandException.class);
 
 		this.label = label;
-		this.setCustomPermissionMessage(getCustomPermissionMessage());
+		setCustomPermissionMessage(getCustomPermissionMessage());
 	}
 
 	protected static String getDefaultStarPermissionSyntax() {
@@ -125,7 +138,15 @@ public abstract class CommandBase extends Command {
 						 getLabel());
 	}
 
-	public final String getDefaultPermissionMessage() {
+	private final String getDefaultSubCommandPermissionSyntax() {
+		return CommandBase.DEFAULT_SUB_COMMAND_PERMISSION_SYNTAX
+				.replace("${permission}",
+						 getDefaultPermissionSyntax())
+				.replace("${sub.command}",
+						 getLabel());
+	}
+
+	private final String getDefaultPermissionMessage() {
 		return Chat.colorize(
 				CommandBase.DEFAULT_PERMISSION_MESSAGE.replace("${permission}", getDefaultPermissionSyntax()));
 	}
@@ -136,9 +157,30 @@ public abstract class CommandBase extends Command {
 													 getLabel());
 	}
 
+	protected final void setCustomSubCommandPermissionSyntax(@NonNull final String syntax) {
+		this.customSubCommandPermissionSyntax = syntax.replace("${permission}", getCustomPermissionSyntax());
+	}
+
 	protected final void setCustomPermissionMessage(@NonNull final String message) {
 		this.customPermissionMessage = message.replace("${permission}",
 													   getCustomPermissionSyntax());
+	}
+
+	public String getCustomSubCommandPermissionSyntax(@NonNull final String subCommandName) {
+		return this.customSubCommandPermissionSyntax.replace("${sub.command}", subCommandName);
+	}
+
+	/**
+	 * Convenience method for deep sub-commands. Usage as follows: <pre>{@code
+	 * chainCustomSubCommandPermissionSyntax("sub").append(getCustomSubCommandPermissionSyntax("command")).toString();
+	 * }</pre>
+	 *
+	 * @param subCommandName the starting sub-command label
+	 *
+	 * @return a {@link StringBuilder}
+	 */
+	public StringBuilder chainCustomSubCommandPermissionSyntax(@NonNull final String subCommandName) {
+		return new StringBuilder(getCustomSubCommandPermissionSyntax(subCommandName));
 	}
 
 	@Override
@@ -160,7 +202,7 @@ public abstract class CommandBase extends Command {
 		this.sender = sender;
 
 		if (!(this.autoGenerateHelpMenu && args.length >= 1 && args[0].equalsIgnoreCase("help"))) {//don't run on help command
-			this.runCommand(sender, args, label);
+			runCommand(sender, args, label);
 		}
 
 		if (this.isSuperior) {
@@ -172,14 +214,14 @@ public abstract class CommandBase extends Command {
 
 	@Override
 	public final List<String> tabComplete(final CommandSender sender, final String alias, final String[] args) throws IllegalArgumentException {
-		return this.tabComplete(sender, alias, args, null);
+		return tabComplete(sender, alias, args, null);
 	}
 
 	@Override
 	public final List<String> tabComplete(final CommandSender sender, final String alias, final String[] args, final Location location) throws IllegalArgumentException {
 		return this.tabCompleteSubCommands && this.isSuperior
 			   ? SubCommandManager.tabCompleteFor(this, sender, args)
-			   : this.onTabComplete(sender, alias, args, location);
+			   : onTabComplete(sender, alias, args, location);
 	}
 
 	/**
@@ -209,4 +251,5 @@ public abstract class CommandBase extends Command {
 	protected abstract void runCommand(@NonNull final CommandSender sender, final String[] args, @NonNull final String label);
 
 	protected List<String> onTabComplete(final CommandSender sender, final String alias, final String[] args, final Location location) { return new ArrayList<>(); }
+
 }

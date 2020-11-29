@@ -29,12 +29,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @author RuthlessJailer
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SubCommandManager {
+
+	private static final String  MESSAGE_METHOD_PARAMETERS = "Include all variables, but make sure the first two are CommandSender sender and String[] args.";
+	private static final String  MESSAGE_ENUMS             = "Only include enums!";
+	private static final Pattern VARIABLES_PATTERN         = Pattern.compile("%[sidebp](<[a-z0-9_]+>)?");
+	private static final Pattern ENUM_VARIABLE_PATTERN     = Pattern.compile("%e(<[a-z0-9_]+>)?");
 
 	@Getter
 	private static final SubCommandManager manager = new SubCommandManager();
@@ -78,6 +84,10 @@ public final class SubCommandManager {
 	public static List<String> tabCompleteFor(@NonNull final CommandBase command, @NonNull final CommandSender sender, final String[] args) {
 		final List<String> result = new ArrayList<>();
 
+		if (command.isAutoGenerateHelpMenu() && Common.hasPermission(sender, command.getCustomSubCommandPermissionSyntax("help"))) {
+			result.add("help");
+		}
+
 		wrappers:
 		for (final SubCommandWrapper wrapper : getManager().getSubCommands(command)) {
 
@@ -119,11 +129,6 @@ public final class SubCommandManager {
 
 	@SuppressWarnings("unchecked")
 	public static <E extends Enum<E>> void executeFor(@NonNull final CommandBase command, @NonNull final CommandSender sender, final String[] args) {
-
-		if (!Bukkit.isPrimaryThread()) {
-			Chat.warning("Async call to command /" + command.getLabel() + " (" + ReflectUtil.getPath(command.getClass()) + ") while executing sub-commands.");
-		}
-
 		if (command.isAutoGenerateHelpMenu() && args.length >= 1) {//automatic help command
 			if (args[0].equalsIgnoreCase("help")) {
 				int page = 0;
@@ -144,10 +149,13 @@ public final class SubCommandManager {
 
 			final Class<?>[] declaredTypes = wrapper.getDeclaredTypes();
 
-			final Object[] parameters = new Object[declaredTypes.length];
+			final Object[] parameters = new Object[declaredTypes.length + 2];//sender and args should be first
 
-			int i = 0;//counter
-			int p = 0;//parameter/declaredType counter
+			parameters[0] = sender;
+			parameters[1] = args;
+
+			int i = 0;//args counter
+			int p = 2;//parameter/declaredType counter
 
 			if (args.length < wrapper.getArguments().length) {//check args
 				continue;
@@ -406,10 +414,6 @@ public final class SubCommandManager {
 	@SuppressWarnings("unchecked")
 	private <E extends Enum<E>> SubCommandWrapper parseArgs(@NonNull final CommandBase parent, @NonNull final Method method, @NonNull final SubCommand subCommand) {
 
-		if (!Bukkit.isPrimaryThread()) {
-			Chat.warning("Async call to command /" + parent.getLabel() + " (" + ReflectUtil.getPath(parent.getClass()) + ") while parsing method " + method.getName() + ".");
-		}
-
 		//variables start
 		final String[] args = Checks.stringCheck(subCommand.inputArgs(),
 												 String.format("InputArgs on method %s in class %s cannot be null " +
@@ -455,10 +459,10 @@ public final class SubCommandManager {
 		//initialize variables
 
 		for (final String arg : args) {//initialize declaredTypes and types variables
-			if (arg.toLowerCase().matches("%[sidebp](<[a-z0-9_]+>)?")) {
+			if (arg.toLowerCase().matches(VARIABLES_PATTERN.pattern())) {
 				t++;//type
 			}
-			if (arg.toLowerCase().matches("%e(<[a-z_0-9]+>)?")) {
+			if (arg.toLowerCase().matches(ENUM_VARIABLE_PATTERN.pattern())) {
 				e++;//enum
 			}
 			i++;//counter
@@ -496,11 +500,6 @@ public final class SubCommandManager {
 
 				//begin parsing
 
-				//TODO: possible remove this as it only causes problems and is only used in one place
-				final Class<?> declaredType = argTypes.length > 0
-											  ? argTypes[e]
-											  : null;//shouldn't throw ArrayIndexOutOfBoundsException ever again
-
 				String description = null;
 
 				if (arg.matches("%[sidebpSIDEBP]<[A-Za-z0-9_]+>")) {//description storage
@@ -520,29 +519,28 @@ public final class SubCommandManager {
 						break;
 
 					case "%e"://enum (class provided)
-
-						if (declaredType == null) {//when ArrayIndexOutOfBoundsException when declaring declaredType was fixed it became nullable
+						if (argTypes.length <= 0) {
 							throw new SubCommandException(String.format(
-									"ArgType for InputArg %s in method %s in class %s is missing. Only include enums!",
+									"ArgType for InputArg %s in method %s in class %s is missing. " + MESSAGE_ENUMS,
 									arg.toLowerCase(),
 									method.getName(),
 									ReflectUtil.getPath(parent.getClass())));
-							//d = true;
-							//break;
 						}
 
-						Checks.verify(declaredType.isEnum(),
+						final Class<?> enumType = argTypes[e];
+
+						Checks.verify(enumType.isEnum(),
 									  String.format(
-											  "ArgType %s does not match InputArg %s in method %s in class %s. Only include enums!",
-											  ReflectUtil.getPath(declaredType),
+											  "ArgType %s does not match InputArg %s in method %s in class %s. " + MESSAGE_ENUMS,
+											  ReflectUtil.getPath(enumType),
 											  arg.toLowerCase(),
 											  method.getName(),
 											  ReflectUtil.getPath(parent.getClass())),
 									  SubCommandException.class);
 
-						types[i] = declaredType;
-						declaredTypes[t] = declaredType;
-						arguments[i] = new Argument(getEnumValueNames((Class<E>) declaredType), (Class<E>) declaredType, true, description);
+						types[i] = enumType;
+						declaredTypes[t] = enumType;
+						arguments[i] = new Argument(getEnumValueNames((Class<E>) enumType), (Class<E>) enumType, true, description);
 
 						break;
 
@@ -591,11 +589,11 @@ public final class SubCommandManager {
 
 			//variable incrementation
 
-			if (arg.toLowerCase().matches("%[sidebp](<[a-z0-9_]+>)?")) {//type counter increment
+			if (arg.toLowerCase().matches(VARIABLES_PATTERN.pattern())) {//type counter increment
 				t++;
 			}
 
-			if (arg.toLowerCase().matches("%e(<[a-z0-9_]+>)?")) {//enum counter increment
+			if (arg.toLowerCase().matches(ENUM_VARIABLE_PATTERN.pattern())) {//enum counter increment
 				e++;
 			}
 
@@ -618,37 +616,36 @@ public final class SubCommandManager {
 
 		final Class<?>[] methodParameterTypes = method.getParameterTypes();
 
-		Checks.verify(method.getParameterCount() == declaredTypes.length,
-					  String.format("Parameters on method %s in class %s do not " +
-									"match ArgTypes.",
+		Checks.verify(method.getParameterCount() - 2 == declaredTypes.length,//sender and args
+					  String.format("Parameters on method %s in class %s do not match ArgTypes. " + MESSAGE_METHOD_PARAMETERS,
 									method.getName(),
 									ReflectUtil.getPath(parent.getClass())),
 					  SubCommandException.class);
 
-		if (declaredTypes.length == 0 && method.getParameterCount() == 0) {//nothing to check
+		if (declaredTypes.length == 0 && method.getParameterCount() == 2) {//nothing to check
 			return;
 		}
 
-		int i = 0;//counter
+		int i = 2;//counter (start at 2 because of sender and args)
 		for (final Class<?> type : declaredTypes) {//loop through expected declared types
 
 			if (type == null) {//should never throw
 				throw new SubCommandException(
-						String.format("ArgTypes on method %s in class %s do not match method parameters or InputArgs.",
+						String.format("ArgTypes on method %s in class %s do not match method parameters or InputArgs. " + MESSAGE_METHOD_PARAMETERS,
 									  method.getName(),
 									  ReflectUtil.getPath(parent.getClass())));
 			}
 
 			if (declaredTypes[i] == null) {//method's parameters don't match given args
 				throw new SubCommandException(
-						String.format("Parameters on method %s in class %s do not match InputArgs.",
+						String.format("Parameters on method %s in class %s do not match InputArgs. " + MESSAGE_METHOD_PARAMETERS,
 									  method.getName(),
 									  ReflectUtil.getPath(parent.getClass())));
 			}
 
 			//make sure the expected type and the method's declared parameter are same
 			Checks.verify(type.equals(ClassUtils.primitiveToWrapper(methodParameterTypes[i])),
-						  String.format("Parameter %s on method %s in class %s does not match ArgType %s.",
+						  String.format("Parameter %s on method %s in class %s does not match ArgType %s. " + MESSAGE_METHOD_PARAMETERS,
 										methodParameterTypes[i].getName(),
 										method.getName(),
 										ReflectUtil.getPath(parent.getClass()),
