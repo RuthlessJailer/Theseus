@@ -15,6 +15,7 @@ import lombok.NonNull;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
+import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -24,7 +25,6 @@ import org.bukkit.command.CommandSender;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -179,7 +179,7 @@ public final class SubCommandManager {
 					} else {//Integer, Double, Boolean, String, OfflinePlayer
 						if (declaredType.equals(Integer.class) || declaredType.equals(Double.class) || declaredType.equals(Boolean.class)) {
 							try {
-								parameters[p] = ReflectUtil.invokeMethod(declaredType, "valueOf", null, args[i]);
+								parameters[p] = ReflectUtil.newInstanceOf(declaredType, args[i]);//valueOf doesn't work with reflection
 							} catch (final ReflectUtil.ReflectionException e) {
 								if (e.getCause() instanceof InvocationTargetException) {//NumberFormatException
 									continue wrappers;
@@ -191,7 +191,7 @@ public final class SubCommandManager {
 							//final int finalP = p;
 							parameters[p] = Bukkit.getPlayer(args[i]);
 							if (parameters[p] == null) {
-								parameters[p] = Bukkit.getOfflinePlayer(args[i]);
+								parameters[p] = Bukkit.getOfflinePlayer(args[i]);//offline players aren't tab-completed, but still work when executing
 							}
 						}
 						p++;
@@ -604,7 +604,7 @@ public final class SubCommandManager {
 		//end main loop
 
 		//final checks
-		this.checkMethod(declaredTypes, method, parent);//make sure that the method's match the parse arguments
+		checkMethod(declaredTypes, method, parent);//make sure that the method's match the parse arguments
 
 		//finally, create and return the wrapper
 		return new SubCommandWrapper(parent,
@@ -621,12 +621,6 @@ public final class SubCommandManager {
 		Checks.verify(method.getParameterCount() == declaredTypes.length,
 					  String.format("Parameters on method %s in class %s do not " +
 									"match ArgTypes.",
-									method.getName(),
-									ReflectUtil.getPath(parent.getClass())),
-					  SubCommandException.class);
-
-		Checks.verify(Modifier.isSynchronized(method.getModifiers()),
-					  String.format("Method %s in class %s is not synchronized.",
 									method.getName(),
 									ReflectUtil.getPath(parent.getClass())),
 					  SubCommandException.class);
@@ -653,7 +647,7 @@ public final class SubCommandManager {
 			}
 
 			//make sure the expected type and the method's declared parameter are same
-			Checks.verify(type.equals(methodParameterTypes[i]),
+			Checks.verify(type.equals(ClassUtils.primitiveToWrapper(methodParameterTypes[i])),
 						  String.format("Parameter %s on method %s in class %s does not match ArgType %s.",
 										methodParameterTypes[i].getName(),
 										method.getName(),

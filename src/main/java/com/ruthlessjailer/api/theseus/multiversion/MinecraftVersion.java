@@ -1,5 +1,6 @@
-package com.ruthlessjailer.api.theseus;
+package com.ruthlessjailer.api.theseus.multiversion;
 
+import com.ruthlessjailer.api.theseus.Chat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -139,20 +140,20 @@ public enum MinecraftVersion {
 
 		private static final long serialVersionUID = -4100099225681420337L;
 
+		public UnsupportedServerVersionException() {
+			this("");
+		}
+
 		public UnsupportedServerVersionException(final String message) {
-			super("Unsupported server version (" + CURRENT_VERSION.getXname() + ") encountered. " + message);
+			this(message, null);
 		}
 
 		public UnsupportedServerVersionException(final String message, final Throwable cause) {
-			super(message, cause);
+			super("Unsupported server version (" + CURRENT_VERSION.getXname() + ") encountered. " + message, cause);
 		}
 
 		public UnsupportedServerVersionException(final Throwable cause) {
-			super(cause);
-		}
-
-		public UnsupportedServerVersionException(final String message, final Exception exception) {
-			super(message, exception);
+			this("", cause);
 		}
 
 	}

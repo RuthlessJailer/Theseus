@@ -1,9 +1,8 @@
-package com.ruthlessjailer.api.theseus.item;
+package com.ruthlessjailer.api.theseus.multiversion;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.ruthlessjailer.api.theseus.Common;
-import com.ruthlessjailer.api.theseus.MinecraftVersion;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
 import lombok.Getter;
 import lombok.NonNull;
@@ -14,7 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.ruthlessjailer.api.theseus.MinecraftVersion.*;
+import static com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion.*;
 
 /**
  * Inspired by and adapted from:

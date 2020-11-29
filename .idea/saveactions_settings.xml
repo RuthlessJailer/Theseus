@@ -5,7 +5,7 @@
       <set>
         <option value="activate" />
         <option value="organizeImports" />
-        <option value="reformat" />
+        <option value="reformatChangedCode" />
         <option value="rearrange" />
         <option value="localCanBeFinal" />
         <option value="localCanBeFinalExceptImplicit" />
@@ -17,5 +17,10 @@
       </set>
     </option>
     <option name="configurationPath" value="" />
+    <option name="exclusions">
+      <set>
+        <option value="/src/main/java/com/ruthlessjailer/api/theseus/multiversion/XColor\.java" />
+      </set>
+    </option>
   </component>
 </project>

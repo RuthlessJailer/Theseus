@@ -1,6 +1,5 @@
-package com.ruthlessjailer.api.theseus.item;
+package com.ruthlessjailer.api.theseus.multiversion;
 
-import com.ruthlessjailer.api.theseus.MinecraftVersion;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
 import lombok.NonNull;
 import org.bukkit.inventory.ItemFlag;

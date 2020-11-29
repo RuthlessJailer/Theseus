@@ -3,6 +3,7 @@ package com.ruthlessjailer.api.theseus;
 import com.ruthlessjailer.api.theseus.command.CommandBase;
 import com.ruthlessjailer.api.theseus.menu.MenuBase;
 import com.ruthlessjailer.api.theseus.menu.MenuListener;
+import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;

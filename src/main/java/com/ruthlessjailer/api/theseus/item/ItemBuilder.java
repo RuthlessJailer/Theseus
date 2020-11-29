@@ -2,6 +2,8 @@ package com.ruthlessjailer.api.theseus.item;
 
 import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
+import com.ruthlessjailer.api.theseus.multiversion.XColor;
+import com.ruthlessjailer.api.theseus.multiversion.XItemFlag;
 import javafx.util.Pair;
 import lombok.Builder;
 import lombok.NonNull;
@@ -12,6 +14,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -21,7 +24,7 @@ import java.util.Map;
 /**
  * @author RuthlessJailer
  */
-@Builder(builderClassName = "ItemStackCreator", buildMethodName = "of")
+@Builder(builderClassName = "ItemStackCreator", builderMethodName = "of")
 public class ItemBuilder {
 
 	private final Material                                 material;
@@ -71,6 +74,44 @@ public class ItemBuilder {
 		return of(material, name).lores(Chat.colorize(Arrays.asList(lore)));
 	}
 
+	public ItemStack create() {
+		Checks.nullCheck(this.material, "Material must be set!");
+
+		final ItemStack item = new ItemStack(this.material, this.amount);
+
+		if (!item.hasItemMeta()) {//no meta
+			return item;
+		}
+
+		final ItemMeta meta = item.getItemMeta();
+
+		assert meta != null;//not air; all else has meta
+
+		if (!this.flags.isEmpty()) {//item flags
+			this.flags.forEach(flag -> flag.applyToItem(item));
+		}
+
+		if (this.hideAllFlags) {//apply all flags
+			Arrays.stream(XItemFlag.values()).forEach(flag -> flag.applyToItem(item));
+		}
+
+		if (!this.enchantments.isEmpty()) {//enchantments
+			this.enchantments.forEach((enchantment, pair) -> meta.addEnchant(enchantment, pair.getKey(), pair.getValue()));
+		}
+
+		meta.setUnbreakable(this.unbreakable);
+
+		if (item.getType().name().contains("LEATHER")) {
+			if (meta instanceof LeatherArmorMeta) {
+				final LeatherArmorMeta leather = (LeatherArmorMeta) meta;
+				leather.setColor(this.color.getDyeColor().getColor());
+			}
+		}
+
+		return null;
+
+	}
+
 	public static final class ItemStackCreator {
 
 		protected ItemStackCreator() {}
@@ -93,37 +134,5 @@ public class ItemBuilder {
 			return this;
 		}
 
-		public ItemStack build() {
-
-			Checks.nullCheck(this.material, "Material must be set!");
-
-			final ItemStack item = new ItemStack(this.material, this.amount$set ? this.amount$value : ItemBuilder.$default$amount());
-
-			if (!item.hasItemMeta()) {//no meta
-				return item;
-			}
-
-			final ItemMeta meta = item.getItemMeta();
-
-			assert meta != null;//not air; all else has meta
-
-			if (this.flags != null) {//item flags
-				this.flags.forEach(flag -> flag.applyToItem(item));
-			}
-
-			if (this.hideAllFlags$set ? this.hideAllFlags$value : ItemBuilder.$default$hideAllFlags()) {//apply all flags
-				Arrays.stream(XItemFlag.values()).forEach(flag -> flag.applyToItem(item));
-			}
-
-			if (this.enchantments$key != null && this.enchantments$value != null) {//enchantments
-				for (int i = 0; i < this.enchantments$key.size() || i < this.enchantments$value.size(); i++) {
-					meta.addEnchant(this.enchantments$key.get(i), this.enchantments$value.get(i).getKey(), this.enchantments$value.get(i).getValue());
-				}
-			}
-
-			return null;
-		}
-
 	}
-
 }

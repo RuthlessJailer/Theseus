@@ -1,5 +1,6 @@
 package com.ruthlessjailer.api.theseus;
 
+import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 import lombok.NonNull;
 import org.apache.commons.lang.ClassUtils;
 import org.bukkit.Material;

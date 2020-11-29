@@ -1,6 +1,6 @@
 package com.ruthlessjailer.api.theseus.example;
 
-import com.ruthlessjailer.api.theseus.MinecraftVersion;
+import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;

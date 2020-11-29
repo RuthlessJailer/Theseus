@@ -5,13 +5,13 @@ import com.ruthlessjailer.api.theseus.command.CommandBase;
 import com.ruthlessjailer.api.theseus.command.SubCommand;
 import com.ruthlessjailer.api.theseus.command.SuperiorCommand;
 import com.ruthlessjailer.api.theseus.menu.MenuBase;
-import com.ruthlessjailer.api.theseus.typeadapter.TypeAdapterRegistry;
+import com.ruthlessjailer.api.theseus.multiversion.XColor;
 import lombok.NonNull;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.awt.*;
 
 /**
  * @author RuthlessJailer
@@ -26,50 +26,12 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 
 	@Override
 	protected synchronized void runCommand(@NonNull final CommandSender sender, final String[] args, @NonNull final String label) {
-		if (sender instanceof Player) {
-			((Player) sender).setVelocity(((Player) sender).getVelocity().setY(15));
-		}
-
-		if (args.length >= 1) {
-			sender.sendMessage(TypeAdapterRegistry.get(Integer.class).convert(args[0]) + ", integer");
-			sender.sendMessage(TypeAdapterRegistry.get(int.class).convert(args[0]) + ", int");
-		}
-
-		if (args.length >= 2) {
-			sender.sendMessage(TypeAdapterRegistry.get(Double.class).convert(args[1]) + ", double");
-		}
-
-		sender.sendMessage("YEET");
 	}
 
-	@SubCommand(inputArgs = "test %p")
-	private synchronized void test(final OfflinePlayer player) {
-		this.sender.sendMessage("test " + player.getName());
-	}
-
-	@SubCommand(inputArgs = "create|new %s<Name> %e", argTypes = Material.class)
-	private synchronized void create(final String name, final Material test) {
-		this.sender.sendMessage(name + " " + test);
-	}
-
-	@SubCommand(inputArgs = "delete|remove %b %d<Number> %e", argTypes = Material.class)
-	private synchronized void delete(final Boolean bool, final Double doub, final Material test) {
-		this.sender.sendMessage(bool + " " + doub + " " + test);
-	}
-
-	@SubCommand(inputArgs = "action add|new|create %s<Name>")
-	public synchronized void actionAdd(final String name) {
-		this.sender.sendMessage("created: " + name);
-	}
-
-	@SubCommand(inputArgs = "action delete|remove %s<Name>")
-	public synchronized void actionDelete(final String name) {
-		this.sender.sendMessage("deleted: " + name);
-	}
-
-	@SubCommand(inputArgs = "list")
-	private synchronized void list() {
-		this.sender.sendMessage("list: (nothing here)");
+	@SubCommand(inputArgs = "color %i")
+	private synchronized void color(final Integer color) {
+		final XColor converted = XColor.fromColor(new Color(color));
+		Chat.send(this.sender, converted + converted.name());
 	}
 
 	@SubCommand(inputArgs = "menu")

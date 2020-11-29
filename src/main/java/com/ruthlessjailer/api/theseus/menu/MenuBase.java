@@ -146,6 +146,7 @@ public abstract class MenuBase implements Listener {
 			}
 		}
 
+
 		for (final Map.Entry<Integer, Button> entry : this.buttons.entrySet()) {
 			final Integer slot   = entry.getKey();
 			final Button  button = entry.getValue();
