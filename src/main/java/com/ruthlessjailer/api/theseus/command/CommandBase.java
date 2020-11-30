@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.*;
+import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permissible;
 
 import java.util.ArrayList;
@@ -22,14 +23,14 @@ public abstract class CommandBase extends Command {
 	public static final String DEFAULT_PERMISSION_MESSAGE            = "&cYou do not the permission &3${permission}&c needed to run this command!";
 	public static final String DEFAULT_PERMISSION_SYNTAX             = "${plugin.name}.command.${command.label}";
 	public static final String DEFAULT_SUB_COMMAND_PERMISSION_SYNTAX = "${permission}.${sub.command}";
+	public static final String DEFAULT_PLAYER_FALSE_MESSAGE          = "&cThis command must be executed by a player!";
 
 	@Getter
-	private static String        starPermissionSyntax = getDefaultStarPermissionSyntax();
-	private final  boolean       isSuperior           = this instanceof SuperiorCommand;
-	protected      String        label;
-	protected      String[]      args;
-	protected      CommandSender sender;
-	protected      boolean       registered           = false;
+	private static String starPermissionSyntax = getDefaultStarPermissionSyntax();
+
+	protected final String  label;
+	private final   boolean isSuperior = this instanceof SuperiorCommand;
+	protected       boolean registered = false;
 
 	@Getter
 	private String customPermissionSyntax = getDefaultPermissionSyntax();
@@ -46,6 +47,10 @@ public abstract class CommandBase extends Command {
 	@Setter
 	@Getter
 	private boolean tabCompleteSubCommands = true;
+
+	@Getter
+	@Setter
+	private boolean autoCheckPermissionForSubCommands = true;
 
 	@Getter
 	@Setter
@@ -197,10 +202,6 @@ public abstract class CommandBase extends Command {
 			return false;
 		}
 
-		this.label  = label;
-		this.args   = args;
-		this.sender = sender;
-
 		if (!(this.autoGenerateHelpMenu && args.length >= 1 && args[0].equalsIgnoreCase("help"))) {//don't run on help command
 			runCommand(sender, args, label);
 		}
@@ -251,5 +252,18 @@ public abstract class CommandBase extends Command {
 	protected abstract void runCommand(@NonNull final CommandSender sender, final String[] args, @NonNull final String label);
 
 	protected List<String> onTabComplete(final CommandSender sender, final String alias, final String[] args, final Location location) { return new ArrayList<>(); }
+
+	protected Player getPlayer(@NonNull final CommandSender sender) {
+		return getPlayer(sender, DEFAULT_PLAYER_FALSE_MESSAGE);
+	}
+
+	protected Player getPlayer(@NonNull final CommandSender sender, @NonNull final String falseMessage) {
+		if (!(sender instanceof Player)) {
+			Chat.send(sender, falseMessage);
+			throw new CommandException();
+		}
+
+		return (Player) sender;
+	}
 
 }

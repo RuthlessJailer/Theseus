@@ -37,7 +37,10 @@ import java.util.regex.Pattern;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SubCommandManager {
 
-	private static final String  MESSAGE_METHOD_PARAMETERS = "Include all variables, but make sure the first two are CommandSender sender and String[] args.";
+	private static final String  MESSAGE_METHOD_PARAMETERS = "Include all variables in method parameters, but make sure the first two are CommandSender sender and" +
+															 " " +
+															 "String[]" +
+															 " args.";
 	private static final String  MESSAGE_ENUMS             = "Only include enums!";
 	private static final Pattern VARIABLES_PATTERN         = Pattern.compile("%[sidebp](<[a-z0-9_]+>)?");
 	private static final Pattern ENUM_VARIABLE_PATTERN     = Pattern.compile("%e(<[a-z0-9_]+>)?");
@@ -114,6 +117,27 @@ public final class SubCommandManager {
 				}
 
 				if (!wrapper.getArguments()[args.length - 1].isInfinite()) {
+
+					if (!wrapper.getArguments()[0].isInfinite()) {//check perms
+						final StringBuilder permission = command.chainCustomSubCommandPermissionSyntax(args[0]);
+						for (int i = 1; i < args.length; i++) {
+							if (wrapper.getArguments()[i].isInfinite()) {
+								continue;
+							}
+							permission.append(wrapper.getArguments()[i].getPossibilities()[0]);
+						}
+
+						System.out.println(command.getCustomSubCommandPermissionSyntax(args[0].toLowerCase()));
+						System.out.println(permission.toString());
+
+						if (command.isAutoCheckPermissionForSubCommands() &&
+							(!command.hasPermission(sender, permission.toString()) ||
+							 !command.hasPermission(sender, command.getCustomSubCommandPermissionSyntax(args[0].toLowerCase())))) {
+							return result;
+						}
+
+					}
+
 					for (final String possibility : wrapper.getArguments()[args.length - 1].getPossibilities()) {
 						if (Common.startsWithIgnoreCase(possibility, args[args.length - 1])) {
 							result.add(possibility);
@@ -476,8 +500,8 @@ public final class SubCommandManager {
 					  SubCommandException.class);
 
 		//make sure that the method has the same amount of declared parameters as there are variables
-		Checks.verify(t == method.getParameterCount(),
-					  String.format("InputArgs do not match method parameters in method %s in class %s. Only include enums!",
+		Checks.verify(t == method.getParameterCount() - 2,
+					  String.format("InputArgs do not match method parameters in method %s in class %s." + MESSAGE_METHOD_PARAMETERS + MESSAGE_ENUMS,
 									method.getName(),
 									ReflectUtil.getPath(parent.getClass())),
 					  SubCommandException.class);
@@ -625,6 +649,12 @@ public final class SubCommandManager {
 		if (declaredTypes.length == 0 && method.getParameterCount() == 2) {//nothing to check
 			return;
 		}
+
+		Checks.verify(methodParameterTypes[0].equals(CommandSender.class),
+					  "Parameters on method %s in class %s do not match InputArgs. (First arg must be CommandSender)" + MESSAGE_METHOD_PARAMETERS);
+
+		Checks.verify(methodParameterTypes[1].equals(String[].class),
+					  "Parameters on method %s in class %s do not match InputArgs. (Second arg must be String[])" + MESSAGE_METHOD_PARAMETERS);
 
 		int i = 2;//counter (start at 2 because of sender and args)
 		for (final Class<?> type : declaredTypes) {//loop through expected declared types

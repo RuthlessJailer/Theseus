@@ -7,9 +7,7 @@ import com.ruthlessjailer.api.theseus.command.SuperiorCommand;
 import com.ruthlessjailer.api.theseus.menu.MenuBase;
 import com.ruthlessjailer.api.theseus.multiversion.XColor;
 import lombok.NonNull;
-import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import java.awt.*;
 
@@ -29,13 +27,13 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 	}
 
 	@SubCommand(inputArgs = "color %i")
-	private synchronized void color(final Integer color) {
+	private void color(final CommandSender sender, final String[] args, final Integer color) {
 		final XColor converted = XColor.fromColor(new Color(color));
-		Chat.send(this.sender, converted + converted.name());
+		Chat.send(sender, converted + converted.name());
 	}
 
 	@SubCommand(inputArgs = "menu")
-	private synchronized void menu() {
+	private void menu(final CommandSender sender, final String[] args) {
 //		System.out.println("yeeting:");
 //		try {
 //			final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -60,15 +58,7 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 //			e.printStackTrace();
 //		}
 //		System.out.println("yeeted");
-		menuBase.displayTo(getPlayer(this.sender));
-	}
-
-	private Player getPlayer(@NonNull final CommandSender sender) {
-		if (!(sender instanceof Player)) {
-			Chat.send(sender, "yayeet players only son youre dumb");
-			throw new CommandException();
-		}
-		return (Player) sender;
+		menuBase.displayTo(getPlayer(sender));
 	}
 
 }
