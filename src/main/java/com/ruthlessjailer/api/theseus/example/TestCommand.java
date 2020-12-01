@@ -23,7 +23,7 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 	}
 
 	@Override
-	protected synchronized void runCommand(@NonNull final CommandSender sender, final String[] args, @NonNull final String label) {
+	protected void runCommand(@NonNull final CommandSender sender, final String[] args, @NonNull final String label) {
 	}
 
 	@SubCommand(inputArgs = "color %i")

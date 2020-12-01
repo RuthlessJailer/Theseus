@@ -1,0 +1,49 @@
+package com.ruthlessjailer.api.theseus.menu;
+
+import lombok.NonNull;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+
+/**
+ * This class can be extended to suit your own purposes.
+ * This class was made in place of having a set type of object in the list.
+ *
+ * @author RuthlessJailer
+ */
+public class ListItem {
+
+	private Object    value;
+	private ItemStack item;
+
+	public ListItem(final Object value, @NonNull final ItemStack item) {
+		this.value = value;
+		this.item  = item;
+	}
+
+	/**
+	 * Get the value of the item.
+	 *
+	 * @return the stored object
+	 */
+	public Object value() {
+		return this.value;
+	}
+
+	/**
+	 * Returns the {@link ItemStack} associated with the stored value.
+	 *
+	 * @return the {@link ItemStack} representation of the value
+	 */
+	public ItemStack item() {
+		return this.item;
+	}
+
+	/**
+	 * Invalidates the stored value.
+	 */
+	public void clear() {
+		this.value = null;
+		this.item.setType(Material.AIR);//don't nullify the itemstack
+	}
+
+}

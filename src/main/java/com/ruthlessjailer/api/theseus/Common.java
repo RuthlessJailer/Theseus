@@ -543,13 +543,14 @@ public final class Common {
 	 * 		given permission; {@code false} if either argument is null or the given requirements are not met
 	 */
 	public static boolean hasPermission(final Permissible permissible, final String permission) {
-		if (permissible == null || permission == null) {
+		if (permissible == null) {
 			return false;
 		}
 
 		return permissible.isOp() ||
 			   permissible.hasPermission(CommandBase.getStarPermissionSyntax()) ||
-			   permissible.hasPermission(permission);
+			   (permission != null &&
+				permissible.hasPermission(permission));
 	}
 
 }

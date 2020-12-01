@@ -25,7 +25,7 @@ public final class HelpMenuFormat {
 			Placeholder.PREVIOUS + "&e&l&m------&r&e[ &bHelp for &8/&9" + Placeholder.COMMAND + " &8(&a" + Placeholder.PAGE + "&8) &e]&l&m------" + Placeholder.NEXT,
 			"&4<<",
 			"&4>>",
-			"&e&m&l-------------------------------------------",
+			"&e&m&l--------------------------------------",
 			5);
 
 	private final String suggest;

@@ -32,6 +32,7 @@ public abstract class MenuBase implements Listener {
 
 	public static final String               NBT_CURRENT_MENU  = "THESEUS_CURRENT_MENU";
 	public static final String               NBT_PREVIOUS_MENU = "THESEUS_PREVIOUS_MENU";
+	public static final int                  MAX_SLOTS         = 54;
 	protected final     Map<Integer, Button> buttons           = new HashMap<>();
 	private final       MenuBase             parent;
 	private final       String               title;
@@ -71,14 +72,34 @@ public abstract class MenuBase implements Listener {
 				ReflectUtil.getPath(this.getClass()))));
 	}
 
+
+	/**
+	 * Returns the current open menu of the player.
+	 *
+	 * @param player the {@link Player} to check
+	 *
+	 * @return the current {@link MenuBase} instance or {@code null}
+	 */
 	public static MenuBase getCurrentMenu(@NonNull final Player player) {
 		return getMenu(player, NBT_CURRENT_MENU);
 	}
 
+	/**
+	 * Returns the previous menu of the player.
+	 *
+	 * @param player the {@link Player} to check
+	 *
+	 * @return the previous {@link MenuBase} instance or {@code null}
+	 */
 	public static MenuBase getPreviousMenu(@NonNull final Player player) {
 		return getMenu(player, NBT_PREVIOUS_MENU);
 	}
 
+	/**
+	 * Clears all menu-related metadata from the given player.
+	 *
+	 * @param player the {@link Player} instance to modify
+	 */
 	public static void clearMetadata(@NonNull final Player player) {
 		player.removeMetadata(NBT_PREVIOUS_MENU, Checks.instanceCheck());
 		player.removeMetadata(NBT_CURRENT_MENU, Checks.instanceCheck());
@@ -103,11 +124,20 @@ public abstract class MenuBase implements Listener {
 		return menu;
 	}
 
-	protected final void setButton(final int slot, @NonNull final Button button) {
+	/**
+	 * Sets a button.
+	 *
+	 * @param slot   the slot to put the button
+	 * @param button the {@link Button} to set
+	 */
+	protected void setButton(final int slot, @NonNull final Button button) {
 		this.buttons.put(slot, button);
 	}
 
-	protected final void updateInventory() {
+	/**
+	 * Refills the inventory and updates all viewers with changes.
+	 */
+	protected void updateInventory() {
 		generateInventory();
 
 		refillInventory();
@@ -119,7 +149,10 @@ public abstract class MenuBase implements Listener {
 		});
 	}
 
-	protected final void generateInventory() {
+	/**
+	 * Creates an inventory if there isn't one already.
+	 */
+	protected void generateInventory() {
 		if (this.inventory != null) {
 			return;
 		}
@@ -127,13 +160,19 @@ public abstract class MenuBase implements Listener {
 		regenerateInventory();
 	}
 
-	protected final void regenerateInventory() {
+	/**
+	 * Creates an inventory.
+	 */
+	protected void regenerateInventory() {
 		this.inventory = Bukkit.createInventory(null, this.size, this.title);
 
 		refillInventory();
 	}
 
-	protected final void refillInventory() {
+	/**
+	 * Fills the inventory with buttons.
+	 */
+	protected void refillInventory() {
 		generateInventory();
 
 		this.inventory.clear();
@@ -155,7 +194,12 @@ public abstract class MenuBase implements Listener {
 		}
 	}
 
-	public final void displayTo(@NonNull final Player player) {
+	/**
+	 * Displays the menu to a player.
+	 *
+	 * @param player the player to display the menu to.
+	 */
+	public void displayTo(@NonNull final Player player) {
 		generateInventory();
 
 		final MenuBase menu = getCurrentMenu(player);
@@ -166,13 +210,31 @@ public abstract class MenuBase implements Listener {
 
 		Common.runLater(() -> player.setMetadata(NBT_CURRENT_MENU, new FixedMetadataValue(Checks.instanceCheck(), this)));
 
+		onOpen(player, menu);
+
 		player.openInventory(this.inventory);
 	}
 
+	/**
+	 * Called upon opening of this menu to player.
+	 *
+	 * @param player   the player that this menu was opened to
+	 * @param previous the previous menu the player was viewing, or {@code null}
+	 */
 	protected void onOpen(@NonNull final Player player, final MenuBase previous) {}
 
-	protected void onClose(@NonNull final InventoryCloseEvent event)             {}
+	/**
+	 * Called the closing of this menu.
+	 *
+	 * @param event the event
+	 */
+	protected void onClose(@NonNull final InventoryCloseEvent event) {}
 
+	/**
+	 * Called upon a click to any slot in this menu.
+	 *
+	 * @param event the event
+	 */
 	protected void onGenericClick(@NonNull final InventoryClickEvent event)      {}
 
 

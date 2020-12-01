@@ -1,6 +1,7 @@
 package com.ruthlessjailer.api.theseus;
 
 import com.ruthlessjailer.api.theseus.command.CommandBase;
+import com.ruthlessjailer.api.theseus.command.SubCommandException;
 import com.ruthlessjailer.api.theseus.menu.MenuBase;
 import com.ruthlessjailer.api.theseus.menu.MenuListener;
 import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
@@ -94,6 +95,43 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	protected static final void debug(
 			@NonNull final String... messages) { Chat.debug("Plugin", messages); }
 
+	public static void catchError(@NonNull final Throwable throwable) {
+
+		Chat.send(Bukkit.getConsoleSender(),
+				  "&c------------------- The plugin has encountered an error. --------------------",
+				  "&cPlease send the latest log &8(located in /logs/latest.log) &cto the developer.",
+				  "&cHere is some information about the server: ",
+				  "&c \tVersion: &b" + getInstance().getDescription().getName() + " v" + getInstance().getDescription().getVersion(),
+				  "&c \tSpigot: &1" + Bukkit.getServer().getVersion() + "&c",
+				  "&c \tBukkit: &5" + Bukkit.getServer().getBukkitVersion(),
+				  "&c \tCraftBukkit: &a" + MinecraftVersion.SERVER_VERSION,
+				  "&c \tJava: &6" + System.getProperty("java.version"),
+				  "&c-----------------------------------------------------------------------------");
+
+		if (throwable instanceof SubCommandException) {
+			Chat.send(Bukkit.getConsoleSender(),
+					  "&cYou have failed to properly use the sub-command api. Please refer to the documentation/errors and check your methods.",
+					  "&c-----------------------------------------------------------------------------");
+		}
+
+		if (throwable instanceof ReflectUtil.ReflectionException) {
+			Chat.send(Bukkit.getConsoleSender(),
+					  "&cReflection error; your server version is either too old or not yet supported.",
+					  "&c-----------------------------------------------------------------------------");
+		}
+
+		if (throwable instanceof MinecraftVersion.UnsupportedServerVersionException) {
+			Chat.send(Bukkit.getConsoleSender(),
+					  "&4You have an unsupported server version.",
+					  "&c-----------------------------------------------------------------------------");
+		}
+
+
+		throwable.printStackTrace();
+		getInstance().setEnabled(false);
+		throw new RuntimeException();
+	}
+
 	@Override
 	public final void onLoad() {
 
@@ -109,7 +147,7 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 		}
 
 		debug("Calling beforeStart()");
-		this.beforeStart();
+		beforeStart();
 		debug("Called beforeStart()");
 	}
 
@@ -129,7 +167,9 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 			MenuBase.clearMetadata(player);
 		}
 
-		this.onStop();
+		debug("Calling onStop()");
+		onStop();
+		debug("Called onStop()");
 	}
 
 	@SneakyThrows
@@ -148,20 +188,17 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 			}
 		}
 
-		Bukkit.getPluginManager().registerEvents(new MenuListener(), this);
-
 		debug("Calling onStart()");
 		try {
-			this.onStart();
+			onStart();
 		} catch (final Throwable t) {
 			Chat.severe("Fatal error in onStart() in class " + ReflectUtil.getPath(this.getClass()) + ", exiting...");
-			t.printStackTrace();
-			setEnabled(false);
+			catchError(t);
+		} finally {
+			debug("Called onStart()");
 		}
-		debug("Called onStart()");
 
-		this.registerEvents(this);
-
+		registerEvents(this, new MenuListener());
 	}
 
 	/**
@@ -190,28 +227,22 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	 */
 	protected void onStop() {}
 
-	protected void registerEvents(
-			@NonNull final Listener... listeners) {
-		for (
-				@NonNull final Listener listener : listeners) {
-			this.getServer().getPluginManager().registerEvents(listener, this);
+	protected void registerEvents(@NonNull final Listener... listeners) {
+		for (@NonNull final Listener listener : listeners) {
+			getServer().getPluginManager().registerEvents(listener, this);
 			debug("Registered listener " + ReflectUtil.getPath(listener.getClass()) + ".");
 		}
 	}
 
-	protected void registerCommands(
-			@NonNull final Command... commands) {
-		for (
-				@NonNull final Command command : commands) {
+	protected void registerCommands(@NonNull final Command... commands) {
+		for (@NonNull final Command command : commands) {
 			Spigot.registerCommand(command);
 			debug("Registered command " + ReflectUtil.getPath(command.getClass()) + ".");
 		}
 	}
 
-	protected void registerCommands(
-			@NonNull final CommandBase... commands) {
-		for (
-				@NonNull final CommandBase command : commands) {
+	protected void registerCommands(@NonNull final CommandBase... commands) {
+		for (@NonNull final CommandBase command : commands) {
 			command.register();
 			debug("Registered command " + ReflectUtil.getPath(command.getClass()) + ".");
 		}

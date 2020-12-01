@@ -20,7 +20,7 @@ import java.util.List;
  */
 public abstract class CommandBase extends Command {
 
-	public static final String DEFAULT_PERMISSION_MESSAGE            = "&cYou do not the permission &3${permission}&c needed to run this command!";
+	public static final String DEFAULT_PERMISSION_MESSAGE            = "&cYou do not have the permission &3${permission}&c needed to run this command!";
 	public static final String DEFAULT_PERMISSION_SYNTAX             = "${plugin.name}.command.${command.label}";
 	public static final String DEFAULT_SUB_COMMAND_PERMISSION_SYNTAX = "${permission}.${sub.command}";
 	public static final String DEFAULT_PLAYER_FALSE_MESSAGE          = "&cThis command must be executed by a player!";
@@ -67,7 +67,7 @@ public abstract class CommandBase extends Command {
 	private CommandBase(@NonNull final String label, final List<String> aliases) {
 		super(label, "description", DEFAULT_PERMISSION_MESSAGE
 					  .replace("${permission}", DEFAULT_PERMISSION_SYNTAX
-							  .replace("${plugin.name}", PluginBase.getCurrentName())
+							  .replace("${plugin.name}", PluginBase.getCurrentName().toLowerCase())
 							  .replace("${command.label}", label))//default permission message for bukkit (unused)
 				, aliases);
 
@@ -83,7 +83,7 @@ public abstract class CommandBase extends Command {
 	protected static String getDefaultStarPermissionSyntax() {
 		return CommandBase.DEFAULT_PERMISSION_SYNTAX
 				.replace("${plugin.name}",
-						 PluginBase.getCurrentName())
+						 PluginBase.getCurrentName().toLowerCase())
 				.replace("${command.label}",
 						 "*");
 	}
@@ -138,7 +138,7 @@ public abstract class CommandBase extends Command {
 	private final String getDefaultPermissionSyntax() {
 		return CommandBase.DEFAULT_PERMISSION_SYNTAX
 				.replace("${plugin.name}",
-						 PluginBase.getCurrentName())
+						 PluginBase.getCurrentName().toLowerCase())
 				.replace("${command.label}",
 						 getLabel());
 	}
@@ -146,9 +146,7 @@ public abstract class CommandBase extends Command {
 	private final String getDefaultSubCommandPermissionSyntax() {
 		return CommandBase.DEFAULT_SUB_COMMAND_PERMISSION_SYNTAX
 				.replace("${permission}",
-						 getDefaultPermissionSyntax())
-				.replace("${sub.command}",
-						 getLabel());
+						 getDefaultPermissionSyntax());
 	}
 
 	private final String getDefaultPermissionMessage() {
@@ -157,7 +155,7 @@ public abstract class CommandBase extends Command {
 	}
 
 	protected final void setCustomPermissionSyntax(@NonNull final String syntax) {
-		this.customPermissionSyntax = syntax.replace("${plugin.name}", PluginBase.getCurrentName())
+		this.customPermissionSyntax = syntax.replace("${plugin.name}", PluginBase.getCurrentName().toLowerCase())
 											.replace("${command.label}",
 													 getLabel());
 	}
@@ -189,25 +187,27 @@ public abstract class CommandBase extends Command {
 	}
 
 	@Override
-	public final synchronized boolean execute(final CommandSender sender, final String label, final String[] args) {
+	public final boolean execute(final CommandSender sender, final String label, final String[] args) {
 
 		Chat.debug("Commands", "Command /" + label + " with args " + Arrays.toString(args) + " executed by " + sender.getName() + ".");
 
-		if (!Bukkit.isPrimaryThread()) {
-			Chat.warning("Async call to command /" + label + " (" + ReflectUtil.getPath(getClass()) + ").");
-		}
+		try {
+			if (!hasPermission(sender, getCustomPermissionSyntax())) {
+				Chat.send(sender, getCustomPermissionMessage());
+				return false;
+			}
 
-		if (!sender.hasPermission(getStarPermissionSyntax()) || !sender.hasPermission(getCustomPermissionSyntax())) {
-			sender.sendMessage(getCustomPermissionMessage());
+			if (!(this.autoGenerateHelpMenu && args.length >= 1 && args[0].equalsIgnoreCase("help"))) {//don't run on help command
+				runCommand(sender, args, label);
+			}
+
+			if (this.isSuperior) {
+				SubCommandManager.executeFor(this, sender, args);
+			}
+		} catch (final CommandException ignored) {
+		} catch (final Throwable t) {
+			PluginBase.catchError(t);
 			return false;
-		}
-
-		if (!(this.autoGenerateHelpMenu && args.length >= 1 && args[0].equalsIgnoreCase("help"))) {//don't run on help command
-			runCommand(sender, args, label);
-		}
-
-		if (this.isSuperior) {
-			SubCommandManager.executeFor(this, sender, args);
 		}
 
 		return true;
@@ -239,14 +239,14 @@ public abstract class CommandBase extends Command {
 	 * @see Common#hasPermission(Permissible, String)
 	 */
 	public boolean hasPermission(final Permissible permissible, final String permission) {
-		if (permissible == null || permission == null) {
+		if (permissible == null) {
 			return false;
 		}
 
 		return permissible.isOp() ||
 			   permissible.hasPermission(getStarPermissionSyntax()) ||
 			   permissible.hasPermission(getCustomPermissionSyntax()) ||
-			   permissible.hasPermission(permission);
+			   (permission != null && permissible.hasPermission(permission));
 	}
 
 	protected abstract void runCommand(@NonNull final CommandSender sender, final String[] args, @NonNull final String label);

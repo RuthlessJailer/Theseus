@@ -14,6 +14,6 @@ public final class HelpLine {
 	private final String          raw;
 	private final String          colorized;
 	private final BaseComponent[] formatted;
-	private final String          permission;
+	private final String[]        permissions;
 
 }

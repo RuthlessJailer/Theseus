@@ -23,7 +23,6 @@ import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -87,7 +86,12 @@ public final class SubCommandManager {
 	public static List<String> tabCompleteFor(@NonNull final CommandBase command, @NonNull final CommandSender sender, final String[] args) {
 		final List<String> result = new ArrayList<>();
 
-		if (command.isAutoGenerateHelpMenu() && Common.hasPermission(sender, command.getCustomSubCommandPermissionSyntax("help"))) {
+		if (command.isAutoGenerateHelpMenu() &&
+			(command.isAutoCheckPermissionForSubCommands() &&
+			 command.hasPermission(sender, command.getCustomSubCommandPermissionSyntax("help"))) &&
+			args.length > 0 &&
+			Common.startsWithIgnoreCase("help", args[0])) {
+
 			result.add("help");
 		}
 
@@ -118,24 +122,8 @@ public final class SubCommandManager {
 
 				if (!wrapper.getArguments()[args.length - 1].isInfinite()) {
 
-					if (!wrapper.getArguments()[0].isInfinite()) {//check perms
-						final StringBuilder permission = command.chainCustomSubCommandPermissionSyntax(args[0]);
-						for (int i = 1; i < args.length; i++) {
-							if (wrapper.getArguments()[i].isInfinite()) {
-								continue;
-							}
-							permission.append(wrapper.getArguments()[i].getPossibilities()[0]);
-						}
-
-						System.out.println(command.getCustomSubCommandPermissionSyntax(args[0].toLowerCase()));
-						System.out.println(permission.toString());
-
-						if (command.isAutoCheckPermissionForSubCommands() &&
-							(!command.hasPermission(sender, permission.toString()) ||
-							 !command.hasPermission(sender, command.getCustomSubCommandPermissionSyntax(args[0].toLowerCase())))) {
-							return result;
-						}
-
+					if (!hasPermission(sender, command, wrapper)) {
+						return result;
 					}
 
 					for (final String possibility : wrapper.getArguments()[args.length - 1].getPossibilities()) {
@@ -205,22 +193,18 @@ public final class SubCommandManager {
 
 				if (argument.isDeclaredType()) {
 					final Class<?> declaredType = argument.getType();
-
 					if (declaredType.isEnum()) {//get enum value
 						parameters[p] = ReflectUtil.getEnum((Class<E>) declaredType, args[i]);
 					} else {//Integer, Double, Boolean, String, OfflinePlayer
 						if (declaredType.equals(Integer.class) || declaredType.equals(Double.class) || declaredType.equals(Boolean.class)) {
 							try {
-								parameters[p] = ReflectUtil.newInstanceOf(declaredType, args[i]);//valueOf doesn't work with reflection
+								parameters[p] = ReflectUtil.newInstanceOf(declaredType, args[i]); //valueOf doesn't work with reflection
 							} catch (final ReflectUtil.ReflectionException e) {
-								if (e.getCause() instanceof InvocationTargetException) {//NumberFormatException
-									continue wrappers;
-								}
+								continue wrappers;
 							}
 						} else if (declaredType.equals(String.class)) {
 							parameters[p] = args[i];
 						} else if (declaredType.equals(OfflinePlayer.class)) {
-							//final int finalP = p;
 							parameters[p] = Bukkit.getPlayer(args[i]);
 							if (parameters[p] == null) {
 								parameters[p] = Bukkit.getOfflinePlayer(args[i]);//offline players aren't tab-completed, but still work when executing
@@ -232,6 +216,13 @@ public final class SubCommandManager {
 				i++;
 			}
 
+			//parsing was successful
+
+			if (!hasPermission(sender, command, wrapper)) {//check perms
+				return;
+			}
+
+			//invoke the method
 			Chat.debug("SubCommands", String.format("Invoking method %s in class %s for args '%s'.",
 													wrapper.getMethod().getName(), command.getClass(), StringUtils.join(args, " ")));
 
@@ -311,7 +302,7 @@ public final class SubCommandManager {
 							.event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
 												  Chat.stripColors(fullCommand.toString())))
 							.create(),
-					command.getCustomPermissionSyntax());
+					getPermission(command, wrapper));
 
 			if (l % format.getPageSize() == 0 || wrappers.isEmpty()) {//new page
 
@@ -334,7 +325,7 @@ public final class SubCommandManager {
 				headerBuilder.append(Chat.colorize(prePrevious), ComponentBuilder.FormatRetention.FORMATTING);//anything before the back button
 
 				headerBuilder.append(Chat.colorize(format.getPrevious()), ComponentBuilder.FormatRetention.FORMATTING)//the back button
-							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), p)));
+							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s %d", command.getLabel(), p)));
 
 
 				headerBuilder.append(Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel()))
@@ -359,23 +350,19 @@ public final class SubCommandManager {
 										Chat.stripColors(rawHeaderBuilder.toString()),
 										Chat.colorize(rawHeaderBuilder.toString()),
 										headerBuilder.create(),
-										"");
+										new String[0]);
 
 				//header stuff end
 
 				//footer stuff start
 
-				final StringBuilder footer = new StringBuilder();
-
-				for (int i = 0; i < Chat.stripColors(format.getHeader()).length(); i += format.getFooter().length()) {
-					footer.append(Chat.colorize(format.getFooter()));
-				}
+				final String footer = format.getFooter();
 
 				lines[format.getPageSize() + 1] = new HelpLine(//footer
-															   Chat.stripColors(footer.toString()),
-															   Chat.colorize(footer.toString()),
-															   new ComponentBuilder(Chat.colorize(footer.toString())).create(),
-															   "");
+															   Chat.stripColors(footer),
+															   Chat.colorize(footer),
+															   new ComponentBuilder(Chat.colorize(footer)).create(),
+															   new String[0]);
 
 				//footer stuff end
 
@@ -396,7 +383,37 @@ public final class SubCommandManager {
 		}
 	}
 
-	public void sendHelpMenuTo(@NonNull final HelpMenu menu, @NonNull final CommandSender sender, final int pageNumber) {//it's getting an index, no need to correct
+	private static boolean hasPermission(@NonNull final CommandSender sender, @NonNull final CommandBase command, @NonNull final SubCommandWrapper wrapper) {
+		if (!wrapper.getArguments()[0].isInfinite()) {//check perms; only checks first arg, if it's not infinite
+			boolean hasPerm = false;
+			for (final String possibility : wrapper.getArguments()[0].getPossibilities()) {
+				if (Common.hasPermission(sender, command.getCustomSubCommandPermissionSyntax(possibility))) {
+					hasPerm = true;
+				}//use static method here because sub-command perms are independent of the base command permission
+			}
+
+			return hasPerm;
+		}
+
+		return true;
+	}
+
+	private static String[] getPermission(@NonNull final CommandBase command, @NonNull final SubCommandWrapper wrapper) {
+		String[] result = new String[0];
+
+		if (!wrapper.getArguments()[0].isInfinite()) {//check perms; only checks first arg, if it's not infinite
+			result = new String[wrapper.getArguments()[0].getPossibilities().length];
+			for (int i = 0; i < result.length; i++) {
+				result[i] = command.getCustomSubCommandPermissionSyntax(wrapper.getArguments()[0].getPossibilities()[i]);
+			}
+			return result;
+		}
+
+		return result;
+	}
+
+	public void sendHelpMenuTo(@NonNull final HelpMenu menu, @NonNull final CommandSender sender, final int pageNumber) {
+		//it's getting an index, no need to correct the page number
 
 		final int page;
 
@@ -410,11 +427,16 @@ public final class SubCommandManager {
 
 		for (final HelpLine line : menu.getPages()[page].getLines()) {
 			if (line != null) {//line can be null if there aren't enough elements to populate the page
-				if (sender.isOp() ||
-					sender.hasPermission(CommandBase.getStarPermissionSyntax()) ||
-					sender.hasPermission(line.getPermission())) {//if they don't have the permission don't send them the command\
-
-					Common.runTask(() -> sender.spigot().sendMessage(line.getFormatted()));
+				if (line.getPermissions().length == 0) {//no perm; send it
+					sender.spigot().sendMessage(line.getFormatted());
+					continue;
+				}
+				for (final String perm : line.getPermissions()) {//has perm; need to check before sending
+					System.out.println(perm);
+					if (Common.hasPermission(sender, perm) || perm == null || perm.isEmpty()) {
+						sender.spigot().sendMessage(line.getFormatted());
+						break;
+					}
 				}
 			}
 		}
@@ -666,7 +688,7 @@ public final class SubCommandManager {
 									  ReflectUtil.getPath(parent.getClass())));
 			}
 
-			if (declaredTypes[i] == null) {//method's parameters don't match given args
+			if (methodParameterTypes[i] == null) {//method's parameters don't match given args
 				throw new SubCommandException(
 						String.format("Parameters on method %s in class %s do not match InputArgs. " + MESSAGE_METHOD_PARAMETERS,
 									  method.getName(),
