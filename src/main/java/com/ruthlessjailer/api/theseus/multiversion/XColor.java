@@ -368,15 +368,23 @@ public final class XColor {
 	/**
 	 * Returns the bungee chat color.
 	 *
-	 * @return the {@link net.md_5.bungee.api.ChatColor} representation of the color.
+	 * @return the {@link net.md_5.bungee.api.ChatColor} representation of the color
 	 */
 	public net.md_5.bungee.api.ChatColor getBungee() { return this.chatColor.asBungee(); }
 
 	/**
 	 * Returns the {@link Color}.
 	 *
-	 * @return the {@link Color} representation of the color.
+	 * @return the {@link Color} representation of the color
 	 */
 	public Color getColor() { return this.chat_color; }//return chat_color as default; if only dye_color was provided then they're the same
+
+
+	/**
+	 * Returns the {@link org.bukkit.Color Bukkit color}.
+	 *
+	 * @return {@link org.bukkit.Color Bukkit's  representation of the color}
+	 */
+	public org.bukkit.Color getBukkitColor(){ return org.bukkit.Color.fromRGB(getColor().getRed(), getColor().getGreen(), getColor().getBlue()); }
 
 }

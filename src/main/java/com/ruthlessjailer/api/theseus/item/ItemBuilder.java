@@ -2,12 +2,14 @@ package com.ruthlessjailer.api.theseus.item;
 
 import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
+import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 import com.ruthlessjailer.api.theseus.multiversion.XColor;
 import com.ruthlessjailer.api.theseus.multiversion.XItemFlag;
 import javafx.util.Pair;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Singular;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -27,39 +29,36 @@ import java.util.Map;
 @Builder(builderClassName = "ItemStackCreator", builderMethodName = "of")
 public class ItemBuilder {
 
+
+	private final ItemStack                                item;
+	private final ItemMeta                                 meta;
 	private final Material                                 material;
 	private final String                                   name;
 	@Builder.Default
-	private final int                                      amount       = 1;
+	private final int                                      amount          = 1;
 	@Builder.Default
-	private final int                                      damage       = -1;
+	private final int                                      damage          = -1;
 	@Singular
 	private final List<String>                             lores;
 	@Singular
 	private final Map<Enchantment, Pair<Integer, Boolean>> enchantments;
 	@Singular
 	private final List<XItemFlag>                          flags;
-	private final XColor                                   color;
 	@Builder.Default
-	private final boolean                                  unbreakable  = false;
+	private final XColor                                   color           = XColor.BLACK;
 	@Builder.Default
-	private final boolean                                  hideAllFlags = false;
-	private final List<Pair<String, Object>>               nbt;
+	private final boolean                                  unbreakable     = false;
+	@Builder.Default
+	private final boolean                                  hideAllFlags    = false;
+	@Singular
+	private final List<Pair<String, Object>>               nbts;
+	@Builder.Default
+	private final int                                      customModelData = 0;
+	private final String                                   localizedName;
 
 
 	public static ItemStackCreator of(@NonNull final ItemStack item) {
-		final ItemMeta meta = item.getItemMeta();
-		final ItemStackCreator builder = of(item.getType())
-				.addEnchantments(item.getEnchantments(), true)
-				.amount(item.getAmount())
-				.damage(item.getDurability());//for older versions
-		return item.hasItemMeta()
-			   ? builder
-					   .lores(Chat.colorize(meta.getLore()))
-					   .name(Chat.colorize(meta.getDisplayName()))
-					   .damage(meta instanceof Damageable ? ((Damageable) meta).getDamage() : -1)
-					   .addFlags(meta.getItemFlags())
-			   : builder;
+		return new ItemStackCreator().item(item);
 	}
 
 	public static ItemStackCreator of(@NonNull final Material material) {
@@ -75,41 +74,78 @@ public class ItemBuilder {
 	}
 
 	public ItemStack create() {
-		Checks.nullCheck(this.material, "Material must be set!");
+		Checks.verify(this.item != null || this.material != null, "Item or material must be set!");
 
-		final ItemStack item = new ItemStack(this.material, this.amount);
+		assert this.item != null || this.material != null;
 
-		if (!item.hasItemMeta()) {//no meta
+		final ItemStack item = this.item != null
+							   ? this.item.clone()
+							   : new ItemStack(this.material, this.amount);
+
+		if (this.material != null) {
+			item.setType(this.material);
+		}
+
+		final ItemMeta meta = this.meta != null
+							  ? this.meta.clone()
+							  : item.getItemMeta() != null
+								? item.getItemMeta()
+								: Bukkit.getItemFactory().getItemMeta(item.getType());
+
+		if (meta == null) {//no meta
 			return item;
 		}
 
-		final ItemMeta meta = item.getItemMeta();
+		//run all methods that deal with the item before modifying meta (although not needed at the moment, this might prove useful later)
 
-		assert meta != null;//not air; all else has meta
-
-		if (!this.flags.isEmpty()) {//item flags
-			this.flags.forEach(flag -> flag.applyToItem(item));
-		}
+		this.flags.forEach(flag -> flag.applyToItem(item));
 
 		if (this.hideAllFlags) {//apply all flags
 			Arrays.stream(XItemFlag.values()).forEach(flag -> flag.applyToItem(item));
 		}
 
-		if (!this.enchantments.isEmpty()) {//enchantments
-			this.enchantments.forEach((enchantment, pair) -> meta.addEnchant(enchantment, pair.getKey(), pair.getValue()));
-		}
-
-		meta.setUnbreakable(this.unbreakable);
-
-		if (item.getType().name().contains("LEATHER")) {
-			if (meta instanceof LeatherArmorMeta) {
-				final LeatherArmorMeta leather = (LeatherArmorMeta) meta;
-				leather.setColor(this.color.getDyeColor().getColor());
+		if (this.damage != -1) {
+			if (MinecraftVersion.atLeast(MinecraftVersion.v1_13)) {
+				if (meta instanceof Damageable) {
+					((Damageable) meta).setDamage(this.damage);
+				}
+			} else {
+				item.setDurability((short) this.damage);
 			}
 		}
 
-		return null;
+		//modify meta
 
+		this.enchantments.forEach((enchantment, pair) -> meta.addEnchant(enchantment, pair.getKey(), pair.getValue()));
+
+		meta.setUnbreakable(this.unbreakable);
+
+		//null checks so as not to modify the meta in case it was passed in
+		if (this.name != null) {
+			meta.setDisplayName(Chat.colorize(this.name));
+		}
+		if (!this.lores.isEmpty()) {
+			meta.setLore(Chat.colorize(this.lores));
+		}
+		if (this.localizedName != null) {
+			meta.setLocalizedName(Chat.colorize(this.localizedName));
+		}
+		if (meta instanceof LeatherArmorMeta) {
+			final LeatherArmorMeta leather = (LeatherArmorMeta) meta;
+			leather.setColor(this.color.getBukkitColor());
+		}
+
+		//version specific stuff
+
+		if (MinecraftVersion.atLeast(MinecraftVersion.v1_14)) {
+			meta.setCustomModelData(this.customModelData);
+		}
+
+		//finally, apply the meta and return the item
+
+		item.setItemMeta(meta);
+
+		return item;
 	}
 
 	public static final class ItemStackCreator {

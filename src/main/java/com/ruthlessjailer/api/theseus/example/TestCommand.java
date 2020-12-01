@@ -4,7 +4,6 @@ import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.command.CommandBase;
 import com.ruthlessjailer.api.theseus.command.SubCommand;
 import com.ruthlessjailer.api.theseus.command.SuperiorCommand;
-import com.ruthlessjailer.api.theseus.menu.MenuBase;
 import com.ruthlessjailer.api.theseus.multiversion.XColor;
 import lombok.NonNull;
 import org.bukkit.command.CommandSender;
@@ -16,7 +15,7 @@ import java.awt.*;
  */
 public class TestCommand extends CommandBase implements SuperiorCommand {
 
-	static MenuBase menuBase = new TestMenu();
+	static TestMenu test = new TestMenu();
 
 	public TestCommand() {
 		super("test");
@@ -58,7 +57,7 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 //			e.printStackTrace();
 //		}
 //		System.out.println("yeeted");
-		menuBase.displayTo(getPlayer(sender));
+		test.displayTo(getPlayer(sender));
 	}
 
 }

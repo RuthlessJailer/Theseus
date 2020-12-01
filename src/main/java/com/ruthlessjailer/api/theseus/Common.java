@@ -5,6 +5,8 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.permissions.Permissible;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -551,6 +553,22 @@ public final class Common {
 			   permissible.hasPermission(CommandBase.getStarPermissionSyntax()) ||
 			   (permission != null &&
 				permissible.hasPermission(permission));
+	}
+
+	/**
+	 * Returns whether or not the given {@link ItemStack item} is capable of having {@link ItemMeta meta}.
+	 *
+	 * @param item the {@link ItemStack} to check
+	 *
+	 * @return {@code true} if the {@link ItemStack item} can have {@link ItemMeta meta}, {@code false} if the {@link ItemStack item} is null or cannot have
+	 *        {@link ItemMeta meta}
+	 */
+	public static boolean hasItemMeta(final ItemStack item) {
+		if (item == null) {
+			return false;
+		}
+
+		return Bukkit.getItemFactory().getItemMeta(item.getType()) != null;
 	}
 
 }

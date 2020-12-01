@@ -1,5 +1,6 @@
 package com.ruthlessjailer.api.theseus.multiversion;
 
+import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
 import lombok.NonNull;
 import org.bukkit.inventory.ItemFlag;
@@ -20,12 +21,18 @@ public enum XItemFlag {
 	HIDE_POTION_EFFECTS,//potion effects
 	HIDE_DYE;//leather color
 
-	public static XItemFlag fromItemFlag(@NonNull final ItemFlag flag) { return valueOf(flag.name()); }
+	public static XItemFlag fromItemFlag(@NonNull final ItemFlag flag) { return ReflectUtil.getEnumSuppressed(XItemFlag.class, flag.name()); }
 
-	public ItemFlag getItemFlag()                                      { return ReflectUtil.getEnum(ItemFlag.class, this.toString()); }
+	public ItemFlag getItemFlag()                                      { return ReflectUtil.getEnum(ItemFlag.class, toString()); }
 
+	/**
+	 * Attempts to apply the flag to the given {@link ItemStack item}.<p>
+	 * Fails silently.
+	 *
+	 * @param item the {@link ItemStack} to apply the flag to
+	 */
 	public void applyToItem(@NonNull final ItemStack item) {
-		if (!item.hasItemMeta()) {
+		if (!Common.hasItemMeta(item)) {
 			return;
 		}
 
@@ -33,8 +40,6 @@ public enum XItemFlag {
 			final ItemMeta meta = item.getItemMeta();
 			meta.addItemFlags(ReflectUtil.getEnum(ItemFlag.class, this.toString()));
 			item.setItemMeta(meta);
-		} catch (final Throwable t) {
-			throw new MinecraftVersion.UnsupportedServerVersionException("Cannot set ItemFlag " + this.toString() + " to item " + item.toString() + ".", t);
-		}
+		} catch (final Throwable ignored) {}
 	}
 }
