@@ -1,9 +1,11 @@
 package com.ruthlessjailer.api.theseus.example;
 
+import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.item.ItemBuilder;
 import com.ruthlessjailer.api.theseus.menu.ListItem;
 import com.ruthlessjailer.api.theseus.menu.ListMenu;
 import org.bukkit.Material;
+import org.bukkit.event.Event;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,19 +16,29 @@ import java.util.List;
 public class TestMenu extends ListMenu<ListItem> {
 
 	public TestMenu() {
-		super(54, "&3Test Menu");
+		super(54, "&3Test Menu &a" + CURRENT_PAGE_PLACEHOLDER + "&8/&1" + TOTAL_PAGES_PLACEHOLDER);
 
 		final List<ListItem> list = new ArrayList<>();
 
-		for (final Material material : Material.values()) {
-			if (material.isItem()) {
-				list.add(new ListItem(null, ItemBuilder.of(material).name("An Item").build().create()));
-			}
+		for (int i = 0; i < Math.random() * 100; i++) {
+			list.add(new ListItem(i, ItemBuilder.of(Common.selectRandom(Material.values())).build().create(),
+								  (event, clicker, clicked) -> {
+									  event.setCancelled(false);
+									  event.setResult(Event.Result.ALLOW);
+								  }));
 		}
 
 		setAllItems(list);
 
-		setExcludedSlots(0, 8);
+		setExcludedSlots(0, 8, 45, 53);
+
+		setBackButtonSlot(45);
+		setNextButtonSlot(53);
+
+		regenerateInventory();
+		refillInventory();
+		updateInventory();
+
 //		setButton(0, new Button(new ItemStack(Material.BEDROCK), (event, clicker, clicked) -> {
 //			if (event.getCursor() != null && event.getCursor().getType() != Material.AIR) {
 //

@@ -4,6 +4,8 @@ import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
 import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
+import com.ruthlessjailer.api.theseus.item.ItemBuilder;
+import javafx.util.Pair;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -16,7 +18,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 
@@ -30,17 +31,21 @@ import java.util.Map;
 @Getter
 public abstract class MenuBase implements Listener {
 
-	public static final String               NBT_CURRENT_MENU  = "THESEUS_CURRENT_MENU";
-	public static final String               NBT_PREVIOUS_MENU = "THESEUS_PREVIOUS_MENU";
-	public static final int                  MAX_SLOTS         = 54;
-	protected final     Map<Integer, Button> buttons           = new HashMap<>();
-	private final       MenuBase             parent;
-	private final       String               title;
-	private final       int                  size;
-	private final       InventoryType        type;
+	public static final String                NBT_CURRENT_MENU         = "THESEUS_CURRENT_MENU";
+	public static final String                NBT_PREVIOUS_MENU        = "THESEUS_PREVIOUS_MENU";
+	public static final int                   MAX_SLOTS                = 54;
+	public static final int                   MIN_SLOTS                = 9;
+	protected final     Map<Integer, Button>  buttons                  = new HashMap<>();
+	private final       MenuBase              parent;
+	private final       String                title;
+	private final       int                   size;
+	private final       InventoryType         type;
+	private             Pair<Integer, Button> previousMenuButton       = new Pair<>(0,
+																					new Button(ItemBuilder.of(Material.ARROW, "&1&l&m<-").build().create(),
+																							   ButtonAction.EMPTY_ACTION));
 	@Setter(AccessLevel.PROTECTED)
-	private             boolean              enableBackButton  = true;
-	private             Inventory            inventory;
+	private             boolean               enablePreviousMenuButton = true;
+	private             Inventory             inventory;
 
 	public MenuBase(@NonNull final InventoryType type, @NonNull final String title) {
 		this(null, type, title);
@@ -51,6 +56,8 @@ public abstract class MenuBase implements Listener {
 	}
 
 	public MenuBase(final MenuBase parent, final int size, @NonNull final String title) {
+		Checks.verify(size <= MAX_SLOTS && size >= MIN_SLOTS, "Size must be between " + MIN_SLOTS + " and " + MAX_SLOTS);
+
 		this.parent = parent;
 		this.size   = size;
 		this.title  = Chat.colorize(title);
@@ -124,15 +131,24 @@ public abstract class MenuBase implements Listener {
 		return menu;
 	}
 
+	protected void setPreviousMenuButton(final int slot, @NonNull final Button button) {
+		this.previousMenuButton = new Pair<>(slot, button);
+	}
+
 	/**
 	 * Sets a button.
 	 *
 	 * @param slot   the slot to put the button
 	 * @param button the {@link Button} to set
 	 */
-	protected void setButton(final int slot, @NonNull final Button button) {
-		this.buttons.put(slot, button);
+	protected void setButton(final int slot, final Button button) {
+		if (button == null) {
+			this.buttons.remove(slot);
+		} else {
+			this.buttons.put(slot, button);
+		}
 	}
+
 
 	/**
 	 * Refills the inventory and updates all viewers with changes.
@@ -177,9 +193,10 @@ public abstract class MenuBase implements Listener {
 
 		this.inventory.clear();
 
-		if (this.enableBackButton) {
+		if (this.enablePreviousMenuButton) {
 			if (this.parent != null) {
-				setButton(0, new Button(new ItemStack(Material.ARROW), ((event, clicker, clicked) -> {
+				setButton(this.previousMenuButton.getKey(), new Button(this.previousMenuButton.getValue().getItem(), ((event, clicker, clicked) -> {
+					this.previousMenuButton.getValue().getAction().onClick(event, clicker, clicked);
 					this.parent.displayTo(clicker);
 				})));
 			}

@@ -15,6 +15,10 @@ public final class Button {
 	private ItemStack    item;
 	private ButtonAction action;
 
+	public Button(@NonNull final ItemStack item) {
+		this(item, ButtonAction.EMPTY_ACTION);
+	}
+
 	public Button(@NonNull final ItemStack item, final ButtonAction action) {
 		this.item   = item;
 		this.action = action == null ? ButtonAction.EMPTY_ACTION : action;

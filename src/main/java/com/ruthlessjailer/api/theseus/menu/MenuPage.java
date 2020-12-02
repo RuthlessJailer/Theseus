@@ -34,7 +34,7 @@ public final class MenuPage<I extends ListItem> extends MenuBase {
 
 		int i = 0;
 		for (final int slot : this.includedSlots) {
-			setButton(slot, new Button(this.items.get(i).item(), ButtonAction.EMPTY_ACTION));//TODO action
+			setButton(slot, new Button(this.items.get(i).item()));//TODO action
 			i++;
 		}
 	}

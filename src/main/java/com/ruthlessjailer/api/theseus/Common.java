@@ -16,11 +16,14 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 /**
  * @author RuthlessJailer
  */
 public final class Common {
+
+	public static final Random RANDOM = new Random();
 
 	/**
 	 * Cancels a task.
@@ -569,6 +572,35 @@ public final class Common {
 		}
 
 		return Bukkit.getItemFactory().getItemMeta(item.getType()) != null;
+	}
+
+	/**
+	 * Returns a random item from the list.
+	 *
+	 * @param list the {@link List} to choose from
+	 *
+	 * @return a random item from the list
+	 */
+	public static <T> T selectRandom(@NonNull final List<T> list) {
+		if (list.isEmpty()) {
+			return null;
+		}
+		return list.get(RANDOM.nextInt(list.size()));
+	}
+
+	/**
+	 * Returns a random item from the array.
+	 *
+	 * @param array the array to choose from
+	 *
+	 * @return a random item from the array
+	 */
+	@SafeVarargs
+	public static <T> T selectRandom(@NonNull final T... array) {
+		if (array.length == 0) {
+			return null;
+		}
+		return array[RANDOM.nextInt(array.length)];
 	}
 
 }

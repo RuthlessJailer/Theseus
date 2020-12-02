@@ -12,12 +12,18 @@ import org.bukkit.inventory.ItemStack;
  */
 public class ListItem {
 
-	private Object    value;
-	private ItemStack item;
+	private Object       value;
+	private ItemStack    item;
+	private ButtonAction action;
 
 	public ListItem(final Object value, @NonNull final ItemStack item) {
-		this.value = value;
-		this.item  = item;
+		this(value, item, ButtonAction.EMPTY_ACTION);
+	}
+
+	public ListItem(final Object value, @NonNull final ItemStack item, @NonNull final ButtonAction action) {
+		this.value  = value;
+		this.item   = item;
+		this.action = action;
 	}
 
 	/**

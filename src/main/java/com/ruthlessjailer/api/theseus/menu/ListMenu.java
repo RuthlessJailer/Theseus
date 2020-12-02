@@ -2,9 +2,10 @@ package com.ruthlessjailer.api.theseus.menu;
 
 import com.google.common.primitives.Ints;
 import com.ruthlessjailer.api.theseus.item.ItemBuilder;
-import javafx.util.Pair;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -20,16 +21,22 @@ import java.util.stream.Collectors;
 @Getter
 public abstract class ListMenu<I extends ListItem> extends MenuBase {
 
-	private final List<MenuPage<I>> pages         = new ArrayList<>();
-	private final List<I>           allItems      = new ArrayList<>();
-	private       int[]             includedSlots = new int[]{
+	protected static final String            DESTINATION_PAGE_PLACEHOLDER = "${DESTINATION}";
+	protected static final String            CURRENT_PAGE_PLACEHOLDER     = "${PAGE}";
+	protected static final String            TOTAL_PAGES_PLACEHOLDER      = "${MAX}";
+	private final          List<MenuPage<I>> pages                        = new ArrayList<>();
+	private final          List<I>           allItems                     = new ArrayList<>();
+	@Setter(AccessLevel.PROTECTED)
+	private                String            noMorePagesMessage           = "&4&lX&c";//this is used in place ${DESTINATION} on the last and first pages
+	private                int[]             includedSlots                = new int[]{
 			1, 2, 3, 4, 5, 6, 7,
 			10, 11, 12, 13, 14, 15, 16,
 			19, 20, 21, 22, 23, 24, 25
 	};
-
-	private Pair<Integer, Button> backButton;
-	private Pair<Integer, Button> nextButton;
+	private                int               backButtonSlot               = 0;
+	private                int               nextButtonSlot               = 8;
+	private                Button            backButton;
+	private                Button            nextButton;
 
 	private ListMenu(final @NonNull InventoryType type, final @NonNull String title) {//can't use type for paged menu
 		this(null, type, title);
@@ -46,48 +53,81 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	public ListMenu(final MenuBase parent, final int size, final @NonNull String title) {
 		super(parent, size, title);
 
-		final ItemBuilder.ItemStackCreator back = ItemBuilder.of(Material.ARROW).hideAllFlags(true).name("&6&m&l<-&c&9 ${PAGE}&8/&9${MAX}");
+		final ItemBuilder.ItemStackCreator button = ItemBuilder.of(Material.ARROW).hideAllFlags(true);
 
-		setBackButton(0, back.build().create());
-		setNextButton(8, back.name("&9${DESTINATION}&8/&9${MAX} &6&m&l->").build().create());
+		setBackButton(button.name("&6&m&l<-&c&a " + DESTINATION_PAGE_PLACEHOLDER + "&8/&9" + TOTAL_PAGES_PLACEHOLDER).build().create());
+		setNextButton(button.name("&a" + DESTINATION_PAGE_PLACEHOLDER + "&8/&9" + TOTAL_PAGES_PLACEHOLDER + " &6&m&l->").build().create());
+	}
+
+	/**
+	 * Get the number of pages that there is supposed to be. Note that this does not reflect what is currently being diplayed.
+	 *
+	 * @return the expected number of pages based on {@link ListMenu#allItems}
+	 *
+	 * @see ListMenu#regenerateInventory()
+	 */
+	protected int getPageCount() {
+		return this.allItems.size() / this.includedSlots.length;
+	}
+
+	/**
+	 * Sets the next button for each page.
+	 *
+	 * @param item the {@link ItemStack item} to use as the next button
+	 */
+	protected void setNextButton(@NonNull final ItemStack item) {
+		this.nextButton = new Button(item);
+
+		setButton(this.nextButtonSlot, this.nextButton);
 	}
 
 	/**
 	 * Sets the next button for each page.
 	 *
 	 * @param slot the slot to put it
-	 * @param item the {@link ItemStack item} to use as the next button
 	 *
 	 * @throws IllegalArgumentException if the provided slot is not free
 	 */
-	protected void setNextButton(final int slot, @NonNull final ItemStack item) {
-		if ((this.backButton != null && this.backButton.getKey() == slot) || !isFreeSlot(slot)) {
+	protected void setNextButtonSlot(final int slot) {
+		if (this.backButtonSlot == slot || !isFreeSlot(slot)) {
 			throw new IllegalArgumentException("Provided slot " + slot + " is not free!");
 		}
 
-		this.nextButton = new Pair<>(slot, new Button(item, ButtonAction.EMPTY_ACTION));//logic is done
-		// when the pages
-		// are created
+		setButton(this.nextButtonSlot, null);//clear old button
 
-		setButton(slot, this.nextButton.getValue());
+		this.nextButtonSlot = slot;
+
+		setButton(slot, this.nextButton);
+	}
+
+	/**
+	 * Sets the back button for each page.
+	 *
+	 * @param item the {@link ItemStack item} to use as the back button
+	 */
+	protected void setBackButton(@NonNull final ItemStack item) {
+		this.backButton = new Button(item);
+
+		setButton(this.backButtonSlot, this.backButton);
 	}
 
 	/**
 	 * Sets the back button for each page.
 	 *
 	 * @param slot the slot to put it
-	 * @param item the {@link ItemStack item} to use as the back button
 	 *
 	 * @throws IllegalArgumentException if the provided slot is not free
 	 */
-	protected void setBackButton(final int slot, @NonNull final ItemStack item) {
-		if ((this.nextButton != null && this.nextButton.getKey() == slot) || !isFreeSlot(slot)) {
+	protected void setBackButtonSlot(final int slot) {
+		if (this.nextButtonSlot == slot || !isFreeSlot(slot)) {
 			throw new IllegalArgumentException("Provided slot " + slot + " is not free!");
 		}
 
-		this.backButton = new Pair<>(slot, new Button(item, ButtonAction.EMPTY_ACTION));//logic is done when pages are created
+		setButton(this.backButtonSlot, null);//clear old button
 
-		setButton(slot, this.backButton.getValue());
+		this.backButtonSlot = slot;
+
+		setButton(slot, this.backButton);
 	}
 
 	private Map<Integer, Button> cloneButtons() {
@@ -101,16 +141,33 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	private void formatNames(@NonNull final Map<Integer, Button> buttons) {
 		buttons.forEach((slot, button) -> {
 			button.setItem(ItemBuilder.of(button.getItem())
-									  .name(formatName(button.getItem(), Integer.parseInt(button.getItem().getItemMeta().getLocalizedName())))
+									  .name(formatName(button.getItem(), parseRange(Integer.parseInt(button.getItem().getItemMeta().getLocalizedName())) + 1))
 									  .build().create());
 		});
 	}
 
 	private String formatName(@NonNull final ItemStack item, final int destinationPage) {
 		return item.getItemMeta().getDisplayName()
-				   .replace("${PAGE}", String.valueOf(this.pages.size()))
-				   .replace("${DESTINATION}", String.valueOf(destinationPage))
-				   .replace("${MAX}", String.valueOf(this.allItems.size() / this.includedSlots.length));
+				   .replace(CURRENT_PAGE_PLACEHOLDER, String.valueOf(this.pages.size()))//this is called during page generation
+				   .replace(DESTINATION_PAGE_PLACEHOLDER, String.valueOf(destinationPage))
+				   .replace(TOTAL_PAGES_PLACEHOLDER, String.valueOf(getPageCount()));
+	}
+
+	private String formatName(@NonNull final ItemStack item, @NonNull final String destinationPage) {
+		return item.getItemMeta().getDisplayName()
+				   .replace(CURRENT_PAGE_PLACEHOLDER, String.valueOf(this.pages.size()))//this is called during page generation
+				   .replace(DESTINATION_PAGE_PLACEHOLDER, destinationPage + "&c")
+				   .replace(TOTAL_PAGES_PLACEHOLDER, String.valueOf(getPageCount()));
+	}
+
+	private String formatTitle() {
+		return getTitle()
+				.replace(CURRENT_PAGE_PLACEHOLDER, String.valueOf(this.pages.size() + 1))//this is called before the page is added to the list
+				.replace(TOTAL_PAGES_PLACEHOLDER, String.valueOf(getPageCount()));
+	}
+
+	private int parseRange(final int page) {
+		return Ints.constrainToRange(page, 0, getPageCount() - 1);
 	}
 
 	/**
@@ -121,7 +178,15 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	 * @see ListMenu#setExcludedSlots(int...) for the inverse of this method
 	 */
 	protected final void setIncludedSlots(final int... slots) {
-		this.includedSlots = slots;
+		final List<Integer> included = Arrays.stream(slots).filter(i -> i < MAX_SLOTS).boxed().collect(Collectors.toList());//convert to list for ease of parsing
+
+		cloneButtons().forEach((slot, button) -> {
+			if (included.contains(slot)) {
+				this.buttons.remove(slot);
+			}
+		});
+
+		this.includedSlots = ArrayUtils.toPrimitive(included.toArray(new Integer[0]));
 	}
 
 	/**
@@ -166,7 +231,6 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 			throw new IllegalArgumentException("Max number of slots is " + MAX_SLOTS);
 		}
 
-
 		final List<Integer> excluded = Arrays.stream(slots).filter(i -> i < MAX_SLOTS).boxed().collect(Collectors.toList());//convert to list for ease of parsing
 		final List<Integer> included = new ArrayList<>(MAX_SLOTS - excluded.size());//make a list for ease of parsing
 
@@ -178,7 +242,13 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 			}
 		}
 
-		System.arraycopy(this.includedSlots, 0, ArrayUtils.toPrimitive(included.toArray(new Integer[0])), 0, this.includedSlots.length);//fill array
+		cloneButtons().forEach((slot, button) -> {
+			if (included.contains(slot)) {
+				this.buttons.remove(slot);
+			}
+		});
+
+		System.arraycopy(ArrayUtils.toPrimitive(included.toArray(new Integer[0])), 0, this.includedSlots, 0, this.includedSlots.length);//fill array
 	}
 
 	/**
@@ -188,8 +258,10 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	 * @param button the {@link Button} to set
 	 */
 	@Override
-	protected void setButton(final int slot, final @NonNull Button button) {
-		if (isFreeSlot(slot)) {
+	protected void setButton(final int slot, final Button button) {
+		if (button == null) {
+			this.buttons.remove(slot);
+		}else if (isFreeSlot(slot)) {
 			super.setButton(slot, button);
 		}
 	}
@@ -223,11 +295,10 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	 */
 	@Override
 	protected void regenerateInventory() {
-
 		this.pages.clear();
 
 		if (this.allItems.isEmpty()) {//create an empty page
-			setButtonsInMenu(new MenuPage<>(getSize(), "Page 1", this.includedSlots), 1, cloneButtons());
+			setButtonsInMenu(new MenuPage<>(getSize(), formatTitle(), this.includedSlots), 1, cloneButtons());
 			return;
 		}
 
@@ -237,9 +308,9 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 		for (final I item : this.allItems) {//parse the pages
 			buf.add(item);
 			if (i == this.includedSlots.length) {
-				setButtonsInMenu(new MenuPage<>(getSize(), "Page " + (p + 1), this.includedSlots, buf), p, cloneButtons());
-				i = 0;
+				setButtonsInMenu(new MenuPage<>(getSize(), formatTitle(), this.includedSlots, buf), p, cloneButtons());
 				p++;
+				i = 0;
 				buf.clear();
 			}
 			i++;
@@ -253,6 +324,26 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	 */
 	@Override
 	protected void refillInventory() {
+		if (this.allItems.isEmpty()) {//create an empty page
+			setButtonsInMenu(this.pages.get(0), 1, cloneButtons());
+			return;
+		}
+
+		final List<I> buf = new ArrayList<>();
+		int           i   = 0;//counter
+		int           p   = 0;//page counter
+		for (final I item : this.allItems) {//parse the pages
+			buf.add(item);
+			if (i == this.includedSlots.length) {
+				this.pages.get(p).setItems(buf);
+				setButtonsInMenu(this.pages.get(p), p, cloneButtons());
+				i = 0;
+				p++;
+				buf.clear();
+			}
+			i++;
+		}
+
 		this.pages.forEach(MenuPage::refillInventory);
 	}
 
@@ -270,12 +361,11 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 
 	private void setButtonsInMenu(@NonNull final MenuPage<I> page, final int pageNumber, @NonNull final Map<Integer, Button> buttons) {
 		final ButtonAction action = (event, clicker, clicked) -> {
-			final int next = Integer.parseInt(clicked.getItem().getItemMeta().getLocalizedName());
-			this.pages.get(Ints.constrainToRange(next, 0, (this.allItems.size() / this.includedSlots.length) - 1)).displayTo(clicker);
+			this.pages.get(parseRange(Integer.parseInt(clicked.getItem().getItemMeta().getLocalizedName()))).displayTo(clicker);
 		};
 
-		setButtonInMenu(pageNumber + 1, this.nextButton, buttons, action);
-		setButtonInMenu(pageNumber - 1, this.backButton, buttons, action);
+		setButtonInMenu(pageNumber + 1, this.nextButtonSlot, this.nextButton, buttons, action);
+		setButtonInMenu(pageNumber - 1, this.backButtonSlot, this.backButton, buttons, action);
 
 		formatNames(buttons);
 
@@ -283,14 +373,21 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 		this.pages.add(page);
 	}
 
-	private void setButtonInMenu(final int destinationPageNumber, @NonNull final Pair<Integer, Button> button, @NonNull final Map<Integer, Button> buttons, @NonNull final ButtonAction action) {
+	private void setButtonInMenu(final int destinationPageNumber, final int slot, @NonNull final Button button, @NonNull final Map<Integer, Button> buttons,
+								 @NonNull final ButtonAction action) {
 
-		final Button modified = new Button(ItemBuilder.of(button.getValue().getItem())
-													  .name(formatName(button.getValue().getItem(), destinationPageNumber))
+//		System.out.printf("dest:%s, parsed:%s, pagecount", destinationPageNumber);
+		final String name = destinationPageNumber != parseRange(destinationPageNumber) &&
+							(parseRange(destinationPageNumber) + 1 == getPageCount() || parseRange(destinationPageNumber) == 0)
+							? formatName(button.getItem(), this.noMorePagesMessage)
+							: formatName(button.getItem(), parseRange(destinationPageNumber) + 1);
+
+		final Button modified = new Button(ItemBuilder.of(button.getItem())
+													  .name(name)
 													  .localizedName(String.valueOf(destinationPageNumber)).build().create(),
 										   action);
 
-		buttons.put(button.getKey(), modified);
+		buttons.put(slot, modified);
 	}
 
 	/**
@@ -304,7 +401,7 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	 * @see ListMenu#setExcludedSlots(int...)
 	 */
 	protected boolean isFreeSlot(final int slot) {
-		if (slot >= MAX_SLOTS) {
+		if (slot > MAX_SLOTS || slot < 0) {
 			return false;
 		}
 
