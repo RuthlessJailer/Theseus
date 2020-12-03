@@ -1,6 +1,7 @@
 package com.ruthlessjailer.api.theseus;
 
 import com.ruthlessjailer.api.theseus.example.TestCommand;
+import com.ruthlessjailer.api.theseus.example.TestListener;
 import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 
 /**
@@ -33,5 +34,6 @@ public final class Theseus extends PluginBase {
 //		}, 20 * 10);
 
 		registerCommands(new TestCommand());
+		registerEvents(new TestListener());
 	}
 }

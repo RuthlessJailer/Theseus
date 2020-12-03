@@ -3,9 +3,7 @@ package com.ruthlessjailer.api.theseus.menu;
 import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
 import com.ruthlessjailer.api.theseus.Common;
-import com.ruthlessjailer.api.theseus.ReflectUtil;
 import com.ruthlessjailer.api.theseus.item.ItemBuilder;
-import javafx.util.Pair;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -13,11 +11,11 @@ import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 
@@ -29,23 +27,22 @@ import java.util.Map;
  * @author RuthlessJailer
  */
 @Getter
-public abstract class MenuBase implements Listener {
+public abstract class MenuBase {
 
-	public static final String                NBT_CURRENT_MENU         = "THESEUS_CURRENT_MENU";
-	public static final String                NBT_PREVIOUS_MENU        = "THESEUS_PREVIOUS_MENU";
-	public static final int                   MAX_SLOTS                = 54;
-	public static final int                   MIN_SLOTS                = 9;
-	protected final     Map<Integer, Button>  buttons                  = new HashMap<>();
-	private final       MenuBase              parent;
-	private final       String                title;
-	private final       int                   size;
-	private final       InventoryType         type;
-	private             Pair<Integer, Button> previousMenuButton       = new Pair<>(0,
-																					new Button(ItemBuilder.of(Material.ARROW, "&1&l&m<-").build().create(),
-																							   ButtonAction.EMPTY_ACTION));
+	public static final String               NBT_CURRENT_MENU         = "THESEUS_CURRENT_MENU";
+	public static final String               NBT_PREVIOUS_MENU        = "THESEUS_PREVIOUS_MENU";
+	public static final int                  MAX_SLOTS                = 54;
+	public static final int                  MIN_SLOTS                = 9;
+	protected final     Map<Integer, Button> buttons                  = new HashMap<>();
+	private final       MenuBase             parent;
+	private final       String               title;
+	private final       int                  size;
+	private final       InventoryType        type;
+	private             int                  previousMenuButtonSlot   = 0;
+	private             Button               previousMenuButton;
 	@Setter(AccessLevel.PROTECTED)
-	private             boolean               enablePreviousMenuButton = true;
-	private             Inventory             inventory;
+	private             boolean              enablePreviousMenuButton = true;
+	private             Inventory            inventory;
 
 	public MenuBase(@NonNull final InventoryType type, @NonNull final String title) {
 		this(null, type, title);
@@ -63,9 +60,7 @@ public abstract class MenuBase implements Listener {
 		this.title  = Chat.colorize(title);
 		this.type   = null;
 
-		Bukkit.getPluginManager().registerEvents(this, Checks.instanceCheck(String.format(
-				"Plugin instance cannot be null when initializing menu listener %s.",
-				ReflectUtil.getPath(this.getClass()))));
+		setPreviousMenuButton(ItemBuilder.of(Material.ARROW, "&9&l&m<-").build().create());
 	}
 
 	public MenuBase(final MenuBase parent, @NonNull final InventoryType type, @NonNull final String title) {
@@ -74,9 +69,7 @@ public abstract class MenuBase implements Listener {
 		this.title  = Chat.colorize(title);
 		this.type   = type;
 
-		Bukkit.getPluginManager().registerEvents(this, Checks.instanceCheck(String.format(
-				"Plugin instance cannot be null when initializing menu listener %s.",
-				ReflectUtil.getPath(this.getClass()))));
+		setPreviousMenuButton(ItemBuilder.of(Material.ARROW, "&9&l&m<-").build().create());
 	}
 
 
@@ -131,8 +124,24 @@ public abstract class MenuBase implements Listener {
 		return menu;
 	}
 
-	protected void setPreviousMenuButton(final int slot, @NonNull final Button button) {
-		this.previousMenuButton = new Pair<>(slot, button);
+	/**
+	 * Sets the previous menu button.
+	 *
+	 * @param item the {@link ItemStack item} to use as the previous button
+	 */
+	protected void setPreviousMenuButton(@NonNull final ItemStack item) {
+		this.previousMenuButton = new Button(item, (this.parent == null ? ButtonAction.EMPTY_ACTION : (event, clicker, clicked) -> this.parent.displayTo(clicker)));
+		setButton(this.previousMenuButtonSlot, this.previousMenuButton);
+	}
+
+	/**
+	 * Sets the previous menu button.
+	 *
+	 * @param slot the slot to put it
+	 */
+	protected void setPreviousMenuButtonSlot(final int slot) {
+		this.previousMenuButtonSlot = slot;
+		setButton(this.previousMenuButtonSlot, this.previousMenuButton);
 	}
 
 	/**
@@ -195,13 +204,11 @@ public abstract class MenuBase implements Listener {
 
 		if (this.enablePreviousMenuButton) {
 			if (this.parent != null) {
-				setButton(this.previousMenuButton.getKey(), new Button(this.previousMenuButton.getValue().getItem(), ((event, clicker, clicked) -> {
-					this.previousMenuButton.getValue().getAction().onClick(event, clicker, clicked);
+				setButton(this.previousMenuButtonSlot, new Button(this.previousMenuButton.getItem(), ((event, clicker, clicked) -> {
 					this.parent.displayTo(clicker);
 				})));
 			}
 		}
-
 
 		for (final Map.Entry<Integer, Button> entry : this.buttons.entrySet()) {
 			final Integer slot   = entry.getKey();

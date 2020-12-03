@@ -45,6 +45,15 @@ public class ListItem {
 	}
 
 	/**
+	 * Returns the {@link ButtonAction} to be run when the item is clicked in this menu.
+	 *
+	 * @return the {@link ButtonAction} to be run on click
+	 */
+	public ButtonAction action() {
+		return this.action;
+	}
+
+	/**
 	 * Invalidates the stored value.
 	 */
 	public void clear() {

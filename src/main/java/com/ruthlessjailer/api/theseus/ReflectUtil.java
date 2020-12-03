@@ -447,7 +447,7 @@ public final class ReflectUtil {
 	 */
 	public static <T> T invokeMethod(@NonNull final Class<?> clazz, @NonNull final String name,
 									 final Object instance, final Object... parameters) {
-		return invokeMethod(getMethod(clazz, name), instance, parameters);
+		return invokeMethod(getMethod(clazz, name, ClassUtils.toClass(parameters)), instance, parameters);
 	}
 
 	/**
@@ -603,10 +603,6 @@ public final class ReflectUtil {
 
 		public ReflectionException(final Throwable cause) {
 			super(cause);
-		}
-
-		public ReflectionException(final String message, final Exception exception) {
-			super(message, exception);
 		}
 
 	}

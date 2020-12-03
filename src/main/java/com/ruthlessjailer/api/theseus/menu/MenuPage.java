@@ -19,11 +19,11 @@ public final class MenuPage<I extends ListItem> extends MenuBase {
 	private       int[]   includedSlots;
 
 	public MenuPage(final int size, @NonNull final String title, final int[] includedSlots) {
-		this(size, title, includedSlots, new ArrayList<>());//TODO
+		this(size, title, includedSlots, new ArrayList<>());
 	}
 
 	public MenuPage(final int size, @NonNull final String title, final int[] includedSlots, @NonNull final List<I> items) {
-		super(size, title);//TODO
+		super(size, title);
 		this.includedSlots = includedSlots;
 		setItems(items);
 	}
@@ -33,8 +33,14 @@ public final class MenuPage<I extends ListItem> extends MenuBase {
 		this.items.addAll(items);
 
 		int i = 0;
+
 		for (final int slot : this.includedSlots) {
-			setButton(slot, new Button(this.items.get(i).item()));//TODO action
+			if (i == items.size()) {
+				break;
+			}
+
+			setButton(slot, new Button(this.items.get(i).item(), this.items.get(i).action()));
+//			System.out.println(slot + ":" + this.items.get(i).item().getData());
 			i++;
 		}
 	}
@@ -45,5 +51,6 @@ public final class MenuPage<I extends ListItem> extends MenuBase {
 	@Override
 	protected void refillInventory() {
 		super.refillInventory();
+		setItems(new ArrayList<>(this.items));
 	}
 }

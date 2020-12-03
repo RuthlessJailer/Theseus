@@ -9,6 +9,16 @@
     <name>Theseus</name>
     <version>1.2.2</version>
 
+    <profiles>
+        <profile>
+            <id>default</id>
+            <build>
+                <directory>${project.basedir}/target</directory>
+            </build>
+        </profile>
+    </profiles>
+
+
     <properties>
         <main.class>com.ruthlessjailer.api.theseus.Theseus</main.class>
 
