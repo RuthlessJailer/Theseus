@@ -2,6 +2,7 @@ package com.ruthlessjailer.api.theseus.example;
 
 import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Common;
+import com.ruthlessjailer.api.theseus.ReflectUtil;
 import com.ruthlessjailer.api.theseus.item.ItemBuilder;
 import com.ruthlessjailer.api.theseus.menu.Button;
 import com.ruthlessjailer.api.theseus.menu.ListItem;
@@ -72,7 +73,7 @@ public class TestMenu extends MenuBase {
 			final List<ListItem> list  = new ArrayList<>();
 			final List<Material> items = Arrays.stream(Material.values()).filter(Material::isItem).collect(Collectors.toList());
 
-			for (int i = 0; i < 200; i++) {
+			for (int i = 0; i < 1234; i++) {
 				list.add(new ListItem(i, ItemBuilder.of(Common.selectRandom(items)).build().create(),
 									  (event, clicker, clicked) -> {
 										  event.setCancelled(false);
@@ -80,19 +81,33 @@ public class TestMenu extends MenuBase {
 									  }));
 			}
 
-			System.out.println(list.size());
+			final int[] excluded = {
+					0, 1, 2, 3, 4, 5, 6, 7, 8,
+					9, 17,
+					18, 26,
+					27, 35,
+					36, 44,
+					45, 46, 47, 48, 49, 50, 51, 52, 53
+			};
+			setExcludedSlots(excluded);
 
-			setExcludedSlots(0, 8, 45, 53);
+			final Button border = new Button(ItemBuilder.of(ReflectUtil.getEnum(Material.class, "STAINED_GLASS_PANE"))
+														.name(" ").hideAllFlags(true).damage(15).build().create());
+			for (final int slot : excluded) {//set border before updating default buttons
+				setButton(slot, border);
+			}
 
 			setBackButtonSlot(45);
 			setNextButtonSlot(53);
 			setPreviousMenuButtonSlot(0);//back button will null previous one
 
-			setButton(8, new Button(ItemBuilder.of(Material.POTATO).name("&5yeet").build().create(), (event, clicker, clicked) -> {
-				clicker.closeInventory();
-				clicker.setVelocity(new Vector(0, 10, 0));
-				Chat.send(clicker, "&dyeeted");
-			}));
+			setButton(8, new Button(ItemBuilder.of(ReflectUtil.getEnum(Material.class, "POTATO_ITEM"))
+											   .name("&5yeet").build().create(),
+									(event, clicker, clicked) -> {
+										clicker.closeInventory();
+										clicker.setVelocity(new Vector(0, 10, 0));
+										Chat.send(clicker, "&dyeeted");
+									}));
 
 			setAllItems(list);
 		}

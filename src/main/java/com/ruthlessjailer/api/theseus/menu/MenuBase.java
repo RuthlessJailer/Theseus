@@ -60,7 +60,7 @@ public abstract class MenuBase {
 		this.title  = Chat.colorize(title);
 		this.type   = null;
 
-		setPreviousMenuButton(ItemBuilder.of(Material.ARROW, "&9&l&m<-").build().create());
+		setPreviousMenuButton(ItemBuilder.of(Material.ARROW, "&9&l&m<-&c&3 Return").hideAllFlags(true).build().create());
 	}
 
 	public MenuBase(final MenuBase parent, @NonNull final InventoryType type, @NonNull final String title) {
@@ -69,7 +69,7 @@ public abstract class MenuBase {
 		this.title  = Chat.colorize(title);
 		this.type   = type;
 
-		setPreviousMenuButton(ItemBuilder.of(Material.ARROW, "&9&l&m<-").build().create());
+		setPreviousMenuButton(ItemBuilder.of(Material.ARROW, "&9&l&m<-&c&3 Return").hideAllFlags(true).build().create());
 	}
 
 

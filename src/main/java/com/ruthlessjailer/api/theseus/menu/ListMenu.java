@@ -303,16 +303,18 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 
 		final List<I> buf = new ArrayList<>();
 		int           i   = 0;//counter
+		int           j   = this.allItems.size();//reverse
 		int           p   = 0;//page counter
 		for (final I item : this.allItems) {//parse the pages
 			buf.add(item);
-			if (i == this.includedSlots.length - 1 || (this.allItems.size() < this.includedSlots.length && i == this.allItems.size() - 1)) {
+			if (i == this.includedSlots.length || j <= this.includedSlots.length) {
 				setButtonsInMenu(new MenuPage<>(getSize(), formatTitle(), this.includedSlots, buf), p, cloneButtons(null));
 				p++;
 				i = 0;
 				buf.clear();
 			}
 			i++;
+			j--;
 		}
 
 		this.pages.forEach(MenuPage::regenerateInventory);
@@ -372,7 +374,6 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 
 		formatNames(buttons);
 
-		buttons.forEach((slot, button) -> System.out.println("\tmap- " + slot + ":" + button.getItem().getData()));
 		buttons.forEach(page::setButton);
 		this.pages.add(page);
 	}

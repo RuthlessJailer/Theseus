@@ -44,8 +44,7 @@ public class ItemBuilder {
 	private final Map<Enchantment, Pair<Integer, Boolean>> enchantments;
 	@Singular
 	private final List<XItemFlag>                          flags;
-	@Builder.Default
-	private final XColor                                   color           = XColor.BLACK;
+	private final XColor                                   color;
 	@Builder.Default
 	private final boolean                                  unbreakable     = false;
 	@Builder.Default
@@ -130,7 +129,7 @@ public class ItemBuilder {
 		if (this.localizedName != null) {
 			meta.setLocalizedName(Chat.colorize(this.localizedName));
 		}
-		if (meta instanceof LeatherArmorMeta) {
+		if (meta instanceof LeatherArmorMeta && this.color != null) {
 			final LeatherArmorMeta leather = (LeatherArmorMeta) meta;
 			leather.setColor(this.color.getBukkitColor());
 		}
