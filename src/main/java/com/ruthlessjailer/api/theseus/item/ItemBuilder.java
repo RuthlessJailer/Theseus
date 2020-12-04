@@ -2,6 +2,7 @@ package com.ruthlessjailer.api.theseus.item;
 
 import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
+import com.ruthlessjailer.api.theseus.ReflectUtil;
 import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 import com.ruthlessjailer.api.theseus.multiversion.XColor;
 import com.ruthlessjailer.api.theseus.multiversion.XItemFlag;
@@ -117,7 +118,15 @@ public class ItemBuilder {
 
 		this.enchantments.forEach((enchantment, pair) -> meta.addEnchant(enchantment, pair.getKey(), pair.getValue()));
 
-		meta.setUnbreakable(this.unbreakable);
+		if (MinecraftVersion.atLeast(MinecraftVersion.v1_11)) {
+			meta.setUnbreakable(this.unbreakable);
+		} else {
+			try {
+				final Object spigot = ReflectUtil.invokeMethod(ReflectUtil.getMethod(ItemMeta.class, "spigot"), meta);
+				ReflectUtil.invokeMethod(ReflectUtil.getMethod("org.bukkit.inventory.meta.ItemMeta$Spigot", "setUnbreakable", boolean.class),
+										 spigot, this.unbreakable);
+			} catch (final Throwable ignored) {}
+		}
 
 		//null checks so as not to modify the meta in case it was passed in
 		if (this.name != null) {

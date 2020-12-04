@@ -5,8 +5,10 @@ import com.ruthlessjailer.api.theseus.command.CommandBase;
 import com.ruthlessjailer.api.theseus.command.SubCommand;
 import com.ruthlessjailer.api.theseus.command.SuperiorCommand;
 import com.ruthlessjailer.api.theseus.multiversion.XColor;
+import com.ruthlessjailer.api.theseus.multiversion.XMaterial;
 import lombok.NonNull;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.awt.*;
 
@@ -15,7 +17,7 @@ import java.awt.*;
  */
 public class TestCommand extends CommandBase implements SuperiorCommand {
 
-	static TestMenu test = new TestMenu();
+//	static TestMenu test = new TestMenu();
 
 	public TestCommand() {
 		super("test");
@@ -29,6 +31,19 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 	private void color(final CommandSender sender, final String[] args, final Integer color) {
 		final XColor converted = XColor.fromColor(new Color(color));
 		Chat.send(sender, converted + converted.name());
+	}
+
+	@SubCommand(inputArgs = "material %s")
+	private void material(final CommandSender sender, final String[] args, final String material) {
+		final XMaterial x = XMaterial.getXMaterial(joinArgs(1, args).replaceAll(" ", "_").toUpperCase());
+
+		Chat.send(sender, x.name());
+		Chat.send(sender, x.toItemStack().getData().toString());
+
+		if (sender instanceof Player) {
+			getPlayer(sender).getInventory().addItem(x.toItemStack());
+		}
+
 	}
 
 	@SubCommand(inputArgs = "menu")
@@ -57,7 +72,7 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 //			e.printStackTrace();
 //		}
 //		System.out.println("yeeted");
-		test.displayTo(getPlayer(sender));
+//		test.displayTo(getPlayer(sender));
 	}
 
 }

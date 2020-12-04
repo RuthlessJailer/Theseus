@@ -318,7 +318,7 @@ public final class Common {
 	 * Copies an array from the given start index to the end.
 	 *
 	 * @param array the array to copy
-	 * @param start the index to copy from
+	 * @param start the index to copy from, inclusive
 	 *
 	 * @return the new array
 	 */
@@ -330,7 +330,7 @@ public final class Common {
 	 * Copies an array from the start until the given ending index.
 	 *
 	 * @param array the array to copy
-	 * @param end   the index to copy to
+	 * @param end   the index to copy to, exclusive
 	 *
 	 * @return the new array
 	 */

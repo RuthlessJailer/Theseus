@@ -1,13 +1,13 @@
 package com.ruthlessjailer.api.theseus.example;
 
 import com.ruthlessjailer.api.theseus.Chat;
-import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
 import com.ruthlessjailer.api.theseus.item.ItemBuilder;
 import com.ruthlessjailer.api.theseus.menu.Button;
 import com.ruthlessjailer.api.theseus.menu.ListItem;
 import com.ruthlessjailer.api.theseus.menu.ListMenu;
 import com.ruthlessjailer.api.theseus.menu.MenuBase;
+import com.ruthlessjailer.api.theseus.multiversion.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
@@ -73,8 +73,8 @@ public class TestMenu extends MenuBase {
 			final List<ListItem> list  = new ArrayList<>();
 			final List<Material> items = Arrays.stream(Material.values()).filter(Material::isItem).collect(Collectors.toList());
 
-			for (int i = 0; i < 1234; i++) {
-				list.add(new ListItem(i, ItemBuilder.of(Common.selectRandom(items)).build().create(),
+			for (final Material material : items) {
+				list.add(new ListItem(material, ItemBuilder.of(material).build().create(),
 									  (event, clicker, clicked) -> {
 										  event.setCancelled(false);
 										  event.setResult(Event.Result.ALLOW);
@@ -91,8 +91,9 @@ public class TestMenu extends MenuBase {
 			};
 			setExcludedSlots(excluded);
 
-			final Button border = new Button(ItemBuilder.of(ReflectUtil.getEnum(Material.class, "STAINED_GLASS_PANE"))
-														.name(" ").hideAllFlags(true).damage(15).build().create());
+
+			final Button border = new Button(ItemBuilder.of(XMaterial.BLACK_STAINED_GLASS_PANE.toItemStack())
+														.name(" ").hideAllFlags(true).build().create());
 			for (final int slot : excluded) {//set border before updating default buttons
 				setButton(slot, border);
 			}
@@ -101,7 +102,7 @@ public class TestMenu extends MenuBase {
 			setNextButtonSlot(53);
 			setPreviousMenuButtonSlot(0);//back button will null previous one
 
-			setButton(8, new Button(ItemBuilder.of(ReflectUtil.getEnum(Material.class, "POTATO_ITEM"))
+			setButton(8, new Button(ItemBuilder.of(ReflectUtil.getEnum(Material.class, "POTATO_ITEM", "POTATO"))
 											   .name("&5yeet").build().create(),
 									(event, clicker, clicked) -> {
 										clicker.closeInventory();

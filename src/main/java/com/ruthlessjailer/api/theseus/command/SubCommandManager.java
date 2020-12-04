@@ -8,13 +8,12 @@ import com.ruthlessjailer.api.theseus.command.help.HelpLine;
 import com.ruthlessjailer.api.theseus.command.help.HelpMenu;
 import com.ruthlessjailer.api.theseus.command.help.HelpMenuFormat;
 import com.ruthlessjailer.api.theseus.command.help.HelpPage;
+import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.*;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
@@ -289,24 +288,23 @@ public final class SubCommandManager {
 				fullCommand.append(" ").append(Chat.colorize(append));
 			}
 
+			final TextComponent commandComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(fullCommand.toString())));
+			commandComponent.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
+														  Chat.stripColors(fullCommand.toString())));
+			commandComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+														  TextComponent.fromLegacyText(Chat.colorize(format.getSuggest().replace(
+																  HelpMenuFormat.Placeholder.COMMAND,
+																  fullCommand.toString())))));
+
 			lines[l] = new HelpLine(
 					Chat.stripColors(fullCommand.toString()),
 
 					Chat.colorize(fullCommand.toString()),
 
-					new ComponentBuilder(Chat.colorize(fullCommand.toString()))
-							.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-												  new ComponentBuilder(Chat.colorize(format.getSuggest().replace(
-														  HelpMenuFormat.Placeholder.COMMAND,
-														  fullCommand.toString()))).create()))
-							.event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
-												  Chat.stripColors(fullCommand.toString())))
-							.create(),
+					Common.asArray(commandComponent),
 					getPermission(command, wrapper));
 
 			if (l % format.getPageSize() == 0 || wrappers.isEmpty()) {//new page
-
-				//this never hits if you have less than the pageSize
 
 				//header stuff start
 
@@ -322,24 +320,51 @@ public final class SubCommandManager {
 				final String postNext           = headerPostPrevious.substring(headerPostPrevious.lastIndexOf(next) + next.length());//anything after the next button
 				final String rawHeader          = headerPostPrevious.substring(0, headerPostPrevious.lastIndexOf(next));//everything in between the back and the next buttons
 
-				headerBuilder.append(Chat.colorize(prePrevious), ComponentBuilder.FormatRetention.FORMATTING);//anything before the back button
+				final int nextPage = p == pageCount
+									 ? p
+									 : p + 2;
 
-				headerBuilder.append(Chat.colorize(format.getPrevious()), ComponentBuilder.FormatRetention.FORMATTING)//the back button
-							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s %d", command.getLabel(), p)));
+				final BaseComponent[] headerComponents;
+				if (MinecraftVersion.atLeast(MinecraftVersion.v1_12)) {
+					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(prePrevious)),
+										 ComponentBuilder.FormatRetention.FORMATTING);//anything before the back button
+
+					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(format.getPrevious())), ComponentBuilder.FormatRetention.FORMATTING)
+								 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s %d", command.getLabel(), p)));//the back button
 
 
-				headerBuilder.append(Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel()))
-										 .replaceAll(Common.escape(HelpMenuFormat.Placeholder.PAGE), String.valueOf(p + 1)),
-									 ComponentBuilder.FormatRetention.FORMATTING);//everything in between the back and the next buttons
+					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel()))
+																		  .replaceAll(Common.escape(HelpMenuFormat.Placeholder.PAGE), String.valueOf(p + 1))),
+										 ComponentBuilder.FormatRetention.FORMATTING);//everything in between the back and the next buttons
 
-				headerBuilder.append(Chat.colorize(format.getNext()), ComponentBuilder.FormatRetention.FORMATTING)//the next button
-							 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(),
-																								p == pageCount
-																								? p
-																								: p + 2)));
+					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(format.getNext())), ComponentBuilder.FormatRetention.FORMATTING)//the next button
+								 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(),
+																									nextPage)));
 
-				headerBuilder.append(Chat.colorize(postNext), ComponentBuilder.FormatRetention.FORMATTING);//anything after the next button
+					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(postNext)),
+										 ComponentBuilder.FormatRetention.FORMATTING);//anything after the next button
 
+					headerComponents = headerBuilder.create();
+				} else {
+
+					final TextComponent prePreviousComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(prePrevious)));
+
+					final TextComponent previousComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(format.getPrevious())));
+
+					previousComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s %d", command.getLabel(), p)));
+
+					final TextComponent rawHeaderComponent = new TextComponent(TextComponent.fromLegacyText(
+							Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel()))
+								.replaceAll(Common.escape(HelpMenuFormat.Placeholder.PAGE), String.valueOf(p + 1))));
+
+					final TextComponent nextComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(format.getNext())));
+
+					nextComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), nextPage)));
+
+					final TextComponent postNextComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(postNext)));
+
+					headerComponents = Common.asArray(prePreviousComponent, previousComponent, rawHeaderComponent, nextComponent, postNextComponent);
+				}
 				rawHeaderBuilder.append(prePrevious)
 								.append(format.getPrevious())
 								.append(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel()))
@@ -349,7 +374,7 @@ public final class SubCommandManager {
 				lines[0] = new HelpLine(//header with buttons
 										Chat.stripColors(rawHeaderBuilder.toString()),
 										Chat.colorize(rawHeaderBuilder.toString()),
-										headerBuilder.create(),
+										headerComponents,
 										new String[0]);
 
 				//header stuff end
@@ -358,10 +383,12 @@ public final class SubCommandManager {
 
 				final String footer = format.getFooter();
 
+				final TextComponent footerComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(footer)));
+
 				lines[format.getPageSize() + 1] = new HelpLine(//footer
 															   Chat.stripColors(footer),
 															   Chat.colorize(footer),
-															   new ComponentBuilder(Chat.colorize(footer)).create(),
+															   Common.asArray(footerComponent),
 															   new String[0]);
 
 				//footer stuff end
@@ -428,13 +455,23 @@ public final class SubCommandManager {
 		for (final HelpLine line : menu.getPages()[page].getLines()) {
 			if (line != null) {//line can be null if there aren't enough elements to populate the page
 				if (line.getPermissions().length == 0) {//no perm; send it
-					sender.spigot().sendMessage(line.getFormatted());
+					if (MinecraftVersion.atLeast(MinecraftVersion.v1_12)) {
+						sender.spigot().sendMessage(line.getFormatted());
+					} else {
+						ReflectUtil.invokeMethod(ReflectUtil.getMethod(CommandSender.class, "sendMessage", String[].class),
+												 sender, (Object[]) line.getFormatted());
+					}
 					continue;
 				}
 				for (final String perm : line.getPermissions()) {//has perm; need to check before sending
 					System.out.println(perm);
 					if (Common.hasPermission(sender, perm) || perm == null || perm.isEmpty()) {
-						sender.spigot().sendMessage(line.getFormatted());
+						if (MinecraftVersion.atLeast(MinecraftVersion.v1_12)) {
+							sender.spigot().sendMessage(line.getFormatted());
+						} else {
+							ReflectUtil.invokeMethod(ReflectUtil.getMethod(CommandSender.class, "sendMessage", String[].class),
+													 sender, (Object[]) line.getFormatted());
+						}
 						break;
 					}
 				}

@@ -253,10 +253,29 @@ public abstract class CommandBase extends Command {
 
 	protected List<String> onTabComplete(final CommandSender sender, final String alias, final String[] args, final Location location) { return new ArrayList<>(); }
 
+	/**
+	 * Returns the {@link Player} instance of the given {@link CommandSender}.
+	 *
+	 * @param sender the {@link CommandSender} convert
+	 *
+	 * @return the converted {@link Player}
+	 *
+	 * @throws CommandException if the sender is not a {@link Player}
+	 */
 	protected Player getPlayer(@NonNull final CommandSender sender) {
 		return getPlayer(sender, DEFAULT_PLAYER_FALSE_MESSAGE);
 	}
 
+	/**
+	 * Returns the {@link Player} instance of the given {@link CommandSender}.
+	 *
+	 * @param sender       the {@link CommandSender} convert
+	 * @param falseMessage the message to send to the {@link CommandSender} if they are not a {@link Player}
+	 *
+	 * @return the converted {@link Player}
+	 *
+	 * @throws CommandException if the sender is not a {@link Player}
+	 */
 	protected Player getPlayer(@NonNull final CommandSender sender, @NonNull final String falseMessage) {
 		if (!(sender instanceof Player)) {
 			Chat.send(sender, falseMessage);
@@ -264,6 +283,19 @@ public abstract class CommandBase extends Command {
 		}
 
 		return (Player) sender;
+	}
+
+	/**
+	 * Joins the provided array.
+	 *
+	 * @param startIndex the starting index, inclusive
+	 * @param args       the {@link String}[] to parse
+	 *
+	 * @return the {@link String#join(CharSequence, CharSequence...) joined} {@link String}, {@link Arrays#copyOfRange(Object[], int, int) copied} from the {@code
+	 * 		startIndex}
+	 */
+	protected String joinArgs(final int startIndex, @NonNull final String[] args) {
+		return String.join(" ", Common.copyToEnd(args, startIndex));
 	}
 
 }

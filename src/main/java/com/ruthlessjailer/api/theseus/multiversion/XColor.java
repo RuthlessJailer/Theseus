@@ -1,6 +1,5 @@
 package com.ruthlessjailer.api.theseus.multiversion;
 
-import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
 import lombok.Getter;
 import lombok.NonNull;
@@ -46,7 +45,8 @@ public final class XColor {
 	public static final XColor BROWN        = new XColor(DyeColor.BROWN, "BROWN", new Color(0x835432), ChatColor.GOLD);
 	public static final XColor PINK         = new XColor(DyeColor.PINK, "PINK", new Color(0xF38BAA), ChatColor.LIGHT_PURPLE);
 
-	private static final XColor[]           values = Common.asArray(BLACK, DARK_BLUE, DARK_GREEN, DARK_AQUA, DARK_PURPLE, GOLD, GRAY, DARK_GRAY, BLUE, GREEN, AQUA, RED, LIGHT_PURPLE, YELLOW, WHITE, BROWN, PINK);
+	private static final XColor[]           values = new XColor[] {BLACK, DARK_BLUE, DARK_GREEN, DARK_AQUA, DARK_PURPLE, GOLD, GRAY, DARK_GRAY, BLUE, GREEN, AQUA,
+																   RED, LIGHT_PURPLE, YELLOW, WHITE, BROWN, PINK};
 
 	@Getter
 	private final DyeColor dyeColor;
@@ -290,7 +290,6 @@ public final class XColor {
 		if (MinecraftVersion.atMost(MinecraftVersion.v1_12)) {
 			final Material material = ReflectUtil.getEnum(Material.class, name);
 			item.setType(material == null ? def : material);
-//			item.setDurability();
 			//TODO: finish xMaterial and add compatibility here
 			return;
 		}
