@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import com.ruthlessjailer.api.theseus.Common;
 import lombok.Getter;
 import lombok.NonNull;
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -231,7 +232,7 @@ public enum XMaterial {
 
 		if (ISFLAT) {//attempt to get newer material
 			if (atLeast(this.added)) {//server version is new enough (eg #BLACK_CONCRETE would become BLACK_CONCRETE)
-				material = Material.getMaterial(this.name());
+				material = Material.getMaterial(name());
 			} else {//item added in newer version and does not exist (eg BLACKSTONE would become COBBLESTONE or STONE depending on suggest)
 				material = getOldMaterial(suggest);
 			}
@@ -300,15 +301,15 @@ public enum XMaterial {
 
 		if (material == null) {//set name for stone
 			final ItemMeta meta = item.getItemMeta();
-			meta.setDisplayName(this.name());
+			meta.setDisplayName(prettyName());
 			item.setItemMeta(meta);
 		}
 
 		return item;
 	}
 
-//	public String prettyName(){
-//		return StringUtils.capitalize()
-//	}
+	public String prettyName() {
+		return WordUtils.capitalizeFully(name().replaceAll("_", " "));
+	}
 
 }

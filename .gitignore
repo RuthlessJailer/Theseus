@@ -1,0 +1,10 @@
+# Created by .ignore support plugin (hsz.mobi)
+.gitignore
+.idea/
+src/test/
+target/
+/start.bat
+/copy.bat
+/build.xml
+/Theseus.iml
+.github/
