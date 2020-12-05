@@ -12,17 +12,16 @@ import lombok.NonNull;
 import lombok.Singular;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author RuthlessJailer
@@ -35,6 +34,7 @@ public class ItemBuilder {
 	private final ItemMeta                                 meta;
 	private final Material                                 material;
 	private final String                                   name;
+	private final OfflinePlayer owner;
 	@Builder.Default
 	private final int                                      amount          = 1;
 	@Builder.Default
@@ -142,6 +142,11 @@ public class ItemBuilder {
 			final LeatherArmorMeta leather = (LeatherArmorMeta) meta;
 			leather.setColor(this.color.getBukkitColor());
 		}
+		if(meta instanceof SkullMeta && this.owner != null){
+
+				SkullMeta skullMeta = (SkullMeta) meta;
+				skullMeta.setOwningPlayer(this.owner);
+		}
 
 		//version specific stuff
 
@@ -175,6 +180,25 @@ public class ItemBuilder {
 
 		public ItemStackCreator addFlags(@NonNull final Collection<ItemFlag> flags) {
 			flags.forEach(f -> this.flag(XItemFlag.fromItemFlag(f)));
+			return this;
+		}
+
+		public ItemStackCreator owner(final String name){
+			if(name == null){
+				this.owner = null;
+				return this;
+			}
+			this.owner = Bukkit.getOfflinePlayer(name);
+			return this;
+		}
+
+		public ItemStackCreator owner(final UUID uuid){
+			if(uuid == null){
+				this.owner = null;
+				return this;
+			}
+
+			this.owner = Bukkit.getOfflinePlayer(uuid);
 			return this;
 		}
 

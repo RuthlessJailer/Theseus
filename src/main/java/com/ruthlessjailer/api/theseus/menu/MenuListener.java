@@ -53,8 +53,8 @@ public final class MenuListener implements Listener {
 
 		event.setResult(Event.Result.DENY);
 		event.setCancelled(true);
-		clicked.getAction().onClick(event, (Player) event.getWhoClicked(), clicked);
 
+		clicked.getAction().onClick(event, (Player) event.getWhoClicked(), clicked);
 	}
 
 	@EventHandler

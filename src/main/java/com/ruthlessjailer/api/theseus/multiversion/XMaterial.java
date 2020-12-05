@@ -230,16 +230,15 @@ public enum XMaterial {
 
 		final Material material;
 
-		if (ISFLAT) {//attempt to get newer material
-			if (atLeast(this.added)) {//server version is new enough (eg #BLACK_CONCRETE would become BLACK_CONCRETE)
+		if (atLeast(this.added)) {//server version is new enough
+			if(ISFLAT) {//1.13+; get from name
 				material = Material.getMaterial(name());
-			} else {//item added in newer version and does not exist (eg BLACKSTONE would become COBBLESTONE or STONE depending on suggest)
-				material = getOldMaterial(suggest);
+			}else{//old version; get legacy
+				material = parseLegacy(suggest);
 			}
-		} else {//get legacy material (eg #BLACK_CONCRETE would become CONCRETE)
-			material = getOldMaterial(suggest);
+		} else {//item added in newer version and does not exist
+			material = parseLegacy(suggest);
 		}
-		System.out.println("material:" + material);
 
 		return material;
 	}
@@ -266,7 +265,13 @@ public enum XMaterial {
 		}
 	}
 
-	private Material getOldMaterial(final boolean suggest) {
+	private Material parseLegacy(final boolean suggest) {
+		Material material = Material.getMaterial(name());
+
+		if(material != null){//try the name first
+			return material;
+		}
+
 		for (final String legacyName : this.legacyNames) {
 
 			if (legacyName.isEmpty()) {//reached the end of actual legacy names. everything to the right of the first empty string is a suggestion
@@ -281,7 +286,7 @@ public enum XMaterial {
 				return null;
 			}
 
-			final Material material = Material.getMaterial(legacyName);
+			material = Material.getMaterial(legacyName);
 
 			if (material != null) {
 				return material;
@@ -310,6 +315,10 @@ public enum XMaterial {
 
 	public String prettyName() {
 		return WordUtils.capitalizeFully(name().replaceAll("_", " "));
+	}
+
+	public static String prettyName(@NonNull final Material material){
+		return WordUtils.capitalizeFully(material.name().replaceAll("_", ""));
 	}
 
 }

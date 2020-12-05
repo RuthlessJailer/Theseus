@@ -92,8 +92,7 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	/**
 	 * Shortcut for {@link Chat#debug(String, String...)}.
 	 */
-	protected static final void debug(
-			@NonNull final String... messages) { Chat.debug("Plugin", messages); }
+	protected static final void debug(@NonNull final String... messages) { Chat.debug("Plugin", messages); }
 
 	public static void catchError(@NonNull final Throwable throwable) {
 
@@ -188,6 +187,8 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 			}
 		}
 
+		registerEvents(this, new MenuListener());
+
 		debug("Calling onStart()");
 		try {
 			onStart();
@@ -197,8 +198,6 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 		} finally {
 			debug("Called onStart()");
 		}
-
-		registerEvents(this, new MenuListener());
 	}
 
 	/**

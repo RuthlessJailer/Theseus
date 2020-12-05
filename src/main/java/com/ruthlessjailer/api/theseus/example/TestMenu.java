@@ -1,7 +1,5 @@
 package com.ruthlessjailer.api.theseus.example;
 
-import com.ruthlessjailer.api.theseus.Chat;
-import com.ruthlessjailer.api.theseus.ReflectUtil;
 import com.ruthlessjailer.api.theseus.item.ItemBuilder;
 import com.ruthlessjailer.api.theseus.menu.Button;
 import com.ruthlessjailer.api.theseus.menu.ListItem;
@@ -11,7 +9,6 @@ import com.ruthlessjailer.api.theseus.multiversion.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,9 +65,24 @@ public class TestMenu extends MenuBase {
 	public class YeetMenu extends ListMenu<ListItem> {
 
 		public YeetMenu() {
-			super(TestMenu.this, MAX_SLOTS, "&3Yeet Menu &a" + CURRENT_PAGE_PLACEHOLDER + "&8/&9" + TOTAL_PAGES_PLACEHOLDER);
+			super(TestMenu.this, MAX_SLOTS, "&3List &a" + CURRENT_PAGE_PLACEHOLDER + "&8/&9" + TOTAL_PAGES_PLACEHOLDER);
 
 			final List<ListItem> list  = new ArrayList<>();
+//			final List<String>     items = Arrays.asList("f7c77d99-9f15-4a66-a87d-c4a51ef30d19",//hypickle
+//														 "8f2340da-e9c6-46a6-b1f2-e8976f1bbfa2",//me
+//														 "8f2340da-e9c6-46a6-b1f2-e8976f1bbfa2",//nate
+//														 "71b55338-d9cb-42f8-91a2-e7bddfabd7f6",//ae
+//														 "9d437d43-a14f-4659-bb77-005daf649628",//trq
+//														"069a79f4-44e9-4726-a5be-fca90e38aaf5",//notch
+//														 "69e8f7d5-11f9-4818-a3bb-7f237df32949",//xfuzzy
+//														 "ec70bcaf-702f-4bb8-b48d-276fa52a780c",//dream
+//														"bd3dd5a4-0438-4699-b2fd-36f518154b41",//george
+//														 "c66f7c8a-ed0c-4469-90b0-421d8ff7ca49",//sapnap
+//														 "dec1e392-93ba-43fd-9c3f-7be6d6715fcf",//someone idk
+//														 "e8889e49-732e-4d2e-bc61-26ebda3d78ea",//kx
+//														 "dba273aa-d92c-488b-bbdc-ec583c075e4c",//chunga
+//														"8e1f9dfb-8881-495f-856b-e19d31c036e1"//bbl
+//														);
 			final List<Material> items = Arrays.stream(Material.values()).filter(Material::isItem).collect(Collectors.toList());
 
 			for (final Material material : items) {
@@ -100,14 +112,12 @@ public class TestMenu extends MenuBase {
 
 			setBackButtonSlot(45);
 			setNextButtonSlot(53);
-			setPreviousMenuButtonSlot(0);//back button will null previous one
+			setPreviousMenuButtonSlot(0);
 
-			setButton(8, new Button(ItemBuilder.of(ReflectUtil.getEnum(Material.class, "POTATO_ITEM", "POTATO"))
-											   .name("&5yeet").build().create(),
+			setButton(8, new Button(ItemBuilder.of(XMaterial.BARRIER.toItemStack())
+											   .name("&4Close").build().create(),
 									(event, clicker, clicked) -> {
 										clicker.closeInventory();
-										clicker.setVelocity(new Vector(0, 10, 0));
-										Chat.send(clicker, "&dyeeted");
 									}));
 
 			setAllItems(list);

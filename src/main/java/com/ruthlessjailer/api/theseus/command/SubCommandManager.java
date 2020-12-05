@@ -285,21 +285,21 @@ public final class SubCommandManager {
 							StringUtils.join(argument.getPossibilities(), postChoice + format.getSeparator() + preChoice));
 				}
 
-				fullCommand.append(" ").append(Chat.colorize(append));
+				fullCommand.append(" ").append(Chat.colorize(append+"&c"));
 			}
 
-			final TextComponent commandComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(fullCommand.toString())));
+			final TextComponent commandComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(fullCommand.toString()+"&c")));
 			commandComponent.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
 														  Chat.stripColors(fullCommand.toString())));
 			commandComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
 														  TextComponent.fromLegacyText(Chat.colorize(format.getSuggest().replace(
 																  HelpMenuFormat.Placeholder.COMMAND,
-																  fullCommand.toString())))));
+																  fullCommand.toString())+"&c"))));
 
 			lines[l] = new HelpLine(
 					Chat.stripColors(fullCommand.toString()),
 
-					Chat.colorize(fullCommand.toString()),
+					Chat.colorize(fullCommand.toString()+"&c"),
 
 					Common.asArray(commandComponent),
 					getPermission(command, wrapper));
@@ -325,46 +325,46 @@ public final class SubCommandManager {
 									 : p + 2;
 
 				final BaseComponent[] headerComponents;
-				if (MinecraftVersion.atLeast(MinecraftVersion.v1_12)) {
-					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(prePrevious)),
-										 ComponentBuilder.FormatRetention.FORMATTING);//anything before the back button
+//				if (MinecraftVersion.atLeast(MinecraftVersion.v1_12)) {
+//					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(prePrevious)),
+//										 ComponentBuilder.FormatRetention.FORMATTING);//anything before the back button
+//
+//					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(format.getPrevious())), ComponentBuilder.FormatRetention.FORMATTING)
+//								 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s %d", command.getLabel(), p)));//the back button
+//
+//
+//					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel()))
+//																		  .replaceAll(Common.escape(HelpMenuFormat.Placeholder.PAGE), String.valueOf(p + 1))),
+//										 ComponentBuilder.FormatRetention.FORMATTING);//everything in between the back and the next buttons
+//
+//					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(format.getNext())), ComponentBuilder.FormatRetention.FORMATTING)//the next button
+//								 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(),
+//																									nextPage)));
+//
+//					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(postNext)),
+//										 ComponentBuilder.FormatRetention.FORMATTING);//anything after the next button
+//
+//					headerComponents = headerBuilder.create();
+//				} else {
 
-					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(format.getPrevious())), ComponentBuilder.FormatRetention.FORMATTING)
-								 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s %d", command.getLabel(), p)));//the back button
+					final TextComponent prePreviousComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(prePrevious+"&c")));
 
-
-					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel()))
-																		  .replaceAll(Common.escape(HelpMenuFormat.Placeholder.PAGE), String.valueOf(p + 1))),
-										 ComponentBuilder.FormatRetention.FORMATTING);//everything in between the back and the next buttons
-
-					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(format.getNext())), ComponentBuilder.FormatRetention.FORMATTING)//the next button
-								 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(),
-																									nextPage)));
-
-					headerBuilder.append(TextComponent.fromLegacyText(Chat.colorize(postNext)),
-										 ComponentBuilder.FormatRetention.FORMATTING);//anything after the next button
-
-					headerComponents = headerBuilder.create();
-				} else {
-
-					final TextComponent prePreviousComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(prePrevious)));
-
-					final TextComponent previousComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(format.getPrevious())));
+					final TextComponent previousComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(format.getPrevious()+"&c")));
 
 					previousComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s %d", command.getLabel(), p)));
 
 					final TextComponent rawHeaderComponent = new TextComponent(TextComponent.fromLegacyText(
-							Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel()))
+							Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel())+"&c")
 								.replaceAll(Common.escape(HelpMenuFormat.Placeholder.PAGE), String.valueOf(p + 1))));
 
-					final TextComponent nextComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(format.getNext())));
+					final TextComponent nextComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(format.getNext()+"&c")));
 
 					nextComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), nextPage)));
 
-					final TextComponent postNextComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(postNext)));
+					final TextComponent postNextComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(postNext+"&c")));
 
 					headerComponents = Common.asArray(prePreviousComponent, previousComponent, rawHeaderComponent, nextComponent, postNextComponent);
-				}
+//				}
 				rawHeaderBuilder.append(prePrevious)
 								.append(format.getPrevious())
 								.append(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel()))
