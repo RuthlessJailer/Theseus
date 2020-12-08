@@ -1,9 +1,6 @@
 package com.ruthlessjailer.api.theseus.command;
 
-import com.ruthlessjailer.api.theseus.Chat;
-import com.ruthlessjailer.api.theseus.Checks;
-import com.ruthlessjailer.api.theseus.Common;
-import com.ruthlessjailer.api.theseus.ReflectUtil;
+import com.ruthlessjailer.api.theseus.*;
 import com.ruthlessjailer.api.theseus.command.help.HelpLine;
 import com.ruthlessjailer.api.theseus.command.help.HelpMenu;
 import com.ruthlessjailer.api.theseus.command.help.HelpMenuFormat;
@@ -57,7 +54,7 @@ public final class SubCommandManager {
 
 		assert command instanceof CommandBase;
 
-		if (!Bukkit.isPrimaryThread()) {
+		if (!PluginBase.isMainThread()) {
 			Chat.warning("Async call to command /" + ((CommandBase) command).getLabel() + " (" + ReflectUtil.getPath(command.getClass()) + ") while registering.");
 		}
 
@@ -239,7 +236,7 @@ public final class SubCommandManager {
 
 	public static void generateHelpMenu(@NonNull final CommandBase command, final HelpMenuFormat menuFormat) {
 
-		if (!Bukkit.isPrimaryThread()) {
+		if (!PluginBase.isMainThread()) {
 			Chat.warning("Async call to command /" + command.getLabel() + " (" + ReflectUtil.getPath(command.getClass()) + ") while generating help menu.");
 		}
 

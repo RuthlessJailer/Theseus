@@ -10,15 +10,21 @@ import com.ruthlessjailer.api.theseus.item.ItemBuilder;
 import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 import com.ruthlessjailer.api.theseus.multiversion.XColor;
 import com.ruthlessjailer.api.theseus.multiversion.XMaterial;
+import com.ruthlessjailer.api.theseus.task.handler.FutureHandler;
+import com.ruthlessjailer.api.theseus.task.manager.TaskManager;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.block.Sign;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.awt.*;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author RuthlessJailer
@@ -108,6 +114,64 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 		Chat.send(getPlayer(sender), "&3Send a message boi");
 		PromptUtil.book(getPlayer(sender), (p) -> {
 			Chat.send(sender, "&aYou said '&r" + p.getPages() + "&a'.");
+		});
+	}
+
+	@SubCommand(inputArgs = "task")
+	@SneakyThrows
+	private void task(final CommandSender sender, final String[] args) {
+		TaskManager.sync.later(() -> System.out.println("sync later (task)"));
+		TaskManager.sync.run(() -> System.out.println("sync run (task)"), 10);
+		TaskManager.async.repeat(new BukkitRunnable() {
+			int i = 0;
+
+			@Override
+			public void run() {
+				if (this.i > 5) {
+					cancel();
+				}
+				System.out.println("sync repeat (task) " + this.i++);
+			}
+		}, 20);
+		TaskManager.async.later(() -> System.out.println("async later (task)"));
+		TaskManager.async.run(() -> System.out.println("async run (task)"), 30);
+		TaskManager.async.repeat(new BukkitRunnable() {
+			int i = 0;
+
+			@Override
+			public void run() {
+				if (this.i > 5) {
+					cancel();
+				}
+				System.out.println("async repeat (task) " + this.i++);
+			}
+		}, 40);
+
+		TaskManager.async.later(() -> {
+			try {
+				FutureHandler.sync.later(() -> {
+					final Chunk chunk = Bukkit.getWorlds().get(0).getChunkAt(0, 0);
+					System.out.println("sync later (future) " + chunk.getX() + ", " + chunk.getZ());
+					return chunk;
+				}).get();
+
+				FutureHandler.sync.run(() -> {
+					final Chunk chunk = Bukkit.getWorlds().get(0).getChunkAt(0, 0);
+					System.out.println("sync run (future) " + chunk.getX() + ", " + chunk.getZ());
+					return chunk;
+				}, 50).get();
+			} catch (final InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+			}
+		});
+
+
+		FutureHandler.async.later(() -> Bukkit.getOfflinePlayer("ruthlessjailer")).thenAccept((op) -> {
+			System.out.println("async later (future) " + op.getName());
+		});
+
+		FutureHandler.async.run(() -> Bukkit.getOfflinePlayer("ruthlessjailer"), 6000).thenAccept((op) -> {
+			System.out.println("async run (future) " + op.getName());
 		});
 	}
 

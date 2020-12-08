@@ -1,6 +1,7 @@
 package com.ruthlessjailer.api.theseus;
 
 import com.ruthlessjailer.api.theseus.command.CommandBase;
+import com.ruthlessjailer.api.theseus.task.manager.TaskManager;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
@@ -8,8 +9,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.permissions.Permissible;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -53,9 +52,12 @@ public final class Common {
 	 * @param task the task to run
 	 *
 	 * @return the {@link BukkitTask} representing the task
+	 *
+	 * @deprecated see {@link TaskManager}
 	 */
+	@Deprecated
 	public static <T extends Runnable> BukkitTask runLater(@NonNull final T task) {
-		return runTaskLater(1, task);
+		return TaskManager.sync.later(task);
 	}
 
 	/**
@@ -64,9 +66,12 @@ public final class Common {
 	 * @param task the task to run
 	 *
 	 * @return the {@link BukkitTask} representing the task
+	 *
+	 * @deprecated see {@link TaskManager}
 	 */
+	@Deprecated
 	public static <T extends Runnable> BukkitTask runLaterAsync(@NonNull final T task) {
-		return runLaterAsync(1, task);
+		return TaskManager.async.later(task);
 	}
 
 	/**
@@ -76,9 +81,12 @@ public final class Common {
 	 * @param repeatTicks the delay (in ticks) between each cycle
 	 *
 	 * @return the {@link BukkitTask} representing the task
+	 *
+	 * @deprecated see {@link TaskManager}
 	 */
+	@Deprecated
 	public static <T extends Runnable> BukkitTask runLaterTimer(@NonNull final T task, final int repeatTicks) {
-		return runLaterTimer(1, repeatTicks, task);
+		return TaskManager.sync.repeat(task, repeatTicks);
 	}
 
 	/**
@@ -88,9 +96,12 @@ public final class Common {
 	 * @param repeatTicks the delay (in ticks) between each cycle
 	 *
 	 * @return the {@link BukkitTask} representing the task
+	 *
+	 * @deprecated see {@link TaskManager}
 	 */
+	@Deprecated
 	public static <T extends Runnable> BukkitTask runLaterTimerAsync(@NonNull final T task, final int repeatTicks) {
-		return runLaterTimer(1, repeatTicks, task);
+		return TaskManager.async.repeat(task, repeatTicks);
 	}
 
 	/**
@@ -99,9 +110,12 @@ public final class Common {
 	 * @param task the task to run
 	 *
 	 * @return the {@link BukkitTask} representing the task
+	 *
+	 * @deprecated see {@link TaskManager}
 	 */
+	@Deprecated
 	public static <T extends Runnable> BukkitTask runTask(@NonNull final T task) {
-		return runTaskLater(0, task);
+		return TaskManager.sync.run(task, 0);
 	}
 
 	/**
@@ -110,9 +124,12 @@ public final class Common {
 	 * @param task the task to run
 	 *
 	 * @return the {@link BukkitTask} representing the task
+	 *
+	 * @deprecated see {@link TaskManager}
 	 */
+	@Deprecated
 	public static <T extends Runnable> BukkitTask runAsync(@NonNull final T task) {
-		return runLaterAsync(0, task);
+		return TaskManager.async.run(task, 0);
 	}
 
 	/**
@@ -122,9 +139,12 @@ public final class Common {
 	 * @param repeatTicks the delay (in ticks) between each cycle
 	 *
 	 * @return the {@link BukkitTask} representing the task
+	 *
+	 * @deprecated see {@link TaskManager}
 	 */
+	@Deprecated
 	public static <T extends Runnable> BukkitTask runTimer(@NonNull final T task, final int repeatTicks) {
-		return runLaterTimer(0, repeatTicks, task);
+		return TaskManager.sync.repeat(task, repeatTicks);
 	}
 
 	/**
@@ -134,9 +154,12 @@ public final class Common {
 	 * @param repeatTicks the delay (in ticks) between each cycle
 	 *
 	 * @return the {@link BukkitTask} representing the task
+	 *
+	 * @deprecated see {@link TaskManager}
 	 */
+	@Deprecated
 	public static <T extends Runnable> BukkitTask runTimerAsync(@NonNull final T task, final int repeatTicks) {
-		return runLaterTimerAsync(0, repeatTicks, task);
+		return TaskManager.async.repeat(task, repeatTicks);
 	}
 
 	/**
@@ -147,25 +170,12 @@ public final class Common {
 	 * @param task       the task to run
 	 *
 	 * @return the {@link BukkitTask} representing the task
+	 *
+	 * @deprecated see {@link TaskManager}
 	 */
+	@Deprecated
 	public static BukkitTask runTaskLater(final int delayTicks, @NonNull final Runnable task) {
-		final BukkitScheduler scheduler = Bukkit.getScheduler();
-		final JavaPlugin      instance  = PluginBase.getInstance();
-		final BukkitRunnable  runnable;
-
-		if (instance == null) {//runs anyway if the plugin is disable improperly
-			task.run();
-			throw new IllegalStateException("Plugin instance is null. Task was run anyway.");
-		}
-
-		if (task instanceof BukkitRunnable) {
-			runnable = (BukkitRunnable) task;
-			return delayTicks == 0 ? runnable.runTask(instance) : runnable.runTaskLater(instance, delayTicks);
-		} else {
-			return delayTicks == 0
-				   ? scheduler.runTask(instance, task)
-				   : scheduler.runTaskLater(instance, task, delayTicks);
-		}
+		return TaskManager.sync.run(task, delayTicks);
 	}
 
 	/**
@@ -176,25 +186,12 @@ public final class Common {
 	 * @param task       the task to run
 	 *
 	 * @return the {@link BukkitTask} representing the task
+	 *
+	 * @deprecated see {@link TaskManager}
 	 */
+	@Deprecated
 	public static BukkitTask runLaterAsync(final int delayTicks, @NonNull final Runnable task) {
-		final BukkitScheduler scheduler = Bukkit.getScheduler();
-		final JavaPlugin      instance  = PluginBase.getInstance();
-		final BukkitRunnable  runnable;
-
-		if (instance == null) {//runs anyway if the plugin is disable improperly
-			task.run();
-			throw new IllegalStateException("Plugin instance is null. Task was run anyway.");
-		}
-
-		if (task instanceof BukkitRunnable) {
-			runnable = (BukkitRunnable) task;
-			return delayTicks == 0 ? runnable.runTaskAsynchronously(instance) : runnable.runTaskLaterAsynchronously(instance, delayTicks);
-		} else {
-			return delayTicks == 0
-				   ? scheduler.runTaskAsynchronously(instance, task)
-				   : scheduler.runTaskLaterAsynchronously(instance, task, delayTicks);
-		}
+		return TaskManager.async.run(task, delayTicks);
 	}
 
 	/**
@@ -206,23 +203,12 @@ public final class Common {
 	 * @param task        the task to run
 	 *
 	 * @return the {@link BukkitTask} representing the task
+	 *
+	 * @deprecated see {@link TaskManager}
 	 */
+	@Deprecated
 	public static BukkitTask runLaterTimer(final int delayTicks, final int repeatTicks, @NonNull final Runnable task) {
-		final BukkitScheduler scheduler = Bukkit.getScheduler();
-		final JavaPlugin      instance  = PluginBase.getInstance();
-		final BukkitRunnable  runnable;
-
-		if (instance == null) {//runs anyway if the plugin is disable improperly
-			task.run();
-			throw new IllegalStateException("Plugin instance is null. Task was run anyway.");
-		}
-
-		if (task instanceof BukkitRunnable) {
-			runnable = (BukkitRunnable) task;
-			return runnable.runTaskTimer(instance, delayTicks, repeatTicks);
-		} else {
-			return scheduler.runTaskTimer(instance, task, delayTicks, repeatTicks);
-		}
+		return TaskManager.sync.repeat(task, repeatTicks);
 	}
 
 	/**
@@ -234,23 +220,12 @@ public final class Common {
 	 * @param task        the task to run
 	 *
 	 * @return the {@link BukkitTask} representing the task
+	 *
+	 * @deprecated see {@link TaskManager}
 	 */
+	@Deprecated
 	public static BukkitTask runLaterTimerAsync(final int delayTicks, final int repeatTicks, @NonNull final Runnable task) {
-		final BukkitScheduler scheduler = Bukkit.getScheduler();
-		final JavaPlugin      instance  = PluginBase.getInstance();
-		final BukkitRunnable  runnable;
-
-		if (instance == null) {//runs anyway if the plugin is disable improperly
-			task.run();
-			throw new IllegalStateException("Plugin instance is null. Task was run anyway.");
-		}
-
-		if (task instanceof BukkitRunnable) {
-			runnable = (BukkitRunnable) task;
-			return runnable.runTaskTimerAsynchronously(instance, delayTicks, repeatTicks);
-		} else {
-			return scheduler.runTaskTimerAsynchronously(instance, task, delayTicks, repeatTicks);
-		}
+		return TaskManager.async.repeat(task, repeatTicks);
 	}
 
 	/**

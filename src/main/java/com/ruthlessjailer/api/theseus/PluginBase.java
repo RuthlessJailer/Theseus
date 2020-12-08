@@ -30,20 +30,26 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 
 	protected boolean enabled = false;
 
+	private volatile Thread thread;
+
+
 	/**
 	 * Get the current instance of the plugin.
 	 *
 	 * @return the found instance of the plugin or {@code null}
 	 */
 	public static final PluginBase getInstance() {
-		try {
-			return instance == null
-				   ? getPlugin(PluginBase.class)
-				   : instance;
-		} catch (final Throwable ignored) {
-			return null;
-		}
+		return instance == null
+			   ? getPlugin(PluginBase.class)
+			   : instance;
 	}
+
+	/**
+	 * Checks if the current thread is sync or not.
+	 *
+	 * @return whether or not the current thread is the main thread
+	 */
+	public static boolean isMainThread() { return hasInstance() ? Bukkit.isPrimaryThread() : instance.thread == Thread.currentThread(); }
 
 	/**
 	 * Log check.
@@ -134,15 +140,11 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	@Override
 	public final void onLoad() {
 
-		try {
-			getInstance();
-		} catch (final Throwable t) {
-			if (MinecraftVersion.lessThan(MinecraftVersion.v1_7)) {
-				debug("Detected obsolete server version. Setting instance.");
-				instance = this;
-			} else {
-				throw t;
-			}
+		instance    = this;
+		this.thread = Thread.currentThread();
+
+		if (!Bukkit.isPrimaryThread()) {
+			catchError(new IllegalStateException("Async plugin load."));
 		}
 
 		debug("Calling beforeStart()");
@@ -152,7 +154,7 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 
 	@Override
 	public final void onDisable() {
-		this.beforeStop();
+		beforeStop();
 
 		instance = null;
 		log      = null;
@@ -176,14 +178,14 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	public final void onEnable() {
 		debug("Entering onEnable()");
 		instance = getInstance();
-		log      = this.getLogger();
+		log      = getLogger();
 
-		if (!this.getDataFolder().exists()) {//create plugin folder
+		if (!getDataFolder().exists()) {//create plugin folder
 			debug("Attempting to create plugin folder.");
-			if (this.getDataFolder().mkdirs()) {
-				Chat.info(String.format("Created folder %s.", this.getDataFolder().getName()));
+			if (getDataFolder().mkdirs()) {
+				Chat.info(String.format("Created folder %s.", getDataFolder().getName()));
 			} else {
-				Chat.warning(String.format("Unable to create folder %s.", this.getDataFolder().getName()));
+				Chat.warning(String.format("Unable to create folder %s.", getDataFolder().getName()));
 			}
 		}
 
@@ -193,7 +195,7 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 		try {
 			onStart();
 		} catch (final Throwable t) {
-			Chat.severe("Fatal error in onStart() in class " + ReflectUtil.getPath(this.getClass()) + ", exiting...");
+			Chat.severe("Fatal error in onStart() in class " + ReflectUtil.getPath(getClass()) + ", exiting...");
 			catchError(t);
 		} finally {
 			debug("Called onStart()");
