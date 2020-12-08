@@ -119,9 +119,9 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 					  "&c-----------------------------------------------------------------------------");
 		}
 
-		if (throwable instanceof MinecraftVersion.UnsupportedServerVersionException) {
+		if (throwable instanceof ClassNotFoundException) {
 			Chat.send(Bukkit.getConsoleSender(),
-					  "&4You have an unsupported server version.",
+					  "&4Shading or dependency error. Make sure you have all the plugins needed installed.",
 					  "&c-----------------------------------------------------------------------------");
 		}
 
@@ -187,7 +187,7 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 			}
 		}
 
-		registerEvents(this, new MenuListener());
+		registerEvents(this, new MenuListener(), PromptUtil.getListenerInstance());
 
 		debug("Calling onStart()");
 		try {

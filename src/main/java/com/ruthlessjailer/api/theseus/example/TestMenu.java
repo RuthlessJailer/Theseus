@@ -24,8 +24,8 @@ public class TestMenu extends MenuBase {
 		super(MIN_SLOTS, "&3Test Menu");
 
 		setButton(0, new Button(ItemBuilder.of(Material.BEDROCK, "&eCUSTOMIZABLE ITEM").build().create(), (event, clicker, clicked) -> {
-			if (event.getCursor() != null && event.getCursor().getType() != Material.AIR) {
 
+			if (event.getCursor() != null && event.getCursor().getType() != Material.AIR) {
 				clicked.setItem(ItemBuilder.of(event.getCursor()).name("&cCUSTOMIZABLE ITEM").build().create());
 
 				if (event.getCursor().getAmount() > 1 && event.getClick().isRightClick()) {
@@ -40,11 +40,12 @@ public class TestMenu extends MenuBase {
 			} else {
 				clicker.getInventory().addItem(ItemBuilder.of(Material.IRON_INGOT, "&cingot").build().create());
 			}
+
 		}));
 
 		final YeetMenu yeet = new YeetMenu();
 
-		setButton(8, new Button(ItemBuilder.of(Material.SAND, "&2YEET MENU").build().create(), (event, clicker, clicked) -> {
+		setButton(8, new Button(ItemBuilder.of(Material.SAND, "&2List Menu").build().create(), (event, clicker, clicked) -> {
 			yeet.displayTo(clicker);
 		}));
 
@@ -52,6 +53,7 @@ public class TestMenu extends MenuBase {
 		final ItemStack diamond = ItemBuilder.of(Material.DIAMOND_BLOCK, "&9DIAMOND").build().create();
 
 		setButton(4, new Button(gold, (event, clicker, clicked) -> {
+
 			if (clicked.getItem().isSimilar(gold)) {
 				clicked.setItem(diamond);
 			} else {
@@ -67,7 +69,7 @@ public class TestMenu extends MenuBase {
 		public YeetMenu() {
 			super(TestMenu.this, MAX_SLOTS, "&3List &a" + CURRENT_PAGE_PLACEHOLDER + "&8/&9" + TOTAL_PAGES_PLACEHOLDER);
 
-			final List<ListItem> list  = new ArrayList<>();
+			final List<ListItem> list = new ArrayList<>();
 //			final List<String>     items = Arrays.asList("f7c77d99-9f15-4a66-a87d-c4a51ef30d19",//hypickle
 //														 "8f2340da-e9c6-46a6-b1f2-e8976f1bbfa2",//me
 //														 "8f2340da-e9c6-46a6-b1f2-e8976f1bbfa2",//nate

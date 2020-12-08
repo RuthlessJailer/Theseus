@@ -135,7 +135,7 @@ public abstract class CommandBase extends Command {
 		this.registered = false;
 	}
 
-	private final String getDefaultPermissionSyntax() {
+	private String getDefaultPermissionSyntax() {
 		return CommandBase.DEFAULT_PERMISSION_SYNTAX
 				.replace("${plugin.name}",
 						 PluginBase.getCurrentName().toLowerCase())
@@ -143,13 +143,13 @@ public abstract class CommandBase extends Command {
 						 getLabel());
 	}
 
-	private final String getDefaultSubCommandPermissionSyntax() {
+	private String getDefaultSubCommandPermissionSyntax() {
 		return CommandBase.DEFAULT_SUB_COMMAND_PERMISSION_SYNTAX
 				.replace("${permission}",
 						 getDefaultPermissionSyntax());
 	}
 
-	private final String getDefaultPermissionMessage() {
+	private String getDefaultPermissionMessage() {
 		return Chat.colorize(
 				CommandBase.DEFAULT_PERMISSION_MESSAGE.replace("${permission}", getDefaultPermissionSyntax()));
 	}
@@ -169,7 +169,7 @@ public abstract class CommandBase extends Command {
 													   getCustomPermissionSyntax());
 	}
 
-	public String getCustomSubCommandPermissionSyntax(@NonNull final String subCommandName) {
+	public final String getCustomSubCommandPermissionSyntax(@NonNull final String subCommandName) {
 		return this.customSubCommandPermissionSyntax.replace("${sub.command}", subCommandName);
 	}
 
@@ -182,7 +182,7 @@ public abstract class CommandBase extends Command {
 	 *
 	 * @return a {@link StringBuilder}
 	 */
-	public StringBuilder chainCustomSubCommandPermissionSyntax(@NonNull final String subCommandName) {
+	public final StringBuilder chainCustomSubCommandPermissionSyntax(@NonNull final String subCommandName) {
 		return new StringBuilder(getCustomSubCommandPermissionSyntax(subCommandName));
 	}
 
@@ -238,7 +238,7 @@ public abstract class CommandBase extends Command {
 	 *
 	 * @see Common#hasPermission(Permissible, String)
 	 */
-	public boolean hasPermission(final Permissible permissible, final String permission) {
+	public final boolean hasPermission(final Permissible permissible, final String permission) {
 		if (permissible == null) {
 			return false;
 		}
@@ -262,7 +262,7 @@ public abstract class CommandBase extends Command {
 	 *
 	 * @throws CommandException if the sender is not a {@link Player}
 	 */
-	protected Player getPlayer(@NonNull final CommandSender sender) {
+	protected final Player getPlayer(@NonNull final CommandSender sender) {
 		return getPlayer(sender, DEFAULT_PLAYER_FALSE_MESSAGE);
 	}
 
@@ -276,7 +276,7 @@ public abstract class CommandBase extends Command {
 	 *
 	 * @throws CommandException if the sender is not a {@link Player}
 	 */
-	protected Player getPlayer(@NonNull final CommandSender sender, @NonNull final String falseMessage) {
+	protected final Player getPlayer(@NonNull final CommandSender sender, @NonNull final String falseMessage) {
 		if (!(sender instanceof Player)) {
 			Chat.send(sender, falseMessage);
 			throw new CommandException();
@@ -294,7 +294,7 @@ public abstract class CommandBase extends Command {
 	 * @return the {@link String#join(CharSequence, CharSequence...) joined} {@link String}, {@link Arrays#copyOfRange(Object[], int, int) copied} from the {@code
 	 * 		startIndex}
 	 */
-	protected String joinArgs(final int startIndex, @NonNull final String[] args) {
+	protected final String joinArgs(final int startIndex, @NonNull final String[] args) {
 		return String.join(" ", Common.copyToEnd(args, startIndex));
 	}
 

@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemStack;
  */
 @Getter
 @Setter
-public final class Button {
+public class Button {
 
 	private ItemStack    item;
 	private ButtonAction action;

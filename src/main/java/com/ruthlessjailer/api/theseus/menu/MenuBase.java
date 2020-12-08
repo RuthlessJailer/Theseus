@@ -4,10 +4,7 @@ import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
 import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.item.ItemBuilder;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import lombok.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -19,9 +16,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author RuthlessJailer
@@ -29,11 +28,12 @@ import java.util.Map;
 @Getter
 public abstract class MenuBase {
 
+	public static final String               MENU_ERROR_MESSAGE       = "There was a problem with the menu. :(";
 	public static final String               NBT_CURRENT_MENU         = "THESEUS_CURRENT_MENU";
 	public static final String               NBT_PREVIOUS_MENU        = "THESEUS_PREVIOUS_MENU";
 	public static final int                  MAX_SLOTS                = 54;
 	public static final int                  MIN_SLOTS                = 9;
-	protected final     Map<Integer, Button> buttons                  = new HashMap<>();
+	protected final     Map<Integer, Button> buttons                  = new ConcurrentHashMap<>();
 	private final       MenuBase             parent;
 	private final       String               title;
 	private final       int                  size;
@@ -43,6 +43,8 @@ public abstract class MenuBase {
 	@Setter(AccessLevel.PROTECTED)
 	private             boolean              enablePreviousMenuButton = true;
 	private             Inventory            inventory;
+	@Getter(AccessLevel.PRIVATE)
+	private final       Object               inventoryLock            = new Object();
 
 	public MenuBase(@NonNull final InventoryType type, @NonNull final String title) {
 		this(null, type, title);
@@ -162,60 +164,79 @@ public abstract class MenuBase {
 	/**
 	 * Refills the inventory and updates all viewers with changes.
 	 */
-	protected void updateInventory() {
-		generateInventory();
+	protected CompletableFuture<MenuBase> updateInventory() {
+		return CompletableFuture.supplyAsync(() -> {
+			generateInventory();
 
-		refillInventory();
+			refillInventory();
 
-		getInventory().getViewers().forEach(humanEntity -> {
-			if (humanEntity instanceof Player) {
-				((Player) humanEntity).updateInventory();
-			}
+			getInventory().getViewers().forEach(humanEntity -> {
+				if (humanEntity instanceof Player) {
+					((Player) humanEntity).updateInventory();
+				}
+			});
+
+			return this;
 		});
 	}
 
 	/**
 	 * Creates an inventory if there isn't one already.
 	 */
-	protected void generateInventory() {
-		if (this.inventory != null) {
-			return;
+	protected CompletableFuture<MenuBase> generateInventory() {
+		if (getInventory() != null) {
+			return CompletableFuture.supplyAsync(() -> this);
 		}
 
-		regenerateInventory();
+		return regenerateInventory();
 	}
 
 	/**
 	 * Creates an inventory.
 	 */
-	protected void regenerateInventory() {
-		this.inventory = Bukkit.createInventory(null, this.size, this.title);
+	protected CompletableFuture<MenuBase> regenerateInventory() {
+		synchronized (this.inventoryLock) {
+			this.inventory = Bukkit.createInventory(null, this.size, this.title);
+		}
 
-		refillInventory();
+		return refillInventory();
 	}
 
 	/**
 	 * Fills the inventory with buttons.
 	 */
-	protected void refillInventory() {
-		generateInventory();
+	@SneakyThrows
+	protected CompletableFuture<MenuBase> refillInventory() {
+		if (getInventory() == null) {
+			return CompletableFuture.supplyAsync(() -> {
+				try {
+					return generateInventory().get().refillInventory().get();
+				} catch (final InterruptedException | ExecutionException e) {
+					throw new RuntimeException(MENU_ERROR_MESSAGE, e);
+				}
+			});
+		}
 
-		this.inventory.clear();
+		return CompletableFuture.supplyAsync(() -> {
+			getInventory().clear();
 
-		if (this.enablePreviousMenuButton) {
-			if (this.parent != null) {
-				setButton(this.previousMenuButtonSlot, new Button(this.previousMenuButton.getItem(), ((event, clicker, clicked) -> {
-					this.parent.displayTo(clicker);
-				})));
+			if (this.enablePreviousMenuButton) {
+				if (this.parent != null) {
+					setButton(this.previousMenuButtonSlot, new Button(this.previousMenuButton.getItem(), ((event, clicker, clicked) -> {
+						this.parent.displayTo(clicker);
+					})));
+				}
 			}
-		}
 
-		for (final Map.Entry<Integer, Button> entry : this.buttons.entrySet()) {
-			final Integer slot   = entry.getKey();
-			final Button  button = entry.getValue();
+			for (final Map.Entry<Integer, Button> entry : this.buttons.entrySet()) {
+				final Integer slot   = entry.getKey();
+				final Button  button = entry.getValue();
 
-			this.inventory.setItem(slot, button.getItem());
-		}
+				getInventory().setItem(slot, button.getItem());
+			}
+
+			return this;
+		});
 	}
 
 	/**
@@ -223,8 +244,9 @@ public abstract class MenuBase {
 	 *
 	 * @param player the player to display the menu to.
 	 */
+	@SneakyThrows
 	public void displayTo(@NonNull final Player player) {
-		generateInventory();
+		generateInventory().get();
 
 		final MenuBase menu = getCurrentMenu(player);
 
@@ -236,7 +258,7 @@ public abstract class MenuBase {
 
 		onOpen(player, menu);
 
-		player.openInventory(this.inventory);
+		player.openInventory(getInventory());
 	}
 
 	/**
@@ -259,7 +281,11 @@ public abstract class MenuBase {
 	 *
 	 * @param event the event
 	 */
-	protected void onGenericClick(@NonNull final InventoryClickEvent event)      {}
+	protected void onGenericClick(@NonNull final InventoryClickEvent event) {}
 
-
+	public Inventory getInventory() {
+		synchronized (this.inventoryLock) {
+			return this.inventory;
+		}
+	}
 }

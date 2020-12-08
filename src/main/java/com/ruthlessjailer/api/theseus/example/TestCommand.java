@@ -1,22 +1,37 @@
 package com.ruthlessjailer.api.theseus.example;
 
 import com.ruthlessjailer.api.theseus.Chat;
+import com.ruthlessjailer.api.theseus.Common;
+import com.ruthlessjailer.api.theseus.PromptUtil;
 import com.ruthlessjailer.api.theseus.command.CommandBase;
 import com.ruthlessjailer.api.theseus.command.SubCommand;
 import com.ruthlessjailer.api.theseus.command.SuperiorCommand;
+import com.ruthlessjailer.api.theseus.item.ItemBuilder;
+import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 import com.ruthlessjailer.api.theseus.multiversion.XColor;
+import com.ruthlessjailer.api.theseus.multiversion.XMaterial;
 import lombok.NonNull;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.block.Sign;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.awt.*;
+import java.util.Arrays;
 
 /**
  * @author RuthlessJailer
  */
 public class TestCommand extends CommandBase implements SuperiorCommand {
 
-	static TestMenu test = new TestMenu();
+	static TestMenu test;
+
+	static {
+		if (MinecraftVersion.atLeast(MinecraftVersion.v1_12)) {
+			test = new TestMenu();
+		}
+	}
 
 	public TestCommand() {
 		super("test");
@@ -32,17 +47,22 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 		Chat.send(sender, converted + converted.name());
 	}
 
-	@SubCommand(inputArgs = "material %e", argTypes = Material.class)
-	private void material(final CommandSender sender, final String[] args, final Material material) {
-//		final XMaterial x = XMaterial.getXMaterial(joinArgs(1, args).replaceAll(" ", "_").toUpperCase());
-//
-//		Chat.send(sender, x.name());
-//		Chat.send(sender, x.toItemStack().getData().toString());
-//
-//		if (sender instanceof Player) {
-//			getPlayer(sender).getInventory().addItem(x.toItemStack());
-//		}
+	@SubCommand(inputArgs = "material %s")
+	private void material(final CommandSender sender, final String[] args, final String material) {
+		final XMaterial x = XMaterial.getXMaterial(joinArgs(1, args).replaceAll(" ", "_").toUpperCase());
 
+		Chat.send(sender, x.name());
+		Chat.send(sender, x.toItemStack().getData().toString());
+
+		if (sender instanceof Player) {
+			getPlayer(sender).getInventory().addItem(x.toItemStack());
+		}
+
+	}
+
+	@SubCommand(inputArgs = "item %e", argTypes = Material.class)
+	private void item(final CommandSender sender, final String[] args, final Material material) {
+		getPlayer(sender).getInventory().addItem(ItemBuilder.of(material).build().create());
 	}
 
 	@SubCommand(inputArgs = "menu")
@@ -71,7 +91,41 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 //			e.printStackTrace();
 //		}
 //		System.out.println("yeeted");
+
 		test.displayTo(getPlayer(sender));
+	}
+
+	@SubCommand(inputArgs = "chat")
+	private void chat(final CommandSender sender, final String[] args) {
+		Chat.send(getPlayer(sender), "&3Send a message boi");
+		PromptUtil.chat(getPlayer(sender), (p) -> {
+			Chat.send(sender, "&aYou said '&r" + p.getText() + "&a'.");
+		});
+	}
+
+	@SubCommand(inputArgs = "book")
+	private void book(final CommandSender sender, final String[] args) {
+		Chat.send(getPlayer(sender), "&3Send a message boi");
+		PromptUtil.book(getPlayer(sender), (p) -> {
+			Chat.send(sender, "&aYou said '&r" + p.getPages() + "&a'.");
+		});
+	}
+
+	static {
+		Bukkit.getWorlds().get(0).getBlockAt(0, 0, 0).setType(XMaterial.ACACIA_SIGN.toMaterial());
+		Common.runLater(() -> {
+			final Sign sign = (Sign) Bukkit.getWorlds().get(0).getBlockAt(0, 0, 0).getState();
+			sign.setEditable(true);
+			sign.update(true);
+		});
+	}
+
+	@SubCommand(inputArgs = "sign")
+	private void sign(final CommandSender sender, final String[] args) {
+		Chat.send(getPlayer(sender), "&3Send a message boi");
+		PromptUtil.sign(getPlayer(sender), (Sign) Bukkit.getWorlds().get(0).getBlockAt(0, 0, 0).getState(), (p) -> {
+			Chat.send(sender, "&aYou said '&r" + Arrays.toString(p.getLines()) + "&a'.");
+		});
 	}
 
 }

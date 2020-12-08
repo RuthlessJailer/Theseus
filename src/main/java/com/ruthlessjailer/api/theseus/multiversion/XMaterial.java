@@ -3,12 +3,12 @@ package com.ruthlessjailer.api.theseus.multiversion;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.ruthlessjailer.api.theseus.Common;
+import com.ruthlessjailer.api.theseus.item.ItemBuilder;
 import lombok.Getter;
 import lombok.NonNull;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -158,20 +158,18 @@ public enum XMaterial {
 	BLUE_GLAZED_TERRACOTTA(v1_12, 11, "STAINED_CLAY"),
 	BLUE_ICE(v1_13, 0, "", "PACKED_ICE", "ICE"),
 
-	NULL_ITEM(v1_3_OR_OLDER, "", "NULL_ITEM_FALLBACK"),
-
 	CAVE_AIR(v1_13),
 	VOID_AIR(v1_13);
 	//</editor-fold>
 
-	public static final  List<String>               COLORABLE          = Collections.unmodifiableList(Arrays.asList(//TODO lame fix pls
-																													"BANNER", "BED", "CARPET", "CONCRETE", "GLAZED_TERRACOTTA", "SHULKER_BOX",
-																													"STAINED_GLASS", "STAINED_GLASS_PANE", "TERRACOTTA", "WALL_BANNER", "WOOL"));
-	private static final Cache<String, XMaterial>   NAME_CACHE         = CacheBuilder.newBuilder().build();
-	private static final Cache<XMaterial, Material> MATERIAL_CACHE     = CacheBuilder.newBuilder().build();
-	private static final boolean                    ISFLAT             = atLeast(v1_13);
-	private static final String                     NULL_ITEM_NAME     = "NULL_ITEM_FALLBACK";
-	private static final Material                   NULL_ITEM_MATERIAL = Material.STONE;
+	public static final  List<String>               COLORABLE            = Collections.unmodifiableList(Arrays.asList(//TODO lame fix pls
+																													  "BANNER", "BED", "CARPET", "CONCRETE", "GLAZED_TERRACOTTA", "SHULKER_BOX",
+																													  "STAINED_GLASS", "STAINED_GLASS_PANE", "TERRACOTTA", "WALL_BANNER", "WOOL"));
+	private static final Cache<String, XMaterial>   NAME_CACHE           = CacheBuilder.newBuilder().build();
+	private static final Cache<XMaterial, Material> MATERIAL_CACHE       = CacheBuilder.newBuilder().build();
+	private static final boolean                    ISFLAT               = atLeast(v1_13);
+	private static final String                     LAST_RESORT_FALLBACK = "Last Resort Fallback";
+	private static final Material                   LAST_RESORT_MATERIAL = Material.STONE;
 
 	static {//populate name cache
 		for (final XMaterial x : values()) { NAME_CACHE.put(x.name(), x); }
@@ -188,7 +186,9 @@ public enum XMaterial {
 	XMaterial(@NonNull final MinecraftVersion added, final int data, @NonNull final String... legacyNames) {
 		this.added       = added;
 		this.data        = (byte) data;
-		this.legacyNames = legacyNames == null || legacyNames.length == 0 ? Common.asArray("", NULL_ITEM_NAME) : Common.append(legacyNames, "", NULL_ITEM_NAME);
+		this.legacyNames = legacyNames == null || legacyNames.length == 0
+						   ? Common.asArray("", LAST_RESORT_FALLBACK)
+						   : Common.append(legacyNames, "", LAST_RESORT_FALLBACK);
 	}
 
 	/**
@@ -224,16 +224,12 @@ public enum XMaterial {
 
 
 	private Material parseMaterial(final boolean suggest) {
-		if (this == NULL_ITEM) {
-			return null;
-		}
-
 		final Material material;
 
 		if (atLeast(this.added)) {//server version is new enough
-			if(ISFLAT) {//1.13+; get from name
+			if (ISFLAT) {//1.13+; get from name
 				material = Material.getMaterial(name());
-			}else{//old version; get legacy
+			} else {//old version; get legacy
 				material = parseLegacy(suggest);
 			}
 		} else {//item added in newer version and does not exist
@@ -257,8 +253,8 @@ public enum XMaterial {
 		material = parseMaterial(suggest);
 
 		if (material == null) {
-			MATERIAL_CACHE.put(this, NULL_ITEM_MATERIAL);//tried all possibilities; add it to the cache
-			return NULL_ITEM_MATERIAL;
+			MATERIAL_CACHE.put(this, LAST_RESORT_MATERIAL);//tried all possibilities; add it to the cache
+			return LAST_RESORT_MATERIAL;
 		} else {
 			MATERIAL_CACHE.put(this, material);//save found material
 			return material;
@@ -268,7 +264,7 @@ public enum XMaterial {
 	private Material parseLegacy(final boolean suggest) {
 		Material material = Material.getMaterial(name());
 
-		if(material != null){//try the name first
+		if (material != null) {//try the name first
 			return material;
 		}
 
@@ -282,7 +278,7 @@ public enum XMaterial {
 				}
 			}
 
-			if (legacyName.equals(NULL_ITEM_NAME)) {//last one, and it's the default stone fallback (ie no data)
+			if (legacyName.equals(LAST_RESORT_FALLBACK)) {//last one, and it's the default stone fallback (ie no data)
 				return null;
 			}
 
@@ -300,14 +296,13 @@ public enum XMaterial {
 		final Material material = parseMaterial(true);
 		final ItemStack item = ISFLAT
 							   ? new ItemStack(toMaterial())
-							   : new ItemStack(material == null ? NULL_ITEM_MATERIAL : material, 1, material == null
-																									? 0
-																									: this.data);//if material is null then default to STONE(0)
-
-		if (material == null) {//set name for stone
-			final ItemMeta meta = item.getItemMeta();
-			meta.setDisplayName(prettyName());
-			item.setItemMeta(meta);
+							   : new ItemStack(material == null
+											   ? LAST_RESORT_MATERIAL
+											   : material, 1, material == null
+															  ? 0
+															  : this.data);//if material is null then default to STONE(0)
+		if (material == null || parseMaterial(false) == null) {//set name for old item
+			return ItemBuilder.of(item).name("&r" + prettyName()).build().create();
 		}
 
 		return item;
@@ -317,7 +312,7 @@ public enum XMaterial {
 		return WordUtils.capitalizeFully(name().replaceAll("_", " "));
 	}
 
-	public static String prettyName(@NonNull final Material material){
+	public static String prettyName(@NonNull final Material material) {
 		return WordUtils.capitalizeFully(material.name().replaceAll("_", ""));
 	}
 

@@ -285,21 +285,21 @@ public final class SubCommandManager {
 							StringUtils.join(argument.getPossibilities(), postChoice + format.getSeparator() + preChoice));
 				}
 
-				fullCommand.append(" ").append(Chat.colorize(append+"&c"));
+				fullCommand.append(" ").append(Chat.colorize(append + "&r"));
 			}
 
-			final TextComponent commandComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(fullCommand.toString()+"&c")));
+			final TextComponent commandComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(fullCommand.toString() + "&r")));
 			commandComponent.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
 														  Chat.stripColors(fullCommand.toString())));
 			commandComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
 														  TextComponent.fromLegacyText(Chat.colorize(format.getSuggest().replace(
 																  HelpMenuFormat.Placeholder.COMMAND,
-																  fullCommand.toString())+"&c"))));
+																  fullCommand.toString()) + "&r"))));
 
 			lines[l] = new HelpLine(
 					Chat.stripColors(fullCommand.toString()),
 
-					Chat.colorize(fullCommand.toString()+"&c"),
+					Chat.colorize(fullCommand.toString() + "&r"),
 
 					Common.asArray(commandComponent),
 					getPermission(command, wrapper));
@@ -347,23 +347,23 @@ public final class SubCommandManager {
 //					headerComponents = headerBuilder.create();
 //				} else {
 
-					final TextComponent prePreviousComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(prePrevious+"&c")));
+				final TextComponent prePreviousComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(prePrevious + "&r")));
 
-					final TextComponent previousComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(format.getPrevious()+"&c")));
+				final TextComponent previousComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(format.getPrevious() + "&r")));
 
-					previousComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s %d", command.getLabel(), p)));
+				previousComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s %d", command.getLabel(), p)));
 
-					final TextComponent rawHeaderComponent = new TextComponent(TextComponent.fromLegacyText(
-							Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel())+"&c")
-								.replaceAll(Common.escape(HelpMenuFormat.Placeholder.PAGE), String.valueOf(p + 1))));
+				final TextComponent rawHeaderComponent = new TextComponent(TextComponent.fromLegacyText(
+						Chat.colorize(rawHeader.replace(HelpMenuFormat.Placeholder.COMMAND, command.getLabel()) + "&r")
+							.replaceAll(Common.escape(HelpMenuFormat.Placeholder.PAGE), String.valueOf(p + 1))));
 
-					final TextComponent nextComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(format.getNext()+"&c")));
+				final TextComponent nextComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(format.getNext() + "&r")));
 
-					nextComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), nextPage)));
+				nextComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/%s help %d", command.getLabel(), nextPage)));
 
-					final TextComponent postNextComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(postNext+"&c")));
+				final TextComponent postNextComponent = new TextComponent(TextComponent.fromLegacyText(Chat.colorize(postNext + "&r")));
 
-					headerComponents = Common.asArray(prePreviousComponent, previousComponent, rawHeaderComponent, nextComponent, postNextComponent);
+				headerComponents = Common.asArray(prePreviousComponent, previousComponent, rawHeaderComponent, nextComponent, postNextComponent);
 //				}
 				rawHeaderBuilder.append(prePrevious)
 								.append(format.getPrevious())

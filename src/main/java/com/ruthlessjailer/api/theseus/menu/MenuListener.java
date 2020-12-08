@@ -53,7 +53,6 @@ public final class MenuListener implements Listener {
 
 		event.setResult(Event.Result.DENY);
 		event.setCancelled(true);
-
 		clicked.getAction().onClick(event, (Player) event.getWhoClicked(), clicked);
 	}
 
@@ -76,6 +75,4 @@ public final class MenuListener implements Listener {
 		player.removeMetadata(MenuBase.NBT_CURRENT_MENU, Checks.instanceCheck());
 		player.setMetadata(MenuBase.NBT_PREVIOUS_MENU, new FixedMetadataValue(Checks.instanceCheck(), menu));
 	}
-
-
 }

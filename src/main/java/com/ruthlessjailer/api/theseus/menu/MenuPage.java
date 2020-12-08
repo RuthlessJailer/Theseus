@@ -1,12 +1,11 @@
 package com.ruthlessjailer.api.theseus.menu;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author RuthlessJailer
@@ -49,8 +48,15 @@ public final class MenuPage<I extends ListItem> extends MenuBase {
 	 * Fills the inventory with the list items and buttons.
 	 */
 	@Override
-	protected void refillInventory() {
-		super.refillInventory();
-		setItems(new ArrayList<>(this.items));
+	@SneakyThrows
+	protected CompletableFuture<MenuBase> refillInventory() {
+		return CompletableFuture.supplyAsync(() -> {
+			setItems(new ArrayList<>(this.items));
+			try {
+				return super.refillInventory().get();
+			} catch (final InterruptedException | ExecutionException e) {
+				throw new RuntimeException(MenuBase.MENU_ERROR_MESSAGE, e);
+			}
+		});
 	}
 }

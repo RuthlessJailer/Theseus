@@ -2,10 +2,7 @@ package com.ruthlessjailer.api.theseus.menu;
 
 import com.google.common.primitives.Ints;
 import com.ruthlessjailer.api.theseus.item.ItemBuilder;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import lombok.*;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -13,6 +10,8 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -24,8 +23,8 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	protected static final String            DESTINATION_PAGE_PLACEHOLDER = "${DESTINATION}";
 	protected static final String            CURRENT_PAGE_PLACEHOLDER     = "${PAGE}";
 	protected static final String            TOTAL_PAGES_PLACEHOLDER      = "${MAX}";
-	private final          List<MenuPage<I>> pages                        = new ArrayList<>();
-	private final          List<I>           allItems                     = new ArrayList<>();
+	private final          List<MenuPage<I>> pages                        = new CopyOnWriteArrayList<>();//updated during generation but clicked way more (for now)
+	private final          List<I>           allItems                     = new CopyOnWriteArrayList<>();
 	@Setter(AccessLevel.PROTECTED)
 	private                String            noMorePagesMessage           = "&4&lX&c";//this is used in place ${DESTINATION} on the last and first pages
 	private                int[]             includedSlots                = new int[]{
@@ -268,85 +267,96 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	 * Refills the inventories and updates all viewers with changes.
 	 */
 	@Override
-	protected void updateInventory() {
-		generateInventory();
+	protected CompletableFuture<MenuBase> updateInventory() {
+		return CompletableFuture.supplyAsync(() -> {
+			generateInventory();
 
-		refillInventory();
+			refillInventory();
 
-		this.pages.forEach(MenuPage::updateInventory);
+			this.pages.forEach(MenuPage::updateInventory);
+			return this;
+		});
 	}
 
 	/**
 	 * Creates pages if there aren't any already.
 	 */
 	@Override
-	protected void generateInventory() {
+	protected CompletableFuture<MenuBase> generateInventory() {
 		if (!this.pages.isEmpty()) {
-			return;
+			return CompletableFuture.supplyAsync(() -> this);
 		}
 
-		regenerateInventory();
+		return regenerateInventory();
 	}
 
 	/**
 	 * Creates menu pages.
 	 */
 	@Override
-	protected void regenerateInventory() {
-		this.pages.clear();
+	protected CompletableFuture<MenuBase> regenerateInventory() {
+			return CompletableFuture.supplyAsync(() -> {
+			this.pages.clear();
 
-		if (this.allItems.isEmpty()) {//create an empty page
-			setButtonsInMenu(new MenuPage<>(getSize(), formatTitle(), this.includedSlots), 0, cloneButtons(null));
-			this.pages.forEach(MenuPage::regenerateInventory);
-			return;
-		}
-
-		final List<I> buf = new ArrayList<>();
-		int           i   = 0;//counter
-		int           j   = this.allItems.size();//reverse
-		int           p   = 0;//page counter
-		for (final I item : this.allItems) {//parse the pages
-			buf.add(item);
-			if (i == this.includedSlots.length || j <= this.includedSlots.length) {
-				setButtonsInMenu(new MenuPage<>(getSize(), formatTitle(), this.includedSlots, buf), p, cloneButtons(null));
-				p++;
-				i = 0;
-				buf.clear();
+			if (this.allItems.isEmpty()) {//create an empty page
+				setButtonsInMenu(new MenuPage<>(getSize(), formatTitle(), this.includedSlots), 0, cloneButtons(null));
+				this.pages.forEach(MenuPage::regenerateInventory);
+				return this;
 			}
-			i++;
-			j--;
-		}
 
-		this.pages.forEach(MenuPage::regenerateInventory);
+			final List<I> buf = new ArrayList<>();
+			int           i   = 0;//counter
+			int           j   = this.allItems.size();//reverse
+			int           p   = 0;//page counter
+			for (final I item : this.allItems) {//parse the pages
+				buf.add(item);
+				if (i == this.includedSlots.length || j <= this.includedSlots.length) {
+					setButtonsInMenu(new MenuPage<>(getSize(), formatTitle(), this.includedSlots, buf), p, cloneButtons(null));
+					p++;
+					i = 0;
+					buf.clear();
+				}
+				i++;
+				j--;
+			}
+
+			this.pages.forEach(MenuPage::regenerateInventory);
+
+			return this;
+		});
 	}
 
 	/**
 	 * Fills the pages with items and buttons.
 	 */
 	@Override
-	protected void refillInventory() {
-		if (this.allItems.isEmpty()) {
-			setButtonsInMenu(this.pages.get(0), 1, cloneButtons(null));
-			this.pages.forEach(MenuPage::refillInventory);
-			return;
-		}
-
-		final List<I> buf = new ArrayList<>();
-		int           i   = 0;//counter
-		int           p   = 0;//page counter
-		for (final I item : this.allItems) {//parse the pages
-			buf.add(item);
-			if (i == this.includedSlots.length - 1 || (this.allItems.size() < this.includedSlots.length && i == this.allItems.size() - 1)) {
-				this.pages.get(p).setItems(buf);
-				setButtonsInMenu(this.pages.get(p), p, cloneButtons(null));
-				i = 0;
-				p++;
-				buf.clear();
+	protected CompletableFuture<MenuBase> refillInventory() {
+		return CompletableFuture.supplyAsync(() -> {
+			if (this.allItems.isEmpty()) {
+				setButtonsInMenu(this.pages.get(0), 1, cloneButtons(null));
+				this.pages.forEach(MenuPage::refillInventory);
+				return this;
 			}
-			i++;
-		}
 
-		this.pages.forEach(MenuPage::refillInventory);
+			final List<I> buf = new ArrayList<>();
+			int           i   = 0;//counter
+			int           p   = 0;//page counter
+			for (final I item : this.allItems) {//parse the pages
+				buf.add(item);
+				if (i == this.includedSlots.length - 1 || (this.allItems.size() < this.includedSlots.length && i == this.allItems.size() - 1)) {
+					this.pages.get(p).setItems(buf);
+					setButtonsInMenu(this.pages.get(p), p, cloneButtons(null));
+					i = 0;
+					p++;
+					buf.clear();
+				}
+				i++;
+			}
+
+			this.pages.forEach(MenuPage::refillInventory);
+
+			return this;
+		});
 	}
 
 	/**
@@ -355,10 +365,9 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	 * @param player the player to display the menu to.
 	 */
 	@Override
+	@SneakyThrows
 	public void displayTo(final @NonNull Player player) {
-		generateInventory();
-
-		this.pages.get(0).displayTo(player);
+		((ListMenu<I>) generateInventory().get()).pages.get(0).displayTo(player);
 	}
 
 	private void setButtonsInMenu(@NonNull final MenuPage<I> page, final int pageNumber, @NonNull final Map<Integer, Button> buttons) {
@@ -421,4 +430,10 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 
 		return true;
 	}
+
+//	protected List<MenuPage<I>> getPages(){
+//		synchronized (this.pages){
+//			return this.pages;
+//		}
+//	}
 }

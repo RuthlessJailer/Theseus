@@ -45,8 +45,10 @@ public final class XColor {
 	public static final XColor BROWN        = new XColor(DyeColor.BROWN, "BROWN", new Color(0x835432), ChatColor.GOLD);
 	public static final XColor PINK         = new XColor(DyeColor.PINK, "PINK", new Color(0xF38BAA), ChatColor.LIGHT_PURPLE);
 
-	private static final XColor[]           values = new XColor[] {BLACK, DARK_BLUE, DARK_GREEN, DARK_AQUA, DARK_PURPLE, GOLD, GRAY, DARK_GRAY, BLUE, GREEN, AQUA,
-																   RED, LIGHT_PURPLE, YELLOW, WHITE, BROWN, PINK};
+	private static final XColor[] values = new XColor[]{
+			BLACK, DARK_BLUE, DARK_GREEN, DARK_AQUA, DARK_PURPLE, GOLD, GRAY, DARK_GRAY, BLUE, GREEN, AQUA,
+			RED, LIGHT_PURPLE, YELLOW, WHITE, BROWN, PINK
+	};
 
 	@Getter
 	private final DyeColor dyeColor;
@@ -190,6 +192,7 @@ public final class XColor {
 	 * {@link DyeColor}.
 	 *
 	 * @param color the {@link Color} to convert
+	 *
 	 * @return the corresponding {@link XColor}
 	 */
 	public static XColor fromColor(@NonNull final Color color) {
@@ -217,16 +220,15 @@ public final class XColor {
 	/**
 	 * Converts to a material. 1.13 and above only.
 	 *
-	 * @param color the {@link XColor} for which conversion in needed
-	 * @param name  the white variant of the material, e.g. {@link Material#WHITE_WOOL} (1.13+)
+	 * @param name the white variant of the material, e.g. {@link Material#WHITE_WOOL} (1.13+)
 	 *
 	 * @return the found {@link Material} or {@code null}
 	 *
-	 * @see XColor#applyTo(ItemStack, XColor, String) for a 1.12 and below compatible method
+	 * @see XColor#applyTo(ItemStack, String) for a 1.12 and below compatible method
 	 */
-	public static Material toMaterial(final XColor color, final String name) {
+	public Material toMaterial(final String name) {
 
-		if (color == null || name == null) {
+		if (name == null) {
 			return null;
 		}
 
@@ -234,9 +236,9 @@ public final class XColor {
 			return null;
 		}
 
-		final String xname     = color.name();
-		final String dyeName   = color.dyeColor.name();
-		final String colorName = color.chatColor.name();
+		final String xname     = name();
+		final String dyeName   = this.dyeColor.name();
+		final String colorName = this.chatColor.name();
 
 		final String parsed       = name.toUpperCase();
 		String       materialName = parsed.replace("WHITE", xname);//try the xcolor name
@@ -245,17 +247,12 @@ public final class XColor {
 		if (material == null) {//try dye color name
 			materialName = parsed.replace("WHITE", dyeName);
 			material     = Material.getMaterial(materialName);
-			if (material == null) {
-				material = Material.getMaterial(materialName, true);
-			}
+
 		}
 
 		if (material == null) {//try chat color name (last-ditch effort)
 			materialName = parsed.replace("WHITE", colorName);
 			material     = Material.getMaterial(materialName);
-			if (material == null) {
-				material = Material.getMaterial(materialName, true);
-			}
 		}
 
 		return material;
@@ -265,24 +262,23 @@ public final class XColor {
 	/**
 	 * Converts to an {@link com.ruthlessjailer.api.theseus.item.ItemBuilder.ItemStackCreator}.
 	 *
-	 * @param color the {@link XColor} for which conversion in needed
-	 * @param name  the white variant of the material, e.g. WHITE_WOOL (1.13+), or the name of the base material, e.g. WOOL (1.12-)
+	 * @param name the white variant of the material, e.g. WHITE_WOOL (1.13+), or the name of the base material, e.g. WOOL (1.12-)
 	 *
-	 * @see XColor#toMaterial(XColor, String) 1.13+ exclusive
+	 * @see XColor#toMaterial(String) 1.13+ exclusive
 	 */
-	public static void applyTo(final ItemStack item, final XColor color, final String name) {
+	public void applyTo(final ItemStack item, final String name) {
 		final Material def = ReflectUtil.getEnum(Material.class, "WHITE_WOOL", "WOOL");
 
 		if (def == null) {
 			throw new MinecraftVersion.UnsupportedServerVersionException();
 		}
 
-		if (color == null || name == null || item == null || !item.hasItemMeta()) {
+		if (name == null || item == null || !item.hasItemMeta()) {
 			return;
 		}
 
 		if (MinecraftVersion.atLeast(MinecraftVersion.v1_13)) {
-			final Material material = toMaterial(color, name);
+			final Material material = toMaterial(name);
 			item.setType(material == null ? def : material);
 			return;
 		}
@@ -384,6 +380,6 @@ public final class XColor {
 	 *
 	 * @return {@link org.bukkit.Color Bukkit's  representation of the color}
 	 */
-	public org.bukkit.Color getBukkitColor(){ return org.bukkit.Color.fromRGB(getColor().getRed(), getColor().getGreen(), getColor().getBlue()); }
+	public org.bukkit.Color getBukkitColor() { return org.bukkit.Color.fromRGB(getColor().getRed(), getColor().getGreen(), getColor().getBlue()); }
 
 }
