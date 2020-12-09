@@ -141,7 +141,7 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 			@Override
 			public void run() {
 				if (this.i > 5) {
-					cancel();
+					Common.cancelTask(this);
 				}
 				System.out.println("async repeat (task) " + this.i++);
 			}

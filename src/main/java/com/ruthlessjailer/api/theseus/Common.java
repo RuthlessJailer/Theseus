@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.permissions.Permissible;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -44,6 +45,17 @@ public final class Common {
 	 */
 	public static void cancelTask(@NonNull final BukkitTask task) {
 		task.cancel();
+	}
+
+	/**
+	 * Cancels a task.
+	 *
+	 * @param task the {@link BukkitTask} to cancel
+	 *
+	 * @see BukkitRunnable#cancel()
+	 */
+	public static void cancelTask(@NonNull final BukkitRunnable task) {
+		cancelTask(task.getTaskId());
 	}
 
 	/**
