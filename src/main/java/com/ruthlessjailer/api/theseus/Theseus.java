@@ -20,7 +20,5 @@ public final class Theseus extends PluginBase {
 	protected void onStart() {
 		registerCommands(new TestCommand());
 		registerEvents(new TestListener());
-
-		
 	}
 }

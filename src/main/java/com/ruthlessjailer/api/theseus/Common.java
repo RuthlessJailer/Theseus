@@ -50,12 +50,12 @@ public final class Common {
 	/**
 	 * Cancels a task.
 	 *
-	 * @param task the {@link BukkitTask} to cancel
+	 * @param task the {@link BukkitRunnable} to cancel
 	 *
 	 * @see BukkitRunnable#cancel()
 	 */
 	public static void cancelTask(@NonNull final BukkitRunnable task) {
-		cancelTask(task.getTaskId());
+		task.cancel();
 	}
 
 	/**
@@ -127,7 +127,7 @@ public final class Common {
 	 */
 	@Deprecated
 	public static <T extends Runnable> BukkitTask runTask(@NonNull final T task) {
-		return TaskManager.sync.run(task, 0);
+		return TaskManager.sync.delay(task, 0);
 	}
 
 	/**
@@ -141,7 +141,7 @@ public final class Common {
 	 */
 	@Deprecated
 	public static <T extends Runnable> BukkitTask runAsync(@NonNull final T task) {
-		return TaskManager.async.run(task, 0);
+		return TaskManager.async.delay(task, 0);
 	}
 
 	/**
@@ -187,7 +187,7 @@ public final class Common {
 	 */
 	@Deprecated
 	public static BukkitTask runTaskLater(final int delayTicks, @NonNull final Runnable task) {
-		return TaskManager.sync.run(task, delayTicks);
+		return TaskManager.sync.delay(task, delayTicks);
 	}
 
 	/**
@@ -203,7 +203,7 @@ public final class Common {
 	 */
 	@Deprecated
 	public static BukkitTask runLaterAsync(final int delayTicks, @NonNull final Runnable task) {
-		return TaskManager.async.run(task, delayTicks);
+		return TaskManager.async.delay(task, delayTicks);
 	}
 
 	/**

@@ -121,7 +121,7 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 	@SneakyThrows
 	private void task(final CommandSender sender, final String[] args) {
 		TaskManager.sync.later(() -> System.out.println("sync later (task)"));
-		TaskManager.sync.run(() -> System.out.println("sync run (task)"), 10);
+		TaskManager.sync.delay(() -> System.out.println("sync run (task)"), 10);
 		TaskManager.async.repeat(new BukkitRunnable() {
 			int i = 0;
 
@@ -134,7 +134,7 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 			}
 		}, 20);
 		TaskManager.async.later(() -> System.out.println("async later (task)"));
-		TaskManager.async.run(() -> System.out.println("async run (task)"), 30);
+		TaskManager.async.delay(() -> System.out.println("async run (task)"), 30);
 		TaskManager.async.repeat(new BukkitRunnable() {
 			int i = 0;
 
