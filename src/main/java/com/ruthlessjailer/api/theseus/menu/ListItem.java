@@ -1,5 +1,6 @@
 package com.ruthlessjailer.api.theseus.menu;
 
+import com.ruthlessjailer.api.theseus.menu.button.ButtonAction;
 import lombok.NonNull;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -12,9 +13,9 @@ import org.bukkit.inventory.ItemStack;
  */
 public class ListItem {
 
-	private Object       value;
-	private ItemStack    item;
-	private ButtonAction action;
+	private       Object       value;
+	private final ItemStack    item;
+	private final ButtonAction action;
 
 	public ListItem(final Object value, @NonNull final ItemStack item) {
 		this(value, item, ButtonAction.EMPTY_ACTION);

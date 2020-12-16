@@ -6,10 +6,10 @@ import com.ruthlessjailer.api.theseus.ReflectUtil;
 import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 import com.ruthlessjailer.api.theseus.multiversion.XColor;
 import com.ruthlessjailer.api.theseus.multiversion.XItemFlag;
-import javafx.util.Pair;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Singular;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -34,7 +34,7 @@ public class ItemBuilder {
 	private final ItemMeta                                 meta;
 	private final Material                                 material;
 	private final String                                   name;
-	private final OfflinePlayer owner;
+	private final OfflinePlayer                            owner;
 	@Builder.Default
 	private final int                                      amount          = 1;
 	@Builder.Default
@@ -142,10 +142,10 @@ public class ItemBuilder {
 			final LeatherArmorMeta leather = (LeatherArmorMeta) meta;
 			leather.setColor(this.color.getBukkitColor());
 		}
-		if(meta instanceof SkullMeta && this.owner != null){
+		if (meta instanceof SkullMeta && this.owner != null) {
 
-				SkullMeta skullMeta = (SkullMeta) meta;
-				skullMeta.setOwningPlayer(this.owner);
+			final SkullMeta skullMeta = (SkullMeta) meta;
+			skullMeta.setOwningPlayer(this.owner);
 		}
 
 		//version specific stuff
@@ -166,11 +166,11 @@ public class ItemBuilder {
 		protected ItemStackCreator() {}
 
 		public ItemStackCreator addEnchantment(@NonNull final Enchantment enchantment, final int level, final boolean ignoreLevelRestriction) {
-			return this.enchantment(enchantment, new Pair<>(level, ignoreLevelRestriction));
+			return this.enchantment(enchantment, Pair.of(level, ignoreLevelRestriction));
 		}
 
 		public ItemStackCreator addEnchantments(@NonNull final Map<Enchantment, Integer> enchantments, final boolean ignoreLevelRestriction) {
-			enchantments.forEach((e, i) -> this.enchantment(e, new Pair<>(i, ignoreLevelRestriction)));
+			enchantments.forEach((e, i) -> this.enchantment(e, Pair.of(i, ignoreLevelRestriction)));
 			return this;
 		}
 
@@ -183,8 +183,8 @@ public class ItemBuilder {
 			return this;
 		}
 
-		public ItemStackCreator owner(final String name){
-			if(name == null){
+		public ItemStackCreator owner(final String name) {
+			if (name == null) {
 				this.owner = null;
 				return this;
 			}
@@ -192,8 +192,8 @@ public class ItemBuilder {
 			return this;
 		}
 
-		public ItemStackCreator owner(final UUID uuid){
-			if(uuid == null){
+		public ItemStackCreator owner(final UUID uuid) {
+			if (uuid == null) {
 				this.owner = null;
 				return this;
 			}

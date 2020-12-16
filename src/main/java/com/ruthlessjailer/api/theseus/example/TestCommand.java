@@ -3,9 +3,11 @@ package com.ruthlessjailer.api.theseus.example;
 import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.PromptUtil;
+import com.ruthlessjailer.api.theseus.ReflectUtil;
 import com.ruthlessjailer.api.theseus.command.CommandBase;
 import com.ruthlessjailer.api.theseus.command.SubCommand;
 import com.ruthlessjailer.api.theseus.command.SuperiorCommand;
+import com.ruthlessjailer.api.theseus.io.update.Updater;
 import com.ruthlessjailer.api.theseus.item.ItemBuilder;
 import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 import com.ruthlessjailer.api.theseus.multiversion.XColor;
@@ -17,6 +19,7 @@ import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Sign;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -25,6 +28,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author RuthlessJailer
@@ -99,6 +103,36 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 //		System.out.println("yeeted");
 
 		test.displayTo(getPlayer(sender));
+		System.out.println("display'd");
+	}
+
+	@SubCommand(inputArgs = "ghost %p<Player> %b<All>")
+	private void place(final CommandSender sender, final String[] args, final OfflinePlayer player, final boolean all) {
+		if (TestListener.GHOSTING.containsKey(player.getUniqueId())) {
+			TestListener.GHOSTING.remove(player.getUniqueId());
+			Chat.send(sender, "&4No longer ghosting &b" + player.getName());
+		} else {
+			TestListener.GHOSTING.put(player.getUniqueId(), all);
+			Chat.send(sender, "&2Now ghosting &b" + player.getName());
+		}
+	}
+
+	@SubCommand(inputArgs = "update")
+	private void update(final CommandSender sender, final String[] args) {
+		final Updater updater = new Updater(86123);
+		System.out.println(updater.isValidResource());
+		updater.canUpdate();
+	}
+
+	@SubCommand(inputArgs = "invsee %p")
+	private void invsee(final CommandSender sender, final String[] args, final OfflinePlayer target) {
+		final Player player = getPlayer(sender);
+		if (target == null || !target.isOnline() || target.getPlayer() == null) {
+			Chat.send(sender, "&b" + (target == null ? "INVALID PLAYER" : target.getName()) + "&c is not online.");
+			return;
+		}
+
+		InvMenu.getMenu(target.getPlayer()).displayTo(player);
 	}
 
 	@SubCommand(inputArgs = "chat")
@@ -141,7 +175,7 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 			@Override
 			public void run() {
 				if (this.i > 5) {
-					Common.cancelTask(this);
+					cancel();
 				}
 				System.out.println("async repeat (task) " + this.i++);
 			}
@@ -149,13 +183,13 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 
 		TaskManager.async.later(() -> {
 			try {
-				FutureHandler.sync.later(() -> {
+				FutureHandler.sync.supply(() -> {
 					final Chunk chunk = Bukkit.getWorlds().get(0).getChunkAt(0, 0);
 					System.out.println("sync later (future) " + chunk.getX() + ", " + chunk.getZ());
 					return chunk;
 				}).get();
 
-				FutureHandler.sync.run(() -> {
+				FutureHandler.sync.supply(() -> {
 					final Chunk chunk = Bukkit.getWorlds().get(0).getChunkAt(0, 0);
 					System.out.println("sync run (future) " + chunk.getX() + ", " + chunk.getZ());
 					return chunk;
@@ -166,13 +200,47 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 		});
 
 
-		FutureHandler.async.later(() -> Bukkit.getOfflinePlayer("ruthlessjailer")).thenAccept((op) -> {
+		FutureHandler.async.supply(() -> Bukkit.getOfflinePlayer("ruthlessjailer")).thenAccept((op) -> {
 			System.out.println("async later (future) " + op.getName());
 		});
 
-		FutureHandler.async.run(() -> Bukkit.getOfflinePlayer("ruthlessjailer"), 6000).thenAccept((op) -> {
+		FutureHandler.async.supply(() -> Bukkit.getOfflinePlayer("ruthlessjailer"), 6000).thenAccept((op) -> {
 			System.out.println("async run (future) " + op.getName());
 		});
+
+	}
+
+	static int a = 5;
+
+	@SubCommand(inputArgs = "sleep")
+	private void sleep(final CommandSender sender, final String[] args) {
+		for (int i = 0; i < 50; i++) {
+			FutureHandler.sync.run(() -> {
+				try {
+					System.out.println("Current TPS: " + Common.getTPSCounter().getTPS() + ". " +
+									   "Sleeping for " + (a++) + "ms on tick " + Common.getTPSCounter().getTick() + ". " +
+									   "Allocate = " + ReflectUtil.getFieldValue(FutureHandler.sync.getClass(), "allocate", FutureHandler.sync));
+					Thread.sleep(a);
+				} catch (final InterruptedException e) {
+					e.printStackTrace();
+				}
+			}, null, 0);
+		}
+	}
+
+	@SubCommand(inputArgs = "chunkd")
+	private void chunkd(final CommandSender sender, final String[] args) {
+		FutureHandler.async.run(() -> {
+			for (final AtomicInteger x = new AtomicInteger(); x.get() < 100; x.getAndIncrement()) {
+				for (final AtomicInteger z = new AtomicInteger(); z.get() < 100; z.getAndIncrement()) {
+					for (final AtomicInteger y = new AtomicInteger(); y.get() < 100; y.getAndIncrement()) {
+						FutureHandler.sync.run(() -> {
+							Bukkit.getWorld("world").getBlockAt(x.get(), y.get(), z.get()).setType(Material.BLACK_CONCRETE);
+						}, null, 0);
+					}
+				}
+			}
+		}, null);
 	}
 
 	static {

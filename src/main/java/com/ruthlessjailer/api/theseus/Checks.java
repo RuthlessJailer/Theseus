@@ -1,5 +1,7 @@
 package com.ruthlessjailer.api.theseus;
 
+import lombok.SneakyThrows;
+
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -134,15 +136,15 @@ public final class Checks {
 	 *
 	 * @throws CheckException or given exception if the condition is false
 	 */
-	public static void verify(final boolean condition, final String falseMessage, final Class<? extends RuntimeException> exception) {
+	@SneakyThrows
+	public static void verify(final boolean condition, final String falseMessage, final Class<? extends Throwable> exception) {
 		if (!condition) {
-			//throw ReflectUtil.newInstanceOf(exception, falseMessage);
+//			throw (Throwable) ReflectUtil.newInstanceOf(ReflectUtil.getConstructor(exception.getClass(), String.class), falseMessage);
 			try {
 				throw exception.getConstructor(String.class).newInstance(falseMessage);
 			} catch (final InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-				throw new ReflectUtil.ReflectionException(String.format("Could not throw exception %s. Perhaps it is " +
-																		"missing a constructor?",
-																		ReflectUtil.getPath(exception)));
+				throw new ReflectUtil.ReflectionException(String.format("Could not throw exception %s. Perhaps it is missing a constructor?",
+																		ReflectUtil.getPath(exception)), new CheckException(falseMessage));
 			}
 		}
 	}

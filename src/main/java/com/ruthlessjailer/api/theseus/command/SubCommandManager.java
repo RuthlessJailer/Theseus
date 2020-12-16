@@ -66,13 +66,14 @@ public final class SubCommandManager {
 					final SubCommandWrapper wrapper = getManager().parseArgs((CommandBase) command, method,
 																			 (SubCommand) annotation);
 					wrappers.add(wrapper);
-					Chat.debug("Commands",
-							   String.format("Registering method %s in class %s as a sub command.",
-											 wrapper.getMethod().getName(),
-											 ReflectUtil.getPath(command.getClass())));
 				}
 			}
 		}
+
+		Chat.debug("SubCommands",
+				   String.format("Registering methods %s in class %s as sub commands.",
+								 Common.convert(wrappers, wrapper -> wrapper.getMethod().getName()),
+								 ReflectUtil.getPath(command.getClass())));
 
 		synchronized (getManager().subCommands) {
 			getManager().subCommands.put((CommandBase) command, wrappers);

@@ -8,8 +8,8 @@ import org.bukkit.scheduler.BukkitTask;
  */
 public interface TaskManager {
 
-	SyncTaskManager  sync  = new SyncTaskManager();
 	AsyncTaskManager async = new AsyncTaskManager();
+	SyncTaskManager  sync  = new SyncTaskManager();
 
 
 	//Runnable methods
@@ -60,32 +60,32 @@ public interface TaskManager {
 	/**
 	 * Runs a task {@code 1} tick later.
 	 *
-	 * @param runnable the task to run
+	 * @param bukkit the task to run
 	 *
 	 * @return the {@link BukkitTask} representing the task
 	 */
-	default BukkitTask later(final BukkitRunnable runnable) {
-		return delay(runnable, 1);
+	default BukkitTask later(final BukkitRunnable bukkit) {
+		return delay(bukkit, 1);
 	}
 
 	/**
 	 * Runs a task given amount of ticks later.
 	 *
-	 * @param runnable the task to run
-	 * @param delay    the delay, it ticks
+	 * @param bukkit the task to run
+	 * @param delay  the delay, it ticks
 	 *
 	 * @return the {@link BukkitTask} representing the task
 	 */
-	BukkitTask delay(final BukkitRunnable runnable, final int delay);
+	BukkitTask delay(final BukkitRunnable bukkit, final int delay);
 
 	/**
 	 * Repeats a task every given amount of ticks.
 	 *
-	 * @param runnable the task to run
+	 * @param bukkit   the task to run
 	 * @param interval the interval and initial delay, in ticks
 	 *
 	 * @return the {@link BukkitTask} representing the task
 	 */
-	BukkitTask repeat(final BukkitRunnable runnable, final int interval);
+	BukkitTask repeat(final BukkitRunnable bukkit, final int interval);
 
 }

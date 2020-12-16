@@ -36,20 +36,13 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	/**
 	 * Get the current instance of the plugin.
 	 *
-	 * @return the found instance of the plugin or {@code null}
+	 * @return the found instance of the plugin
 	 */
 	public static final PluginBase getInstance() {
 		return instance == null
 			   ? getPlugin(PluginBase.class)
 			   : instance;
 	}
-
-	/**
-	 * Checks if the current thread is sync or not.
-	 *
-	 * @return whether or not the current thread is the main thread
-	 */
-	public static boolean isMainThread() { return hasInstance() ? Bukkit.isPrimaryThread() : instance.thread == Thread.currentThread(); }
 
 	/**
 	 * Log check.
@@ -77,14 +70,14 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	 *
 	 * @return the {@link File} representing the JAR file of the plugin
 	 */
-	public static final File getJar() { return Checks.instanceCheck().getFile(); }
+	public static final File getJar() { return getInstance().getFile(); }
 
 	/**
 	 * Shortcut for {@link JavaPlugin#getDataFolder()}.
 	 *
 	 * @return the {@link File} representing the plugin folder
 	 */
-	public static final File getFolder() { return Checks.instanceCheck().getDataFolder(); }
+	public static final File getFolder() { return getInstance().getDataFolder(); }
 
 	/**
 	 * Shortcut for {@link JavaPlugin#getResource(String)}.
@@ -93,7 +86,14 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	 *
 	 * @return the {@link InputStream} for the resource or null
 	 */
-	public static final InputStream getPluginResource(@NonNull final String file) { return Checks.instanceCheck().getResource(file); }
+	public static final InputStream getPluginResource(@NonNull final String file) { return getInstance().getResource(file); }
+
+	/**
+	 * Checks if the current thread is sync or not.
+	 *
+	 * @return whether or not the current thread is the main thread
+	 */
+	public static boolean isMainThread() { return hasInstance() ? instance.thread == Thread.currentThread() : Bukkit.isPrimaryThread(); }
 
 	/**
 	 * Shortcut for {@link Chat#debug(String, String...)}.
@@ -101,6 +101,10 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	protected static final void debug(@NonNull final String... messages) { Chat.debug("Plugin", messages); }
 
 	public static void catchError(@NonNull final Throwable throwable) {
+		catchError(throwable, false);
+	}
+
+	public static void catchError(@NonNull final Throwable throwable, final boolean disable) {
 
 		Chat.send(Bukkit.getConsoleSender(),
 				  "&c------------------- The plugin has encountered an error. --------------------",
@@ -133,7 +137,9 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 
 
 		throwable.printStackTrace();
-		getInstance().setEnabled(false);
+		if (disable) {
+			getInstance().setEnabled(false);
+		}
 		throw new RuntimeException();
 	}
 
@@ -143,12 +149,19 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 		instance    = this;
 		this.thread = Thread.currentThread();
 
+
 		if (!Bukkit.isPrimaryThread()) {
 			catchError(new IllegalStateException("Async plugin load."));
 		}
 
 		debug("Calling beforeStart()");
-		beforeStart();
+		try {
+			beforeStart();
+		} catch (final Throwable t) {
+			Chat.severe("Fatal error in beforeStart(), exiting...");
+			catchError(t);
+			return;
+		}
 		debug("Called beforeStart()");
 	}
 

@@ -3,7 +3,7 @@ package com.ruthlessjailer.api.theseus.command;
 /**
  * Interface for tagging {@link SubCommand}-enabled classes.
  *
- * @author Vadim Hagedorn
+ * @author RuthlessJailer
  * @see SubCommand
  * @see CommandBase
  */

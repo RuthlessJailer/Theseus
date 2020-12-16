@@ -262,7 +262,7 @@ public final class XColor {
 	/**
 	 * Converts to an {@link com.ruthlessjailer.api.theseus.item.ItemBuilder.ItemStackCreator}.
 	 *
-	 * @param name the white variant of the material, e.g. WHITE_WOOL (1.13+), or the name of the base material, e.g. WOOL (1.12-)
+	 * @param name the white variant of the material, e.g. WHITE_WOOL
 	 *
 	 * @see XColor#toMaterial(String) 1.13+ exclusive
 	 */
@@ -284,7 +284,7 @@ public final class XColor {
 		}
 
 		if (MinecraftVersion.atMost(MinecraftVersion.v1_12)) {
-			final Material material = ReflectUtil.getEnum(Material.class, name);
+			final Material material = ReflectUtil.getEnum(Material.class, name.replace("WHITE_", ""));
 			item.setType(material == null ? def : material);
 			//TODO: finish xMaterial and add compatibility here
 			return;

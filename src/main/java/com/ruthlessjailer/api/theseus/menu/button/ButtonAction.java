@@ -1,4 +1,4 @@
-package com.ruthlessjailer.api.theseus.menu;
+package com.ruthlessjailer.api.theseus.menu.button;
 
 import lombok.NonNull;
 import org.bukkit.entity.Player;
@@ -13,6 +13,6 @@ public interface ButtonAction extends Serializable {
 
 	ButtonAction EMPTY_ACTION = (event, clicker, clicked) -> {};
 
-	void onClick(@NonNull final InventoryClickEvent event, @NonNull final Player clicker, @NonNull final Button clicked);
+	void onClick(@NonNull final InventoryClickEvent event, @NonNull final Player clicker, @NonNull final ButtonBase clicked);
 
 }

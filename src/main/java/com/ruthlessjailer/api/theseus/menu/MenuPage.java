@@ -1,5 +1,6 @@
 package com.ruthlessjailer.api.theseus.menu;
 
+import com.ruthlessjailer.api.theseus.menu.button.ActionButton;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public final class MenuPage<I extends ListItem> extends MenuBase {
 				break;
 			}
 
-			setButton(slot, new Button(this.items.get(i).item(), this.items.get(i).action()));
+			setButton(slot, new ActionButton(this.items.get(i).item(), this.items.get(i).action()));
 //			System.out.println(slot + ":" + this.items.get(i).item().getData());
 			i++;
 		}

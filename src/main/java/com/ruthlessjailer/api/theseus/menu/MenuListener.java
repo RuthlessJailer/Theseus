@@ -1,6 +1,7 @@
 package com.ruthlessjailer.api.theseus.menu;
 
 import com.ruthlessjailer.api.theseus.Checks;
+import com.ruthlessjailer.api.theseus.menu.button.ButtonBase;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.bukkit.entity.Player;
@@ -39,7 +40,12 @@ public final class MenuListener implements Listener {
 
 		menu.onGenericClick(event);
 
-		final Button clicked = menu.buttons.get(event.getSlot());
+		if (menu.isProtectEmptySlots()) {//cancel for all slots (button can override)
+			event.setResult(Event.Result.DENY);
+			event.setCancelled(true);
+		}
+
+		final ButtonBase clicked = menu.buttons.get(event.getSlot());
 
 		if (clicked == null) {
 			return;
@@ -51,9 +57,12 @@ public final class MenuListener implements Listener {
 
 		//it's the right item
 
-		event.setResult(Event.Result.DENY);
-		event.setCancelled(true);
-		clicked.getAction().onClick(event, (Player) event.getWhoClicked(), clicked);
+		if (clicked.isProtect()) {
+			event.setResult(Event.Result.DENY);
+			event.setCancelled(true);
+		}
+
+		clicked.onClick(event, player, clicked);
 	}
 
 	@EventHandler

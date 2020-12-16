@@ -2,6 +2,10 @@ package com.ruthlessjailer.api.theseus.menu;
 
 import com.google.common.primitives.Ints;
 import com.ruthlessjailer.api.theseus.item.ItemBuilder;
+import com.ruthlessjailer.api.theseus.menu.button.ActionButton;
+import com.ruthlessjailer.api.theseus.menu.button.ButtonAction;
+import com.ruthlessjailer.api.theseus.menu.button.ButtonBase;
+import com.ruthlessjailer.api.theseus.task.handler.FutureHandler;
 import lombok.*;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Material;
@@ -34,8 +38,8 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	};
 	private                int               backButtonSlot               = 0;
 	private                int               nextButtonSlot               = 8;
-	private                Button            backButton;
-	private                Button            nextButton;
+	private                ActionButton      backButton;
+	private                ActionButton      nextButton;
 
 	private ListMenu(final @NonNull InventoryType type, final @NonNull String title) {//can't use type for paged menu
 		this(null, type, title);
@@ -75,7 +79,7 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	 * @param item the {@link ItemStack item} to use as the next button
 	 */
 	protected void setNextButton(@NonNull final ItemStack item) {
-		this.nextButton = new Button(item);
+		this.nextButton = new ActionButton(item);
 		setButton(this.nextButtonSlot, this.nextButton);
 	}
 
@@ -102,7 +106,7 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	 * @param item the {@link ItemStack item} to use as the back button
 	 */
 	protected void setBackButton(@NonNull final ItemStack item) {
-		this.backButton = new Button(item);
+		this.backButton = new ActionButton(item);
 		setButton(this.backButtonSlot, this.backButton);
 	}
 
@@ -123,15 +127,15 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 		setButton(slot, this.backButton);
 	}
 
-	private Map<Integer, Button> cloneButtons(final Map<Integer, Button> toClone) {
-		final Map<Integer, Button> clone = new HashMap<>();
+	private Map<Integer, ButtonBase> cloneButtons(final Map<Integer, ButtonBase> toClone) {
+		final Map<Integer, ButtonBase> clone = new HashMap<>();
 
-		(toClone == null ? this.buttons : toClone).forEach((slot, button) -> clone.put(slot, new Button(button.getItem().clone(), button.getAction())));
+		(toClone == null ? this.buttons : toClone).forEach((slot, button) -> clone.put(slot, button.clone()));
 
 		return clone;
 	}
 
-	private void formatNames(@NonNull final Map<Integer, Button> buttons) {
+	private void formatNames(@NonNull final Map<Integer, ButtonBase> buttons) {
 		buttons.forEach((slot, button) -> {
 			final ItemBuilder.ItemStackCreator builder = ItemBuilder.of(button.getItem());
 
@@ -252,10 +256,10 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	 * Sets a button if it is not in an excluded slot.
 	 *
 	 * @param slot   the slot to put the button
-	 * @param button the {@link Button} to set
+	 * @param button the {@link ButtonBase} to set
 	 */
 	@Override
-	protected void setButton(final int slot, final Button button) {
+	protected void setButton(final int slot, final ButtonBase button) {
 		if (isFreeSlot(slot)) {
 			super.setButton(slot, button);
 		} else if (button == null) {
@@ -267,8 +271,8 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	 * Refills the inventories and updates all viewers with changes.
 	 */
 	@Override
-	protected CompletableFuture<MenuBase> updateInventory() {
-		return CompletableFuture.supplyAsync(() -> {
+	public CompletableFuture<MenuBase> updateInventory() {
+		return FutureHandler.async.supply(() -> {
 			generateInventory();
 
 			refillInventory();
@@ -284,7 +288,7 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	@Override
 	protected CompletableFuture<MenuBase> generateInventory() {
 		if (!this.pages.isEmpty()) {
-			return CompletableFuture.supplyAsync(() -> this);
+			return FutureHandler.async.supply(() -> this);
 		}
 
 		return regenerateInventory();
@@ -295,7 +299,7 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	 */
 	@Override
 	protected CompletableFuture<MenuBase> regenerateInventory() {
-			return CompletableFuture.supplyAsync(() -> {
+		return FutureHandler.async.supply(() -> {
 			this.pages.clear();
 
 			if (this.allItems.isEmpty()) {//create an empty page
@@ -331,7 +335,7 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 	 */
 	@Override
 	protected CompletableFuture<MenuBase> refillInventory() {
-		return CompletableFuture.supplyAsync(() -> {
+		return FutureHandler.async.supply(() -> {
 			if (this.allItems.isEmpty()) {
 				setButtonsInMenu(this.pages.get(0), 1, cloneButtons(null));
 				this.pages.forEach(MenuPage::refillInventory);
@@ -370,16 +374,16 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 		((ListMenu<I>) generateInventory().get()).pages.get(0).displayTo(player);
 	}
 
-	private void setButtonsInMenu(@NonNull final MenuPage<I> page, final int pageNumber, @NonNull final Map<Integer, Button> buttons) {
+	private void setButtonsInMenu(@NonNull final MenuPage<I> page, final int pageNumber, @NonNull final Map<Integer, ButtonBase> buttons) {
 		final ButtonAction action = (event, clicker, clicked) -> {
 			this.pages.get(parseRange(Integer.parseInt(clicked.getItem().getItemMeta().getLocalizedName()))).displayTo(clicker);
 		};
 
-		cloneButtons(buttons).forEach((slot, button) -> setButtonInMenu(pageNumber, slot, button, buttons, button.getAction()));
+		cloneButtons(buttons).forEach((slot, button) -> setButtonInMenu(pageNumber, slot, button, buttons));
 
 		//these override the above loop for the paging buttons
-		setButtonInMenu(pageNumber + 1, this.nextButtonSlot, this.nextButton, buttons, action);
-		setButtonInMenu(pageNumber - 1, this.backButtonSlot, this.backButton, buttons, action);
+		setButtonInMenu(pageNumber + 1, this.nextButtonSlot, this.nextButton, action, buttons);
+		setButtonInMenu(pageNumber - 1, this.backButtonSlot, this.backButton, action, buttons);
 
 		formatNames(buttons);
 
@@ -387,20 +391,23 @@ public abstract class ListMenu<I extends ListItem> extends MenuBase {
 		this.pages.add(page);
 	}
 
-	private void setButtonInMenu(final int destinationPageNumber, final int slot, @NonNull final Button button, @NonNull final Map<Integer, Button> buttons,
-								 @NonNull final ButtonAction action) {
+	private void setButtonInMenu(final int destinationPageNumber, final int slot, @NonNull final ButtonBase button, @NonNull final Map<Integer, ButtonBase> buttons) {
 
 		final String name = destinationPageNumber != parseRange(destinationPageNumber) &&
 							(parseRange(destinationPageNumber) + 1 == getPageCount() || parseRange(destinationPageNumber) == 0)
 							? formatName(button.getItem(), this.noMorePagesMessage)
 							: formatName(button.getItem(), parseRange(destinationPageNumber) + 1);
 
-		final Button modified = new Button(ItemBuilder.of(button.getItem())
-													  .name(name)
-													  .localizedName(String.valueOf(destinationPageNumber)).build().create(),
-										   action);
+		final ButtonBase modified = button.clone();
+		modified.setItem(ItemBuilder.of(button.getItem())
+									.name(name)
+									.localizedName(String.valueOf(destinationPageNumber)).build().create());
 
 		buttons.put(slot, modified);
+	}
+
+	private void setButtonInMenu(final int destinationPageNumber, final int slot, @NonNull final ActionButton button, @NonNull final ButtonAction action, @NonNull final Map<Integer, ButtonBase> buttons) {
+		setButtonInMenu(destinationPageNumber, slot, new ActionButton(button.getItem(), action), buttons);
 	}
 
 	/**

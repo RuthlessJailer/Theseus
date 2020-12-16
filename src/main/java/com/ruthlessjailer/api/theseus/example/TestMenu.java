@@ -1,10 +1,14 @@
 package com.ruthlessjailer.api.theseus.example;
 
 import com.ruthlessjailer.api.theseus.item.ItemBuilder;
-import com.ruthlessjailer.api.theseus.menu.Button;
 import com.ruthlessjailer.api.theseus.menu.ListItem;
 import com.ruthlessjailer.api.theseus.menu.ListMenu;
 import com.ruthlessjailer.api.theseus.menu.MenuBase;
+import com.ruthlessjailer.api.theseus.menu.button.ActionButton;
+import com.ruthlessjailer.api.theseus.menu.button.ButtonBase;
+import com.ruthlessjailer.api.theseus.menu.button.DynamicButton;
+import com.ruthlessjailer.api.theseus.menu.button.MenuButton;
+import com.ruthlessjailer.api.theseus.multiversion.XColor;
 import com.ruthlessjailer.api.theseus.multiversion.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.event.Event;
@@ -13,6 +17,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -23,7 +28,7 @@ public class TestMenu extends MenuBase {
 	public TestMenu() {
 		super(MIN_SLOTS, "&3Test Menu");
 
-		setButton(0, new Button(ItemBuilder.of(Material.BEDROCK, "&eCUSTOMIZABLE ITEM").build().create(), (event, clicker, clicked) -> {
+		setButton(0, new ActionButton(ItemBuilder.of(Material.BEDROCK, "&eCUSTOMIZABLE ITEM").build().create(), (event, clicker, clicked) -> {
 
 			if (event.getCursor() != null && event.getCursor().getType() != Material.AIR) {
 				clicked.setItem(ItemBuilder.of(event.getCursor()).name("&cCUSTOMIZABLE ITEM").build().create());
@@ -43,16 +48,23 @@ public class TestMenu extends MenuBase {
 
 		}));
 
-		final YeetMenu yeet = new YeetMenu();
+		setButton(8, new MenuButton(ItemBuilder.of(Material.SAND, "&2List Menu").build().create(), new YeetMenu()));
 
-		setButton(8, new Button(ItemBuilder.of(Material.SAND, "&2List Menu").build().create(), (event, clicker, clicked) -> {
-			yeet.displayTo(clicker);
-		}));
+		final CopyOnWriteArrayList<ButtonBase> buttons = new CopyOnWriteArrayList<>();
+
+		for (final XColor x : XColor.values()) {
+			final ItemStack item = ItemBuilder.of(Material.STONE, x + x.name()).build().create();
+			x.applyTo(item, "WHITE_CONCRETE");
+			buttons.add(new ActionButton(item));
+		}
+
+		setButton(3, new DynamicButton(this, 5, true, buttons));
+		System.out.println("DYNAMIC BUTTON");
 
 		final ItemStack gold    = ItemBuilder.of(Material.GOLD_BLOCK, "&6GOLD").build().create();
 		final ItemStack diamond = ItemBuilder.of(Material.DIAMOND_BLOCK, "&9DIAMOND").build().create();
 
-		setButton(4, new Button(gold, (event, clicker, clicked) -> {
+		setButton(4, new ActionButton(gold, (event, clicker, clicked) -> {
 
 			if (clicked.getItem().isSimilar(gold)) {
 				clicked.setItem(diamond);
@@ -106,8 +118,8 @@ public class TestMenu extends MenuBase {
 			setExcludedSlots(excluded);
 
 
-			final Button border = new Button(ItemBuilder.of(XMaterial.BLACK_STAINED_GLASS_PANE.toItemStack())
-														.name(" ").hideAllFlags(true).build().create());
+			final ActionButton border = new ActionButton(ItemBuilder.of(XMaterial.BLACK_STAINED_GLASS_PANE.toItemStack())
+																	.name(" ").hideAllFlags(true).build().create());
 			for (final int slot : excluded) {//set border before updating default buttons
 				setButton(slot, border);
 			}
@@ -116,11 +128,11 @@ public class TestMenu extends MenuBase {
 			setNextButtonSlot(53);
 			setPreviousMenuButtonSlot(0);
 
-			setButton(8, new Button(ItemBuilder.of(XMaterial.BARRIER.toItemStack())
-											   .name("&4Close").build().create(),
-									(event, clicker, clicked) -> {
-										clicker.closeInventory();
-									}));
+			setButton(8, new ActionButton(ItemBuilder.of(XMaterial.BARRIER.toItemStack())
+													 .name("&4Close").build().create(),
+										  (event, clicker, clicked) -> {
+											  clicker.closeInventory();
+										  }));
 
 			setAllItems(list);
 		}

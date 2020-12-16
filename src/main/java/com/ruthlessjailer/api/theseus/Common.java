@@ -1,6 +1,7 @@
 package com.ruthlessjailer.api.theseus;
 
 import com.ruthlessjailer.api.theseus.command.CommandBase;
+import com.ruthlessjailer.api.theseus.task.handler.FutureHandler;
 import com.ruthlessjailer.api.theseus.task.manager.TaskManager;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -23,7 +24,29 @@ import java.util.Random;
  */
 public final class Common {
 
-	public static final Random RANDOM = new Random();
+	public static final Random     RANDOM = new Random();
+	private static      TPSCounter TPS_COUNTER;
+
+	static {//this because you can't schedule tasks while the plugin is disabled
+		FutureHandler.async.repeat((id) -> {
+			if (PluginBase.getInstance().isEnabled()) {
+				TPS_COUNTER = new TPSCounter();
+				FutureHandler.async.cancel(id);
+			}
+		}, 1000);
+	}
+
+	/**
+	 * A lot of {@link Common} methods are called while the plugin is starting up.
+	 *
+	 * @return whether there is a {@link TPSCounter} instance or not yet.
+	 */
+	public static boolean hasTPSCounter() { return TPS_COUNTER != null; }
+
+	/**
+	 * @return the {@link TPSCounter} instance.
+	 */
+	public static TPSCounter getTPSCounter() { return TPS_COUNTER; }
 
 	/**
 	 * Cancels a task.

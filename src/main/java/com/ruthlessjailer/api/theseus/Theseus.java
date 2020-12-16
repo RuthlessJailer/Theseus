@@ -20,5 +20,8 @@ public final class Theseus extends PluginBase {
 	protected void onStart() {
 		registerCommands(new TestCommand());
 		registerEvents(new TestListener());
+
+		final TPSCounter c = new TPSCounter();
+		System.out.println(c.getTPS());
 	}
 }
