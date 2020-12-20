@@ -72,9 +72,9 @@ public final class Chat {
 	public static void broadcast(@NonNull final String... announcement) {
 		for (final String s : announcement) {
 			for (final Player player : Bukkit.getOnlinePlayers()) {
-				player.sendMessage(colorize(s));
-				Bukkit.getConsoleSender().sendMessage(colorize(announcement));
+				send(player, s);
 			}
+			send(Bukkit.getConsoleSender(), s);
 		}
 	}
 
@@ -83,11 +83,11 @@ public final class Chat {
 	}
 
 	public static void broadcast(@NonNull final Collection<String> announcement) {
-		for (final Player player : Bukkit.getOnlinePlayers()) {
-			for (final String s : announcement) {
-				player.sendMessage(colorize(s));
-				Bukkit.getConsoleSender().sendMessage(s);
+		for (final String s : announcement) {
+			for (final Player player : Bukkit.getOnlinePlayers()) {
+				send(player, announcement);
 			}
+			send(Bukkit.getConsoleSender(), s);
 		}
 	}
 

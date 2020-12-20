@@ -1,6 +1,7 @@
 package com.ruthlessjailer.api.theseus.io;
 
 import com.ruthlessjailer.api.theseus.Checks;
+import com.ruthlessjailer.api.theseus.Common;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -20,6 +21,18 @@ import java.nio.file.Files;
 public final class DiskUtil {
 
 	/**
+	 * Attempts to fetch the given file.
+	 *
+	 * @param path the path to the file; slashes {@literal /} will be replaced with {@link File#separator}
+	 *
+	 * @return the found file or {@code null}
+	 */
+	@SneakyThrows
+	public static File parseFile(@NonNull final String path) {
+		return new File(path.replaceAll("/", Common.escape(File.separator)));
+	}
+
+	/**
 	 * Attempts to fetch or create the given file.
 	 *
 	 * @param path the path to the file; slashes {@literal /} will be replaced with {@link File#separator}
@@ -30,7 +43,7 @@ public final class DiskUtil {
 	 */
 	@SneakyThrows
 	public static File getFile(@NonNull final String path) {
-		final File file = new File(path.replaceAll("/", File.separator));
+		final File file = new File(path.replaceAll("/", Common.escape(File.separator)));
 
 		createFile(file);
 

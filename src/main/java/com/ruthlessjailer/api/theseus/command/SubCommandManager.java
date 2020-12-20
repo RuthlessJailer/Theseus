@@ -32,10 +32,7 @@ import java.util.regex.Pattern;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SubCommandManager {
 
-	private static final String  MESSAGE_METHOD_PARAMETERS = "Include all variables in method parameters, but make sure the first two are CommandSender sender and" +
-															 " " +
-															 "String[]" +
-															 " args.";
+	private static final String  MESSAGE_METHOD_PARAMETERS = "Include all variables in method parameters, but make sure the first two are CommandSender sender and String[] args.";
 	private static final String  MESSAGE_ENUMS             = "Only include enums!";
 	private static final Pattern VARIABLES_PATTERN         = Pattern.compile("%[sidebp](<[a-z0-9_]+>)?");
 	private static final Pattern ENUM_VARIABLE_PATTERN     = Pattern.compile("%e(<[a-z0-9_]+>)?");
@@ -145,11 +142,11 @@ public final class SubCommandManager {
 				if (args.length >= 2) {
 					try {
 						page = Integer.parseInt(args[1]) - 1;//index
-					} catch (final NumberFormatException ignored) { }
+					} catch (final NumberFormatException ignored) {}
 				}
 
 				getManager().sendHelpMenuTo(getManager().getHelpMenu(command), sender, page);
-
+				return;
 			}
 		}
 
@@ -175,7 +172,7 @@ public final class SubCommandManager {
 					argument.updatePossibilities(Common.getPlayerNames().toArray(new String[0]));
 				}
 
-				if (!argument.isInfinite()) {
+				if (!argument.isInfinite() && !argument.getType().equals(OfflinePlayer.class)) {
 					boolean match = false;
 					for (final String possibility : argument.getPossibilities()) {
 						if (possibility.equalsIgnoreCase(args[i])) {
@@ -191,21 +188,30 @@ public final class SubCommandManager {
 				if (argument.isDeclaredType()) {
 					final Class<?> declaredType = argument.getType();
 					if (declaredType.isEnum()) {//get enum value
-						parameters[p] = ReflectUtil.getEnum((Class<E>) declaredType, args[i]);
+						final Enum<E> en = ReflectUtil.getEnum((Class<E>) declaredType, args[i]);
+
+						if (en == null) {
+							continue wrappers;//no match
+						}
+
+						parameters[p] = en;
 					} else {//Integer, Double, Boolean, String, OfflinePlayer
 						if (declaredType.equals(Integer.class) || declaredType.equals(Double.class) || declaredType.equals(Boolean.class)) {
 							try {
-								parameters[p] = ReflectUtil.newInstanceOf(declaredType, args[i]); //valueOf doesn't work with reflection
+								parameters[p] = ReflectUtil.newInstanceOf(declaredType, args[i].toLowerCase()); //valueOf doesn't work with reflection
 							} catch (final ReflectUtil.ReflectionException e) {
-								continue wrappers;
+								continue wrappers;//no match
 							}
 						} else if (declaredType.equals(String.class)) {
 							parameters[p] = args[i];
 						} else if (declaredType.equals(OfflinePlayer.class)) {
-							parameters[p] = Bukkit.getPlayer(args[i]);
-							if (parameters[p] == null) {
-								parameters[p] = Bukkit.getOfflinePlayer(args[i]);//offline players aren't tab-completed, but still work when executing
+							OfflinePlayer player = Bukkit.getPlayer(args[i]);
+
+							if (player == null || !player.isOnline()) {
+								player = Bukkit.getOfflinePlayer(args[i]);//offline players aren't tab-completed, but still work when executing
 							}
+
+							parameters[p] = player;
 						}
 						p++;
 					}

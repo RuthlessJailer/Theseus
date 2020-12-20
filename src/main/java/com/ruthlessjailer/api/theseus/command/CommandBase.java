@@ -298,4 +298,19 @@ public abstract class CommandBase extends Command {
 		return String.join(" ", Common.copyToEnd(args, startIndex));
 	}
 
+	protected void send(@NonNull final CommandSender sender, @NonNull final String... messages) {
+		Chat.send(sender, messages);
+	}
+
+	protected void sendf(@NonNull final CommandSender sender, @NonNull final String message, final Object... parameters) {
+		Chat.sendf(sender, message, parameters);
+	}
+
+	protected void broadcast(@NonNull final String... messages) {
+		Chat.broadcast(messages);
+	}
+
+	protected void broadcastf(@NonNull final String messages, final Object... parameters) {
+		Chat.broadcastf(messages, parameters);
+	}
 }

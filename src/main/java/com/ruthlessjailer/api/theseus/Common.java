@@ -293,7 +293,7 @@ public final class Common {
 	public static boolean endsWithIgnoreCase(final String string, final String prefix) { return getString(string).toLowerCase().endsWith(getString(prefix).toLowerCase()); }
 
 	/**
-	 * Performs a regex escape on each character in the string (places {@code "\\"} before each reserved (regex) character.
+	 * Performs a regex escape on each character in the string i.e. places {@literal "\\"} before each reserved (regex) character.
 	 *
 	 * @param string the string to escape
 	 *

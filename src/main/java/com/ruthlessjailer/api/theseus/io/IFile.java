@@ -1,7 +1,5 @@
 package com.ruthlessjailer.api.theseus.io;
 
-import lombok.SneakyThrows;
-
 import java.io.File;
 
 /**
@@ -46,7 +44,6 @@ public interface IFile {
 	 * @param string the string to write
 	 * @param append whether to append to or overwrite the file's contents
 	 */
-	@SneakyThrows
 	void write(final String string, final boolean append);
 
 	/**
@@ -54,7 +51,6 @@ public interface IFile {
 	 *
 	 * @return the string representation of the file
 	 */
-	@SneakyThrows
 	String read();
 
 }

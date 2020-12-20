@@ -117,11 +117,20 @@ public class TestCommand extends CommandBase implements SuperiorCommand {
 		}
 	}
 
+	@SubCommand(inputArgs = "player %p")
+	private void testplayer(final CommandSender sender, final String[] args, final OfflinePlayer player) {
+		if (!player.isOnline()) {
+			Chat.send(sender, "player " + player.getName() + " is not online");
+		} else {
+			Chat.send(player.getPlayer(), "yeeted");
+		}
+	}
+
 	@SubCommand(inputArgs = "update")
 	private void update(final CommandSender sender, final String[] args) {
-		final Updater updater = new Updater(86123);
-		System.out.println(updater.isValidResource());
-		updater.canUpdate();
+		TaskManager.async.later(() -> {
+			new Updater(86123).update();
+		});
 	}
 
 	@SubCommand(inputArgs = "invsee %p")

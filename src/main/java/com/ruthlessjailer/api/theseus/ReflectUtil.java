@@ -483,8 +483,8 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if no constructor is present
 	 */
-	public static Constructor<?> getConstructor(@NonNull final String pkg, final Class<?>... parameters) {
-		return getConstructor(getClass(pkg), parameters);
+	public static <T> Constructor<T> getConstructor(@NonNull final String pkg, final Class<?>... parameters) {
+		return (Constructor<T>) getConstructor(getClass(pkg), parameters);
 	}
 
 	/**
@@ -497,9 +497,9 @@ public final class ReflectUtil {
 	 *
 	 * @throws ReflectionException if no constructor is present
 	 */
-	public static Constructor<?> getConstructor(@NonNull final Class<?> clazz, final Class<?>... parameters) {
+	public static <T> Constructor<T> getConstructor(@NonNull final Class<T> clazz, final Class<?>... parameters) {
 		try {
-			final Constructor<?> constructor = clazz.getConstructor(parameters);
+			final Constructor<T> constructor = clazz.getConstructor(parameters);
 			constructor.setAccessible(true);
 			return constructor;
 		} catch (final NoSuchMethodException exception) {

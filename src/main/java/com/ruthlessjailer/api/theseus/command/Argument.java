@@ -3,6 +3,7 @@ package com.ruthlessjailer.api.theseus.command;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
+import org.bukkit.OfflinePlayer;
 
 
 /**
@@ -26,12 +27,21 @@ public final class Argument {
 		this(null, type, declaredType, description);
 	}
 
-	public Argument(final String[] possibilities, @NonNull final Class<?> type,
-					@NonNull final boolean declaredType, final String description) {
+	public Argument(final String[] possibilities, @NonNull final Class<?> type, final boolean declaredType, final String description) {
 		this.possibilities = possibilities;
 		this.type          = type;
 		this.declaredType  = declaredType;
-		this.description   = description == null && declaredType ? type.getSimpleName() : description;
+		this.description   = description == null && declaredType
+							 ? String.class.isAssignableFrom(type)
+							   ? "Text"
+							   : Number.class.isAssignableFrom(type)
+								 ? "Number"
+								 : Boolean.class.isAssignableFrom(type)
+								   ? "Condition"
+								   : OfflinePlayer.class.isAssignableFrom(type)
+									 ? "Player"
+									 : type.getSimpleName()
+							 : description;
 		this.infinite      = possibilities == null
 							 && (type.equals(String.class)
 								 || type.equals(Integer.class)
