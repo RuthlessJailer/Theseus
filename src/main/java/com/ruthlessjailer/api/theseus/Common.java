@@ -27,6 +27,7 @@ public final class Common {
 	public static final Random     RANDOM = new Random();
 	private static      TPSCounter TPS_COUNTER;
 
+	//	TODO port this over to poseidon
 	static {//this because you can't schedule tasks while the plugin is disabled
 		FutureHandler.async.repeat((id) -> {
 			if (PluginBase.getInstance().isEnabled()) {

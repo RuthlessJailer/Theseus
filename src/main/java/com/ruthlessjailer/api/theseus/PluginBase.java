@@ -131,7 +131,6 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 
 		if (throwable instanceof ClassNotFoundException) {
 			Chat.send(Bukkit.getConsoleSender(),
-					  "&4Shading or dependency error. Make sure you have all the plugins needed installed.",
 					  "&c-----------------------------------------------------------------------------");
 		}
 
@@ -148,6 +147,7 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 
 		instance    = this;
 		this.thread = Thread.currentThread();
+		log         = getLogger();
 
 
 		if (!Bukkit.isPrimaryThread()) {
@@ -190,8 +190,6 @@ public abstract class PluginBase extends JavaPlugin implements Listener {
 	@Override
 	public final void onEnable() {
 		debug("Entering onEnable()");
-		instance = getInstance();
-		log      = getLogger();
 
 		if (!getDataFolder().exists()) {//create plugin folder
 			debug("Attempting to create plugin folder.");

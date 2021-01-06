@@ -1,6 +1,7 @@
 package com.ruthlessjailer.api.theseus.task.manager;
 
 import com.ruthlessjailer.api.theseus.Checks;
+import com.ruthlessjailer.api.theseus.ReflectUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -37,13 +38,21 @@ public final class SyncTaskManager implements TaskManager {
 	}
 
 	/**
-	 * Runs a task {@code 1} tick later.
+	 * Runs a task without the async catcher.
 	 *
 	 * @param runnable the task to run
 	 */
 	@Override
 	public void unsafe(final Runnable runnable) {
-		later(runnable);
+		later(() -> {
+			ReflectUtil.setField("org.spigotmc.AsyncCatcher", "enabled", null, false);
+			try {
+				runnable.run();
+			} catch (final Throwable t) {
+				t.printStackTrace();
+			}
+			ReflectUtil.setField("org.spigotmc.AsyncCatcher", "enabled", null, true);
+		});
 	}
 
 	/**

@@ -503,8 +503,7 @@ public final class SubCommandManager {
 
 		//variables start
 		final String[] args = Checks.stringCheck(subCommand.inputArgs(),
-												 String.format("InputArgs on method %s in class %s cannot be null " +
-															   "(or empty)!",
+												 String.format("InputArgs on method %s in class %s cannot be null (or empty)!",
 															   method.getName(),
 															   method.getClass().getPackage().getName()))
 									.split(" ");
@@ -525,7 +524,7 @@ public final class SubCommandManager {
 
 		boolean variables = false;
 		for (final String arg : args) {
-			if (arg.toLowerCase().matches("%[sidebp](<[a-z_0-9]+>)?")) {
+			if (arg.toLowerCase().matches(VARIABLES_PATTERN.pattern())) {
 				variables = true;
 				break;
 			}

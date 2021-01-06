@@ -5,19 +5,13 @@ import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.PluginBase;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -28,14 +22,9 @@ import java.util.stream.Collectors;
  * @author RuthlessJailer
  */
 @Getter
-public abstract class JSONFile implements IFile {
+public abstract class JSONFile extends TextFile {
 
-	protected final Gson   GSON;
-	protected final String path;
-	protected final File   file;
-
-	@Setter
-	private Charset charset = StandardCharsets.UTF_8;
+	protected final Gson GSON;
 
 	public JSONFile(final String path) {
 		this(new GsonBuilder().setPrettyPrinting().create(), path);
@@ -43,44 +32,22 @@ public abstract class JSONFile implements IFile {
 
 	@SneakyThrows
 	public JSONFile(final Gson gson, final String path) {
+		super(path);
+
 		this.GSON = gson;
-		this.path = File.separator + (path.startsWith("/") || path.startsWith("\\") || path.startsWith(File.separator) ? path.substring(1) : path);
-		this.file = new File(PluginBase.getFolder().getPath() + this.path);
-
-		if (!this.file.exists()) {
-			if (this.file.getParentFile() == null) {
-				this.file.mkdirs();
-			}
-
-			this.file.createNewFile();
-
-			final InputStream in = PluginBase.getPluginResource(getResourcePath());
-
-			if (in != null) {//copy over default file from src/main/resources
-				Files.copy(in, this.file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-//					final FileOutputStream out = new FileOutputStream(this.file);
-//					final byte[]           buf = new byte[8192];
-//					int                    n;
-//					while ((n = in.read(buf)) > 0) {
-//						out.write(buf, 0, n);
-//					}
-//					out.close();
-//					in.close();
-			}
-		}
 	}
 
 	/**
 	 * Checks the config file to make sure that it has all the values that the class contains. Only {@code public final} fields will be checked.
 	 * Case will be ignored.<p>
 	 * If a value is missing or null the default value will be written to the file.<p>
-	 * Call this method before reading the file.
+	 * This method does not read the file or save it. Do so if it has been modified prior to this method call. Non-blocking.
 	 *
 	 * @param file the {@link JSONFile} config instance to modify.
 	 */
 	@SneakyThrows
-	protected static void fixConfig(@NonNull final JSONFile file) {
-		final String contents = Common.getString(file.read());
+	protected static IFile fixConfig(@NonNull final JSONFile file) {
+		final String contents = Common.getString(file.getContents());
 
 		final List<Field> fields = Arrays.stream(file.getClass().getFields()).filter(field ->
 																							 Modifier.isPublic(field.getModifiers()) &&
@@ -112,7 +79,7 @@ public abstract class JSONFile implements IFile {
 		}
 
 		if (fields.isEmpty()) {//all values were present
-			return;
+			return file;
 		}
 
 		//some values are missing
@@ -137,48 +104,16 @@ public abstract class JSONFile implements IFile {
 			}
 		}
 
-		file.write(file.getGSON().toJson(content));//fill the config with all the repaired values
-
+		return file.setContents(file.getGSON().toJson(content));//fill the config with all the repaired values
 	}
 
 	/**
-	 * Reads the file and returns the {@link JsonObject} representation of it.
+	 * Reads the file and returns the {@link JsonElement} representation of it.<p>
+	 * This method does not read the file or save it. Do so if it has been modified prior to this method call. Non-blocking.
 	 *
-	 * @return the {@link JsonObject} of the file
-	 *
-	 * @throws IllegalStateException if the file could not be read or is empty
+	 * @return the {@link JsonElement} representation of the file
 	 */
-	protected JsonObject readFile() {
-		final JsonElement element = new JsonParser().parse(read());
-
-		if (element.isJsonNull()) {
-			throw new IllegalStateException("Unable to load config.");
-		}
-
-		return element.getAsJsonObject();
-	}
-
-	/**
-	 * Returns the path without a directory separator at the beginning. Useful if getting as a resource.
-	 *
-	 * @return the path substringed 1
-	 */
-	public String getResourcePath() {
-		return this.path.substring(1);
-	}
-
-	@Override
-	public String getFullPath() {
-		return this.file.getPath();
-	}
-
-	@Override
-	public void write(final String string, final boolean append) {
-		DiskUtil.write(this.file, string, this.charset, append);
-	}
-
-	@Override
-	public String read() {
-		return DiskUtil.read(this.file, this.charset);
+	protected JsonElement readFile() {
+		return new JsonParser().parse(getContents());
 	}
 }

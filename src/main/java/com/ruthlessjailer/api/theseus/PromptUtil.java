@@ -20,8 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.ruthlessjailer.api.theseus.ReflectUtil.*;
-
 /**
  * @author RuthlessJailer
  */
@@ -54,9 +52,9 @@ public final class PromptUtil implements Listener {
 		final ItemStack og   = player.getInventory().getItemInHand();
 		final int       slot = player.getInventory().getHeldItemSlot();
 		player.getInventory().setItem(slot, book);
-		final Object packet = newInstanceOf(getNMSClass("PacketPlayOutOpenBook"), getEnum((Class<E>) getNMSClass("EnumHand"), "MAIN_HAND"));
+//		final Object packet = newInstanceOf(getNMSClass("PacketPlayOutOpenBook"), getEnum((Class<E>) getNMSClass("EnumHand"), "MAIN_HAND"));
 		Common.runLater(() -> {//((CraftPlayer)player).getHandle().playerConnection.sendPacket()
-			sendPacket(player, packet);
+//			sendPacket(player, packet);
 			player.getInventory().setItem(slot, og);
 		});
 	}
@@ -66,9 +64,9 @@ public final class PromptUtil implements Listener {
 
 		final Location blockLoc = sign.getLocation();
 
-		final Object blockPos = newInstanceOf(getConstructor(getNMSClass("BlockPosition"), int.class, int.class, int.class),
-											  blockLoc.getBlockX(), blockLoc.getBlockY(), blockLoc.getBlockZ());
-		final Object packet = newInstanceOf(getConstructor(getNMSClass("PacketPlayOutOpenSignEditor"), blockPos.getClass()), blockPos);
+//		final Object blockPos = newInstanceOf(getConstructor(getNMSClass("BlockPosition"), int.class, int.class, int.class),
+//											  blockLoc.getBlockX(), blockLoc.getBlockY(), blockLoc.getBlockZ());
+//		final Object packet = newInstanceOf(getConstructor(getNMSClass("PacketPlayOutOpenSignEditor"), blockPos.getClass()), blockPos);
 
 
 		cache.addSignConsumer((lines) -> {
@@ -78,14 +76,14 @@ public final class PromptUtil implements Listener {
 		sign.setEditable(true);
 		sign.update(true);
 
-		sendPacket(player, packet);
+//		sendPacket(player, packet);
 	}
 
 	private static void sendPacket(@NonNull final Player player, @NonNull final Object packet) {
 		//((CraftPlayer)player).getHandle().playerConnection.sendPacket()
-		final Object nmsPlayer        = invokeMethod(getOBCClass("entity.CraftPlayer"), "getHandle", player);
-		final Object playerConnection = getFieldValue(getNMSClass("EntityPlayer"), "playerConnection", nmsPlayer);
-		invokeMethod(getMethod(playerConnection.getClass(), "sendPacket", getNMSClass("Packet")), playerConnection, packet);
+//		final Object nmsPlayer        = invokeMethod(getOBCClass("entity.CraftPlayer"), "getHandle", player);
+//		final Object playerConnection = getFieldValue(getNMSClass("EntityPlayer"), "playerConnection", nmsPlayer);
+//		invokeMethod(getMethod(playerConnection.getClass(), "sendPacket", getNMSClass("Packet")), playerConnection, packet);
 	}
 
 	@EventHandler

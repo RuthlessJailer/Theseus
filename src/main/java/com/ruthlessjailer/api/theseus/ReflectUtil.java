@@ -1,10 +1,7 @@
 package com.ruthlessjailer.api.theseus;
 
-import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 import lombok.NonNull;
 import org.apache.commons.lang.ClassUtils;
-import org.bukkit.Material;
-import org.bukkit.block.Biome;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -15,9 +12,6 @@ import java.lang.reflect.Method;
  * @author RuthlessJailer
  */
 public final class ReflectUtil {
-
-	public static final String NMS = "net.minecraft.server";
-	public static final String OBC = "org.bukkit.craftbukkit";
 
 	/**
 	 * Wrapper for {@link Class#forName(String)}
@@ -49,33 +43,6 @@ public final class ReflectUtil {
 		} catch (final ClassNotFoundException e) {
 			return null;
 		}
-	}
-
-	/**
-	 * Wrapper for {@link Class#forName(String)} but adds {@value OBC} to the beginning
-	 *
-	 * @param pkg the path to the class
-	 *
-	 * @return the found class
-	 *
-	 * @throws ReflectionException if the class is not found
-	 */
-	public static Class<?> getOBCClass(@NonNull final String pkg) {
-		return getClass(OBC + "." + MinecraftVersion.SERVER_VERSION + "." + pkg);
-	}
-
-	/**
-	 * Wrapper for {@link Class#forName(String)} but adds {@value NMS} and {@link MinecraftVersion#CURRENT_VERSION} to
-	 * the beginning
-	 *
-	 * @param pkg the path to the class
-	 *
-	 * @return the found class
-	 *
-	 * @throws ReflectionException if the class is not found
-	 */
-	public static Class<?> getNMSClass(@NonNull final String pkg) {
-		return getClass(NMS + "." + MinecraftVersion.SERVER_VERSION + "." + pkg);
 	}
 
 	/**
@@ -126,21 +93,7 @@ public final class ReflectUtil {
 	 * @return the found enum value or {@code null}
 	 */
 	public static <E extends Enum<E>> E getEnum(@NonNull final Class<E> enumType, @NonNull final String name) {
-		String parsed = name.toUpperCase().replaceAll(" ", "_");
-
-		if (MinecraftVersion.atLeast(MinecraftVersion.v1_13)) {
-			if (enumType == Material.class) {
-				if (parsed.equals("RAW_FISH")) {
-					parsed = "SALMON";
-				} else if (parsed.equals("MONSTER_EGG")) {
-					parsed = "ZOMBIE_SPAWN_EGG";
-				}
-			} else if (enumType == Biome.class) {
-				if (parsed.equals("ICE_MOUNTAINS")) {
-					parsed = "SNOWY_TAIGA";
-				}
-			}
-		}
+		final String parsed = name.toUpperCase().replaceAll(" ", "_");
 
 		E result = getEnumSuppressed(enumType, parsed);
 
@@ -169,17 +122,16 @@ public final class ReflectUtil {
 	 *
 	 * @return the found enum value or {@code null}
 	 */
-	@NonNull
 	public static <E extends Enum<E>> E getEnum(@NonNull final Class<E> enumType, @NonNull final String name,
 												@NonNull final String... legacyNames) {
-		E result = getEnumSuppressed(enumType, name);
+		E result = getEnum(enumType, name);
 
 		if (result != null) {
 			return result;
 		}
 
 		for (final String legacyName : legacyNames) {
-			result = getEnumSuppressed(enumType, legacyName);
+			result = getEnum(enumType, legacyName);
 
 			if (result != null) {
 				return result;

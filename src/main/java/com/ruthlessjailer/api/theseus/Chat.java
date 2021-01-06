@@ -208,7 +208,7 @@ public final class Chat {
 		}
 	}
 
-	public static void warn(@NonNull final String format, final Object... objects) {
+	public static void warningf(@NonNull final String format, final Object... objects) {
 		if (PluginBase.hasLog()) {
 			PluginBase.getLog().warning(String.format(format, objects));
 		} else {

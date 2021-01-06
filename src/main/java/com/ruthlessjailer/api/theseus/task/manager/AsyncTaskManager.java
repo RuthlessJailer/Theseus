@@ -44,13 +44,15 @@ public final class AsyncTaskManager implements TaskManager {
 	 */
 	@Override
 	public void unsafe(final Runnable runnable) {
-		ReflectUtil.setField("org.spigotmc.AsyncCatcher", "enabled", null, false);
-		try {
-			runnable.run();
-		} catch (final Throwable t) {
-			t.printStackTrace();
-		}
-		ReflectUtil.setField("org.spigotmc.AsyncCatcher", "enabled", null, true);
+		later(() -> {
+			ReflectUtil.setField("org.spigotmc.AsyncCatcher", "enabled", null, false);
+			try {
+				runnable.run();
+			} catch (final Throwable t) {
+				t.printStackTrace();
+			}
+			ReflectUtil.setField("org.spigotmc.AsyncCatcher", "enabled", null, true);
+		});
 	}
 
 	/**

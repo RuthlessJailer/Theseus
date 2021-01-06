@@ -5,6 +5,7 @@ import com.ruthlessjailer.api.theseus.PluginBase;
 import com.ruthlessjailer.api.theseus.task.manager.TaskManager;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -163,8 +164,13 @@ public final class SyncFutureHandler implements FutureHandler, Runnable {
 	 *
 	 * @return the {@link Future} representation of the {@link Supplier}
 	 */
+	@SneakyThrows
 	public <T> Future<T> supply(final Supplier<T> supplier, final long delay, final QueuePriority priority) {
 		final SyncTask<T> task = new SyncTask<>(supplier, System.currentTimeMillis() + delay);
+
+		if (PluginBase.isMainThread()) {
+			return task.getFuture();
+		}
 
 		switch (priority) {
 			case IMMEDIATE:
@@ -183,6 +189,7 @@ public final class SyncFutureHandler implements FutureHandler, Runnable {
 				}
 				break;
 		}
+
 		return task.getFuture();
 	}
 
@@ -228,6 +235,10 @@ public final class SyncFutureHandler implements FutureHandler, Runnable {
 				throw new UnsupportedOperationException("Error in callable.");
 			}
 		}, System.currentTimeMillis() + delay);
+
+		if (PluginBase.isMainThread()) {
+			return task.getFuture();
+		}
 
 		switch (priority) {
 			case IMMEDIATE:
@@ -291,6 +302,11 @@ public final class SyncFutureHandler implements FutureHandler, Runnable {
 			runnable.run();
 			return value;
 		}, System.currentTimeMillis() + delay);
+
+		if (PluginBase.isMainThread()) {
+			return task.getFuture();
+		}
+
 		switch (priority) {
 			case IMMEDIATE:
 				synchronized (this.tasks) {

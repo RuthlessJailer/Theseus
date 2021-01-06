@@ -61,7 +61,7 @@ public abstract class CommandBase extends Command {
 	private HelpMenuFormat helpMenuFormatOverride = HelpMenuFormat.DEFAULT_FORMAT;
 
 	public CommandBase(@NonNull final String label) {
-		this(CommandBase.parseLabel(label), CommandBase.parseAliases(label));
+		this(parseLabel(label), parseAliases(label));
 	}
 
 	private CommandBase(@NonNull final String label, final List<String> aliases) {

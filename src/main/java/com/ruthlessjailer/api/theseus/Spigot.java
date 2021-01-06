@@ -1,5 +1,6 @@
 package com.ruthlessjailer.api.theseus;
 
+import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 import lombok.NonNull;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -86,5 +87,8 @@ public final class Spigot {
 		final Map<NamespacedKey, Enchantment> byKey = getFieldValue(Enchantment.class, "byKey", null);
 		byKey.remove(enchantment.getKey());
 	}
+
+	public static Class<?> getOBCClass(final String pkg) { return ReflectUtil.getClass("org.bukkit.craftbukkit." + MinecraftVersion.SERVER_VERSION + "." + pkg); }
+
 
 }
