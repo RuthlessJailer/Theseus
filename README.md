@@ -1,3 +1,3 @@
 # Theseus
 
-Utility API for developing Minecraft plugins.
+Generic Java Utility API.
