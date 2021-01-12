@@ -1,13 +1,13 @@
 package com.ruthlessjailer.api.theseus.menu;
 
-import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
+import com.ruthlessjailer.api.theseus.delete.Chat;
 import com.ruthlessjailer.api.theseus.item.ItemBuilder;
 import com.ruthlessjailer.api.theseus.menu.button.ActionButton;
 import com.ruthlessjailer.api.theseus.menu.button.ButtonAction;
 import com.ruthlessjailer.api.theseus.menu.button.ButtonBase;
-import com.ruthlessjailer.api.theseus.task.handler.FutureHandler;
-import com.ruthlessjailer.api.theseus.task.manager.TaskManager;
+import com.ruthlessjailer.api.theseus.task.delete.handler.FutureHandler;
+import com.ruthlessjailer.api.theseus.task.delete.manager.TaskManager;
 import lombok.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -260,7 +260,6 @@ public abstract class MenuBase {
 		}
 
 		TaskManager.sync.later(() -> player.setMetadata(NBT_CURRENT_MENU, new FixedMetadataValue(Checks.instanceCheck(), this)));
-
 		onOpen(player, current);
 
 		player.openInventory(getInventory());

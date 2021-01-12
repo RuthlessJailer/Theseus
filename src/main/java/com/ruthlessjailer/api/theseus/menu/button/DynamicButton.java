@@ -3,7 +3,7 @@ package com.ruthlessjailer.api.theseus.menu.button;
 import com.ruthlessjailer.api.theseus.Checks;
 import com.ruthlessjailer.api.theseus.Common;
 import com.ruthlessjailer.api.theseus.menu.MenuBase;
-import com.ruthlessjailer.api.theseus.task.manager.TaskManager;
+import com.ruthlessjailer.api.theseus.task.delete.manager.TaskManager;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;

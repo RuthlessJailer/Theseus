@@ -1,7 +1,7 @@
 package com.ruthlessjailer.api.theseus.item;
 
 
-import com.ruthlessjailer.api.theseus.Chat;
+import com.ruthlessjailer.api.theseus.delete.Chat;
 import lombok.Builder;
 import lombok.Singular;
 import net.md_5.bungee.api.chat.BaseComponent;

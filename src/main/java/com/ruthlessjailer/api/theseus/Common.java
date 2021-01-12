@@ -1,8 +1,7 @@
 package com.ruthlessjailer.api.theseus;
 
-import com.ruthlessjailer.api.theseus.command.CommandBase;
-import com.ruthlessjailer.api.theseus.task.handler.FutureHandler;
-import com.ruthlessjailer.api.theseus.task.manager.TaskManager;
+import com.ruthlessjailer.api.theseus.delete.TPSCounter;
+import com.ruthlessjailer.api.theseus.delete.command.CommandBase;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
@@ -10,9 +9,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.permissions.Permissible;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,14 +24,14 @@ public final class Common {
 	private static      TPSCounter TPS_COUNTER;
 
 	//	TODO port this over to poseidon
-	static {//this because you can't schedule tasks while the plugin is disabled
-		FutureHandler.async.repeat((id) -> {
-			if (PluginBase.getInstance().isEnabled()) {
-				TPS_COUNTER = new TPSCounter();
-				FutureHandler.async.cancel(id);
-			}
-		}, 1000);
-	}
+//	static {//this because you can't schedule tasks while the plugin is disabled
+//		FutureHandler.async.repeat((id) -> {
+//			if (PluginBase.getInstance().isEnabled()) {
+//				TPS_COUNTER = new TPSCounter();
+//				FutureHandler.async.cancel(id);
+//			}
+//		}, 1000);
+//	}
 
 	/**
 	 * A lot of {@link Common} methods are called while the plugin is starting up.
@@ -48,221 +44,221 @@ public final class Common {
 	 * @return the {@link TPSCounter} instance.
 	 */
 	public static TPSCounter getTPSCounter() { return TPS_COUNTER; }
-
-	/**
-	 * Cancels a task.
-	 *
-	 * @param taskId the id of the task to cancel
-	 *
-	 * @see BukkitScheduler#cancelTask(int)
-	 */
-	public static void cancelTask(final int taskId) {
-		Bukkit.getScheduler().cancelTask(taskId);
-	}
-
-	/**
-	 * Cancels a task.
-	 *
-	 * @param task the {@link BukkitTask} to cancel
-	 *
-	 * @see BukkitTask#cancel()
-	 */
-	public static void cancelTask(@NonNull final BukkitTask task) {
-		task.cancel();
-	}
-
-	/**
-	 * Cancels a task.
-	 *
-	 * @param task the {@link BukkitRunnable} to cancel
-	 *
-	 * @see BukkitRunnable#cancel()
-	 */
-	public static void cancelTask(@NonNull final BukkitRunnable task) {
-		task.cancel();
-	}
-
-	/**
-	 * Schedule a task to run one tick later.
-	 *
-	 * @param task the task to run
-	 *
-	 * @return the {@link BukkitTask} representing the task
-	 *
-	 * @deprecated see {@link TaskManager}
-	 */
-	@Deprecated
-	public static <T extends Runnable> BukkitTask runLater(@NonNull final T task) {
-		return TaskManager.sync.later(task);
-	}
-
-	/**
-	 * Schedule a task to run asynchronously one tick later.
-	 *
-	 * @param task the task to run
-	 *
-	 * @return the {@link BukkitTask} representing the task
-	 *
-	 * @deprecated see {@link TaskManager}
-	 */
-	@Deprecated
-	public static <T extends Runnable> BukkitTask runLaterAsync(@NonNull final T task) {
-		return TaskManager.async.later(task);
-	}
-
-	/**
-	 * Schedule a task to run repeatedly one tick later.
-	 *
-	 * @param task        the task to run
-	 * @param repeatTicks the delay (in ticks) between each cycle
-	 *
-	 * @return the {@link BukkitTask} representing the task
-	 *
-	 * @deprecated see {@link TaskManager}
-	 */
-	@Deprecated
-	public static <T extends Runnable> BukkitTask runLaterTimer(@NonNull final T task, final int repeatTicks) {
-		return TaskManager.sync.repeat(task, repeatTicks);
-	}
-
-	/**
-	 * Schedule a task to run repeatedly one tick later asynchronously.
-	 *
-	 * @param task        the task to run
-	 * @param repeatTicks the delay (in ticks) between each cycle
-	 *
-	 * @return the {@link BukkitTask} representing the task
-	 *
-	 * @deprecated see {@link TaskManager}
-	 */
-	@Deprecated
-	public static <T extends Runnable> BukkitTask runLaterTimerAsync(@NonNull final T task, final int repeatTicks) {
-		return TaskManager.async.repeat(task, repeatTicks);
-	}
-
-	/**
-	 * Schedule a task to run zero ticks later.
-	 *
-	 * @param task the task to run
-	 *
-	 * @return the {@link BukkitTask} representing the task
-	 *
-	 * @deprecated see {@link TaskManager}
-	 */
-	@Deprecated
-	public static <T extends Runnable> BukkitTask runTask(@NonNull final T task) {
-		return TaskManager.sync.delay(task, 0);
-	}
-
-	/**
-	 * Schedule a task to run asynchronously zero ticks later.
-	 *
-	 * @param task the task to run
-	 *
-	 * @return the {@link BukkitTask} representing the task
-	 *
-	 * @deprecated see {@link TaskManager}
-	 */
-	@Deprecated
-	public static <T extends Runnable> BukkitTask runAsync(@NonNull final T task) {
-		return TaskManager.async.delay(task, 0);
-	}
-
-	/**
-	 * Schedule a task to run repeatedly zero ticks later.
-	 *
-	 * @param task        the task to run
-	 * @param repeatTicks the delay (in ticks) between each cycle
-	 *
-	 * @return the {@link BukkitTask} representing the task
-	 *
-	 * @deprecated see {@link TaskManager}
-	 */
-	@Deprecated
-	public static <T extends Runnable> BukkitTask runTimer(@NonNull final T task, final int repeatTicks) {
-		return TaskManager.sync.repeat(task, repeatTicks);
-	}
-
-	/**
-	 * Schedule a task to run repeatedly zero ticks later asynchronously.
-	 *
-	 * @param task        the task to run
-	 * @param repeatTicks the delay (in ticks) between each cycle
-	 *
-	 * @return the {@link BukkitTask} representing the task
-	 *
-	 * @deprecated see {@link TaskManager}
-	 */
-	@Deprecated
-	public static <T extends Runnable> BukkitTask runTimerAsync(@NonNull final T task, final int repeatTicks) {
-		return TaskManager.async.repeat(task, repeatTicks);
-	}
-
-	/**
-	 * Schedule a task to run.
-	 * If the plugin instance is null the task will run immediately, independent of the Bukkit scheduler.
-	 *
-	 * @param delayTicks how long to wait (in ticks)
-	 * @param task       the task to run
-	 *
-	 * @return the {@link BukkitTask} representing the task
-	 *
-	 * @deprecated see {@link TaskManager}
-	 */
-	@Deprecated
-	public static BukkitTask runTaskLater(final int delayTicks, @NonNull final Runnable task) {
-		return TaskManager.sync.delay(task, delayTicks);
-	}
-
-	/**
-	 * Schedule a task to run asynchronously.
-	 * If the plugin instance is null the task will run immediately, independent of the Bukkit scheduler.
-	 *
-	 * @param delayTicks how long to wait (in ticks)
-	 * @param task       the task to run
-	 *
-	 * @return the {@link BukkitTask} representing the task
-	 *
-	 * @deprecated see {@link TaskManager}
-	 */
-	@Deprecated
-	public static BukkitTask runLaterAsync(final int delayTicks, @NonNull final Runnable task) {
-		return TaskManager.async.delay(task, delayTicks);
-	}
-
-	/**
-	 * Schedule a task to run repeatedly.
-	 * If the plugin instance is null the task will run immediately, independent of the Bukkit scheduler.
-	 *
-	 * @param delayTicks  how long to wait (in ticks) before the first run
-	 * @param repeatTicks how long to wait (in ticks) between each cycle
-	 * @param task        the task to run
-	 *
-	 * @return the {@link BukkitTask} representing the task
-	 *
-	 * @deprecated see {@link TaskManager}
-	 */
-	@Deprecated
-	public static BukkitTask runLaterTimer(final int delayTicks, final int repeatTicks, @NonNull final Runnable task) {
-		return TaskManager.sync.repeat(task, repeatTicks);
-	}
-
-	/**
-	 * Schedule a task to run repeatedly.
-	 * If the plugin instance is null the task will run immediately, independent of the Bukkit scheduler.
-	 *
-	 * @param delayTicks  how long to wait (in ticks) before the first run
-	 * @param repeatTicks how long to wait (in ticks) between each cycle
-	 * @param task        the task to run
-	 *
-	 * @return the {@link BukkitTask} representing the task
-	 *
-	 * @deprecated see {@link TaskManager}
-	 */
-	@Deprecated
-	public static BukkitTask runLaterTimerAsync(final int delayTicks, final int repeatTicks, @NonNull final Runnable task) {
-		return TaskManager.async.repeat(task, repeatTicks);
-	}
+//	/*
+//	 *//**
+//	 * Cancels a task.
+//	 *
+//	 * @param taskId the id of the task to cancel
+//	 *
+//	 * @see BukkitScheduler#cancelTask(int)
+//	 *//*
+//	public static void cancelTask(final int taskId) {
+//		Bukkit.getScheduler().cancelTask(taskId);
+//	}
+//
+//	*//**
+//	 * Cancels a task.
+//	 *
+//	 * @param task the {@link BukkitTask} to cancel
+//	 *
+//	 * @see BukkitTask#cancel()
+//	 *//*
+//	public static void cancelTask(@NonNull final BukkitTask task) {
+//		task.cancel();
+//	}
+//
+//	*//**
+//	 * Cancels a task.
+//	 *
+//	 * @param task the {@link BukkitRunnable} to cancel
+//	 *
+//	 * @see BukkitRunnable#cancel()
+//	 *//*
+//	public static void cancelTask(@NonNull final BukkitRunnable task) {
+//		task.cancel();
+//	}
+//
+//	*//**
+//	 * Schedule a task to run one tick later.
+//	 *
+//	 * @param task the task to run
+//	 *
+//	 * @return the {@link BukkitTask} representing the task
+//	 *
+//	 * @deprecated see {@link TaskManager}
+//	 *//*
+//	@Deprecated
+//	public static <T extends Runnable> BukkitTask runLater(@NonNull final T task) {
+//		return TaskManager.sync.later(task);
+//	}
+//
+//	*//**
+//	 * Schedule a task to run asynchronously one tick later.
+//	 *
+//	 * @param task the task to run
+//	 *
+//	 * @return the {@link BukkitTask} representing the task
+//	 *
+//	 * @deprecated see {@link TaskManager}
+//	 *//*
+//	@Deprecated
+//	public static <T extends Runnable> BukkitTask runLaterAsync(@NonNull final T task) {
+//		return TaskManager.async.later(task);
+//	}
+//
+//	*//**
+//	 * Schedule a task to run repeatedly one tick later.
+//	 *
+//	 * @param task        the task to run
+//	 * @param repeatTicks the delay (in ticks) between each cycle
+//	 *
+//	 * @return the {@link BukkitTask} representing the task
+//	 *
+//	 * @deprecated see {@link TaskManager}
+//	 *//*
+//	@Deprecated
+//	public static <T extends Runnable> BukkitTask runLaterTimer(@NonNull final T task, final int repeatTicks) {
+//		return TaskManager.sync.repeat(task, repeatTicks);
+//	}
+//
+//	*//**
+//	 * Schedule a task to run repeatedly one tick later asynchronously.
+//	 *
+//	 * @param task        the task to run
+//	 * @param repeatTicks the delay (in ticks) between each cycle
+//	 *
+//	 * @return the {@link BukkitTask} representing the task
+//	 *
+//	 * @deprecated see {@link TaskManager}
+//	 *//*
+//	@Deprecated
+//	public static <T extends Runnable> BukkitTask runLaterTimerAsync(@NonNull final T task, final int repeatTicks) {
+//		return TaskManager.async.repeat(task, repeatTicks);
+//	}
+//
+//	*//**
+//	 * Schedule a task to run zero ticks later.
+//	 *
+//	 * @param task the task to run
+//	 *
+//	 * @return the {@link BukkitTask} representing the task
+//	 *
+//	 * @deprecated see {@link TaskManager}
+//	 *//*
+//	@Deprecated
+//	public static <T extends Runnable> BukkitTask runTask(@NonNull final T task) {
+//		return TaskManager.sync.delay(task, 0);
+//	}
+//
+//	*//**
+//	 * Schedule a task to run asynchronously zero ticks later.
+//	 *
+//	 * @param task the task to run
+//	 *
+//	 * @return the {@link BukkitTask} representing the task
+//	 *
+//	 * @deprecated see {@link TaskManager}
+//	 *//*
+//	@Deprecated
+//	public static <T extends Runnable> BukkitTask runAsync(@NonNull final T task) {
+//		return TaskManager.async.delay(task, 0);
+//	}
+//
+//	*//**
+//	 * Schedule a task to run repeatedly zero ticks later.
+//	 *
+//	 * @param task        the task to run
+//	 * @param repeatTicks the delay (in ticks) between each cycle
+//	 *
+//	 * @return the {@link BukkitTask} representing the task
+//	 *
+//	 * @deprecated see {@link TaskManager}
+//	 *//*
+//	@Deprecated
+//	public static <T extends Runnable> BukkitTask runTimer(@NonNull final T task, final int repeatTicks) {
+//		return TaskManager.sync.repeat(task, repeatTicks);
+//	}
+//
+//	*//**
+//	 * Schedule a task to run repeatedly zero ticks later asynchronously.
+//	 *
+//	 * @param task        the task to run
+//	 * @param repeatTicks the delay (in ticks) between each cycle
+//	 *
+//	 * @return the {@link BukkitTask} representing the task
+//	 *
+//	 * @deprecated see {@link TaskManager}
+//	 *//*
+//	@Deprecated
+//	public static <T extends Runnable> BukkitTask runTimerAsync(@NonNull final T task, final int repeatTicks) {
+//		return TaskManager.async.repeat(task, repeatTicks);
+//	}
+//
+//	*//**
+//	 * Schedule a task to run.
+//	 * If the plugin instance is null the task will run immediately, independent of the Bukkit scheduler.
+//	 *
+//	 * @param delayTicks how long to wait (in ticks)
+//	 * @param task       the task to run
+//	 *
+//	 * @return the {@link BukkitTask} representing the task
+//	 *
+//	 * @deprecated see {@link TaskManager}
+//	 *//*
+//	@Deprecated
+//	public static BukkitTask runTaskLater(final int delayTicks, @NonNull final Runnable task) {
+//		return TaskManager.sync.delay(task, delayTicks);
+//	}
+//
+//	*//**
+//	 * Schedule a task to run asynchronously.
+//	 * If the plugin instance is null the task will run immediately, independent of the Bukkit scheduler.
+//	 *
+//	 * @param delayTicks how long to wait (in ticks)
+//	 * @param task       the task to run
+//	 *
+//	 * @return the {@link BukkitTask} representing the task
+//	 *
+//	 * @deprecated see {@link TaskManager}
+//	 *//*
+//	@Deprecated
+//	public static BukkitTask runLaterAsync(final int delayTicks, @NonNull final Runnable task) {
+//		return TaskManager.async.delay(task, delayTicks);
+//	}
+//
+//	*//**
+//	 * Schedule a task to run repeatedly.
+//	 * If the plugin instance is null the task will run immediately, independent of the Bukkit scheduler.
+//	 *
+//	 * @param delayTicks  how long to wait (in ticks) before the first run
+//	 * @param repeatTicks how long to wait (in ticks) between each cycle
+//	 * @param task        the task to run
+//	 *
+//	 * @return the {@link BukkitTask} representing the task
+//	 *
+//	 * @deprecated see {@link TaskManager}
+//	 *//*
+//	@Deprecated
+//	public static BukkitTask runLaterTimer(final int delayTicks, final int repeatTicks, @NonNull final Runnable task) {
+//		return TaskManager.sync.repeat(task, repeatTicks);
+//	}
+//
+//	*//**
+//	 * Schedule a task to run repeatedly.
+//	 * If the plugin instance is null the task will run immediately, independent of the Bukkit scheduler.
+//	 *
+//	 * @param delayTicks  how long to wait (in ticks) before the first run
+//	 * @param repeatTicks how long to wait (in ticks) between each cycle
+//	 * @param task        the task to run
+//	 *
+//	 * @return the {@link BukkitTask} representing the task
+//	 *
+//	 * @deprecated see {@link TaskManager}
+//	 *//*
+//	@Deprecated
+//	public static BukkitTask runLaterTimerAsync(final int delayTicks, final int repeatTicks, @NonNull final Runnable task) {
+//		return TaskManager.async.repeat(task, repeatTicks);
+//	}*/
 
 	/**
 	 * Returns the string or a blank string if it is null.

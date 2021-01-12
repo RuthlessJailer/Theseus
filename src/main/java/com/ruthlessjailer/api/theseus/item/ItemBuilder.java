@@ -1,8 +1,8 @@
 package com.ruthlessjailer.api.theseus.item;
 
-import com.ruthlessjailer.api.theseus.Chat;
 import com.ruthlessjailer.api.theseus.Checks;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
+import com.ruthlessjailer.api.theseus.delete.Chat;
 import com.ruthlessjailer.api.theseus.multiversion.MinecraftVersion;
 import com.ruthlessjailer.api.theseus.multiversion.XColor;
 import com.ruthlessjailer.api.theseus.multiversion.XItemFlag;

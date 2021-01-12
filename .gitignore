@@ -8,3 +8,4 @@ target/
 /build.xml
 /Theseus.iml
 .github/
+*.hprof

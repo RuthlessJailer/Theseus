@@ -1,5 +1,6 @@
 package com.ruthlessjailer.api.theseus;
 
+import com.ruthlessjailer.api.theseus.delete.PluginBase;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.InvocationTargetException;
@@ -32,7 +33,9 @@ public final class Checks {
 	 * @return the {@link PluginBase} instance
 	 *
 	 * @throws IllegalStateException if the instance is null
+	 * @deprecated will be deleted soon
 	 */
+	@Deprecated
 	public static PluginBase instanceCheck() {
 		return instanceCheck("Plugin instance is null!");
 	}
@@ -45,12 +48,15 @@ public final class Checks {
 	 * @return the {@link PluginBase} instance
 	 *
 	 * @throws IllegalStateException if the instance is null
+	 * @deprecated will be deleted soon
 	 */
+	@Deprecated
 	public static PluginBase instanceCheck(final String falseMessage) {
-		if (PluginBase.getInstance() == null) {
-			throw new IllegalStateException(falseMessage);
-		}
-		return PluginBase.getInstance();
+//		if (PluginBase.getInstance() == null) {
+//			throw new IllegalStateException(falseMessage);
+//		}
+//		return PluginBase.getInstance();
+		return null;
 	}
 
 	/**

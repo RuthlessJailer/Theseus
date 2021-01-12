@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ruthlessjailer.api.theseus.Checks;
 import com.ruthlessjailer.api.theseus.ReflectUtil;
-import com.ruthlessjailer.api.theseus.io.DiskUtil;
+import com.ruthlessjailer.api.theseus.delete.io.DiskUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;

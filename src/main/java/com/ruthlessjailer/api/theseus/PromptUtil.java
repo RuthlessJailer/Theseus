@@ -29,7 +29,7 @@ public final class PromptUtil implements Listener {
 
 	public static String exitMessage = "exit";
 
-	@Getter(AccessLevel.PACKAGE)
+	@Getter(AccessLevel.PUBLIC)
 	private static final Listener listenerInstance = new PromptUtil("", Collections.emptyList(), new String[0]);
 
 	private final String       text;
@@ -53,10 +53,10 @@ public final class PromptUtil implements Listener {
 		final int       slot = player.getInventory().getHeldItemSlot();
 		player.getInventory().setItem(slot, book);
 //		final Object packet = newInstanceOf(getNMSClass("PacketPlayOutOpenBook"), getEnum((Class<E>) getNMSClass("EnumHand"), "MAIN_HAND"));
-		Common.runLater(() -> {//((CraftPlayer)player).getHandle().playerConnection.sendPacket()
+//		Common.runLater(() -> {//((CraftPlayer)player).getHandle().playerConnection.sendPacket()
 //			sendPacket(player, packet);
-			player.getInventory().setItem(slot, og);
-		});
+		player.getInventory().setItem(slot, og);
+//		});
 	}
 
 	public static void sign(@NonNull final Player player, final Sign sign, @NonNull final Consumer<PromptUtil> consumer) {

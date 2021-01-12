@@ -5,7 +5,7 @@ import com.ruthlessjailer.api.theseus.item.ItemBuilder;
 import com.ruthlessjailer.api.theseus.menu.button.ActionButton;
 import com.ruthlessjailer.api.theseus.menu.button.ButtonAction;
 import com.ruthlessjailer.api.theseus.menu.button.ButtonBase;
-import com.ruthlessjailer.api.theseus.task.handler.FutureHandler;
+import com.ruthlessjailer.api.theseus.task.delete.handler.FutureHandler;
 import lombok.*;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Material;
